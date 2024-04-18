@@ -1,0 +1,2 @@
+# OI
+Olimpiada Informatyczna
