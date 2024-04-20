@@ -1,6 +1,13 @@
 {
     "files.associations": {
         "xiosbase": "cpp",
-        "xlocale": "cpp"
+        "xlocale": "cpp",
+        "xtree": "cpp",
+        "iostream": "cpp",
+        "vector": "cpp",
+        "queue": "cpp",
+        "set": "cpp",
+        "deque": "cpp",
+        "xstring": "cpp"
     }
 }

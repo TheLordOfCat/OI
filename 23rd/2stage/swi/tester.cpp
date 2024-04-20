@@ -6,6 +6,8 @@
 #include <cstdlib>
 #include <ctime>
 
+#define PB push_back
+
 using namespace std;
 
 struct range{
@@ -49,14 +51,19 @@ void getRandom(){
     R.clear();
 
     srand(time(0));
-    n =rand()%10+1;
-    m = rand()%5+1;
+    n =rand()%2000+1;
+    if(n < 2) n =2;
+    m = rand()%100+1;
     for(int i = 0; i<m; i++){
         range temp;
-        temp.l = rand()%n +1;
+        temp.l = rand()%(n-1) +1;
         temp.a = rand()%(n-temp.l) +1;
         temp.b = rand()%(n-temp.l) +1;
-        R.push_back(temp);
+        if(temp.a == temp.b){
+            i--;
+        }else{
+            R.push_back(temp);
+        }
     }
 }
 
@@ -69,7 +76,7 @@ void printData(){
 
 int brute(){
     vector<vector<int>> graph(n+1, vector<int>());
-    for(int i = 0; i<n; i++){
+    for(int i = 0; i<m; i++){
         range temp = R[i];
         for(int i = 0; i<temp.l; i++){
             graph[temp.a+i].push_back(temp.b+i);
@@ -102,40 +109,75 @@ int brute(){
     return ans;
 }
 
+vector<range> spanningTree(vector<range> path, int before){
+    vector<vector<int>> graph(n+1, vector<int>());
+    for(int r = 0; r < path.size(); r++){
+        range cur = path[r];
+        graph[cur.a].push_back(cur.b);
+        graph[cur.b].push_back(cur.a);
+    }
+
+    vector<bool>vis(n+1, false);
+    vector<range> ans;
+    for(int i = 1; i<=n; i++){
+        if(!vis[i]){
+            queue<int> Q;
+            Q.push(i);
+            vis[i] = true;
+            while(!Q.empty()){
+                int v = Q.front();
+                Q.pop();
+                for(int j = 0; j<graph[v].size(); j++){
+                    int cur = graph[v][j];
+                    if(!vis[cur]){
+                        Q.push(cur);
+                        vis[cur] = true;
+                        ans.push_back(range(v,cur,before));
+                    }
+                }
+            }
+        }
+    }
+
+    return ans;
+}
+
 int solve(){
-    vector<set<range>> S(n+1,set<range>());
+    vector<vector<range>> S(n+1,vector<range>());
     int maxL = 0;
     for(int i = 0; i<m; i++){
-        S[R[i].l].insert(R[i]);
+        S[R[i].l].PB(R[i]);
         maxL = max(maxL, R[i].l);
     }
 
     int power = 0;
     while(1<<power < maxL) power++;
 
-    for(int i = power-1; i>= 1; i--){
-        int before = 1<<(i-1);
-        for(int j = 1<<(i+1); j>= 1<<(i); j--){
-            for(auto x = S[j].begin(); x != S[j].end(); x++){
-                range cur = *x;
+    for(int i = power-1; i>= 0; i--){
+        int before = 1<<(i);
+        vector<range> canEdges;
+        for(int j = min(1<<(i+1),n); j> before; j--){
+            for(int x = 0; x < S[j].size(); x++){
+                range cur = S[j][x];
                 range t1 = cur;
                 t1.l = before;
-                if(S[before].find(t1) != S[before].end()){
-                    S[before].insert(t1);
-                }
+                canEdges.push_back(t1);
                 range t2 = cur;
                 t2.a = cur.a + cur.l - before;
                 t2.b = cur.b + cur.l - before;
                 t2.l = before;
-                if(S[before].find(t2) != S[before].end()){
-                    S[before].insert(t2);
-                }
+                canEdges.push_back(t2);
             }
+            S.pop_back();
+        }
+        vector<range> span = spanningTree(canEdges, before);
+        for(int j = 0; j<span.size(); j++){
+            S[before].push_back(span[j]);
         }
     }
 
     vector<vector<int>> graph(n+1, vector<int>());
-    for(auto r = S[0].begin(); r != S[0].end(); r++){
+    for(auto r = S[1].begin(); r != S[1].end(); r++){
         range cur = *r;
         graph[cur.a].push_back(cur.b);
         graph[cur.b].push_back(cur.a);
@@ -171,8 +213,8 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
-    for(int test = 1; test <= 1; test++){
+    int op = 0;
+    for(int test = 1; test <= 1000; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
