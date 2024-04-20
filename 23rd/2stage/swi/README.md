@@ -1,4 +1,4 @@
-# 23 Olimpiada Iformatyczna
+# 23 Olimpiada Informatyczna
 Zadanie: SWI <br />
 Świąteczny łańcuch <br />
 23rd Olimpiad: https://oi.edu.pl/l/288/ <br />

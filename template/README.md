@@ -1,4 +1,4 @@
-# n Olimpiada Iformatyczna
+# n Olimpiada Informatyczna
 nth Olimpiad:  <br />
 Szkopuł:  <br />
 Solution:  <br />
