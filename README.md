@@ -5,9 +5,9 @@ Olimpiada Informatyczna
 
 Main page: https://oi.edu.pl/ <br />
 Problems lists: <br/>
-        https://oi.edu.pl/l/42/ <br />
-        https://www.algonotes.com/pl/archive/oi/ <br />
-        https://szkopul.edu.pl/task_archive/oi/ <br />
+      https://oi.edu.pl/l/42/ <br />
+      https://www.algonotes.com/pl/archive/oi/ <br />
+      https://szkopul.edu.pl/task_archive/oi/ <br />
 Official YouTube channel: https://www.youtube.com/@olimpiadainf/ <br />
 Szkopuł: https://szkopul.edu.pl/ <br />
 <br />
