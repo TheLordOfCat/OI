@@ -2,6 +2,7 @@
 #include <vector>
 #include <algorithm>
 #include <queue>
+#include <stack>
 
 #include <ctime>
 #include <cstdlib>
@@ -130,18 +131,80 @@ vector<int> brute(){
     return ans;
 }
 
+vector<int> topoSort(vector<int>& verticies, vector<vector<int>>& g){
+    vector<bool> vis(n+1, false);
+    vector<int> ans;
 
-vector<int> SCC(){
+    for(int i = 0; i<verticies.size(); i++){
+        if(!vis[verticies[i]]){
+            stack<pair<int, bool>>  S;
+            S.push(MP(verticies[i],false));   
+            while(!S.empty()){
+                int v = S.top().first;
+                int b = S.top().second;
+                S.pop();
+                if(b){
+                    ans.push_back(v);
+                }
+                if(vis[v]){
+                    continue;
+                }
+                vis[v] = true;
+                for(int j = 0; j<g[v].size(); j++){
+                    int cur = g[v][j];
+                    if(!vis[cur]){
+                        vis[cur] = true;
+                        S.push(MP(cur, false));
+                    }
+                }
+                S.push(MP(v,true));
+            }
+        }
+    }
 
-}
+    reverse(ans.begin(), ans.end());
 
-vector<int> topoSort(){
-
+    return ans;
 } 
+
+vector<int> SCC(vector<int> &roots){
+    vector<int> vTemp;
+    for(int i = 1; i<=n; i++) vTemp.push_back(i);
+    vector<int> order = topoSort(vTemp, graph);
+
+    vector<bool> used(n+1, false);
+    vector<int> rootNodes;
+    for(int i = 1; i<=n; i++){
+        if(!used[i]){
+            stack<int> S;
+            vector<int> component;
+            S.push(i);
+            used[i] = true;
+            while(!S.empty()){
+                int v = S.top();
+                S.pop();
+                component.push_back(v);
+                for(int j = 0; j<graphR[v].size(); j++){
+                    int cur = graphR[v][j];
+                    if(!used[cur]){
+                        used[cur] = true;
+                        S.push(cur);
+                    }
+                }
+            }
+
+            int root = component.front();
+            for(int u: component) roots[u] = root;
+            rootNodes.push_back(root);
+        }
+    }
+    return rootNodes;
+}
 
 vector<int> solve(){
     //SCC
-    vector<int> verticies = SCC();
+    vector<int> roots(n+1, -1);
+    vector<int> verticies = SCC(roots);
     vector<bool> specV(n+1, false);
     for(int i = 0; i<verticies.size(); i++){
         specV[verticies[i]] = true;
@@ -160,12 +223,44 @@ vector<int> solve(){
     }
 
     //topoSort
-    vector<int> order = topoSort();
+    vector<int> order = topoSort(verticies, sccGraph);
+    vector<int> toOrder(n+1,-1);
+    for(int i = 0; i<order.size(); i++){
+        toOrder[order[i]] = i;
+    }
 
+    vector<bool> R(n+1, false);
+    vector<bool> vis(n+1, false);
+    int maxInd = -1;
+    for(int i = 0; i<order.size(); i++){
+        if(i >= toOrder[maxInd]){
+            R[order[i]] = true;
+        }
+        for(int j = 0; j<sccGraph[order[i]].size(); j++){
+            int cur = sccGraph[order[i]][j];
+            maxInd = max(maxInd, toOrder[cur]);
+        }
+    }
 
+    reverse(order.begin(), order.end());
+
+    maxInd = -1;
+    for(int i = 0; i<order.size(); i++){
+        if(i >= toOrder[maxInd]){
+            R[order[i]] = true;
+        }
+        for(int j = 0; j<sccGraphR[order[i]].size(); j++){
+            int cur = sccGraphR[order[i]][j];
+            maxInd = max(maxInd, toOrder[cur]);
+        }
+    }
 
     vector<int> ans;
-
+    for(int i = 1; i<=n; i++){
+        if(R[roots[i]]){
+            ans.push_back(i);
+        }
+    }
 
     return ans;
 }
