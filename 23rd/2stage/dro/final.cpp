@@ -53,14 +53,13 @@ vector<int> topoSort(vector<int>& verticies, vector<vector<int>>& g){
                     continue;
                 }
                 vis[v] = true;
+                S.push(MP(v,true));
                 for(int j = 0; j<g[v].size(); j++){
                     int cur = g[v][j];
                     if(!vis[cur]){
-                        vis[cur] = true;
                         S.push(MP(cur, false));
                     }
                 }
-                S.push(MP(v,true));
             }
         }
     }
@@ -134,9 +133,9 @@ vector<int> solve(){
 
     vector<bool> R(n+1, false);
     vector<bool> vis(n+1, false);
-    int maxInd = -1;
+    int maxInd = 0;
     for(int i = 0; i<order.size(); i++){
-        if(i >= toOrder[maxInd]){
+        if(i >= maxInd){
             R[order[i]] = true;
         }
         for(int j = 0; j<sccGraph[order[i]].size(); j++){
@@ -146,10 +145,13 @@ vector<int> solve(){
     }
 
     reverse(order.begin(), order.end());
-
-    maxInd = -1;
     for(int i = 0; i<order.size(); i++){
-        if(i >= toOrder[maxInd]){
+        toOrder[order[i]] = i;
+    }
+
+    maxInd = 0;
+    for(int i = 0; i<order.size(); i++){
+        if(i >= maxInd){
             R[order[i]] = true;
         }
         for(int j = 0; j<sccGraphR[order[i]].size(); j++){
