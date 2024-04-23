@@ -191,12 +191,13 @@ vector<int> SCC(vector<int> &roots){
 
     vector<bool> used(n+1, false);
     vector<int> rootNodes;
-    for(int i = 1; i<=n; i++){
-        if(!used[i]){
+    for(int i = 0; i<order.size(); i++){
+        int V = order[i];
+        if(!used[V]){
             stack<int> S;
             vector<int> component;
-            S.push(i);
-            used[i] = true;
+            S.push(V);
+            used[V] = true;
             while(!S.empty()){
                 int v = S.top();
                 S.pop();
@@ -246,6 +247,7 @@ vector<int> solve(){
         toOrder[order[i]] = i;
     }
 
+    //removing verticies in graph
     vector<bool> R(n+1, true);
     vector<bool> vis(n+1, false);
     int maxInd = 0;
@@ -261,6 +263,7 @@ vector<int> solve(){
         maxInd = max(temp,maxInd);
     }
 
+    //revmoving verticies in graphR
     reverse(order.begin(), order.end());
     for(int i = 0; i<order.size(); i++){
         toOrder[order[i]] = i;
@@ -279,6 +282,7 @@ vector<int> solve(){
         maxInd = max(temp,maxInd);
     }
 
+    //preparing ans
     vector<int> ans;
     for(int i = 1; i<=n; i++){
         if(R[roots[i]]){
