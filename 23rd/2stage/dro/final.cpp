@@ -15,6 +15,7 @@ using namespace std;
 
 const int MAXN = 500'000;
 const int MAXM = 1'000'000;
+const int INF = 2'000'000'000;
 
 int n,m;
 vector<vector<int>> graph;
@@ -114,12 +115,12 @@ vector<int> solve(){
 
     vector<vector<int>> sccGraph(n+1, vector<int>());
     vector<vector<int>> sccGraphR(n+1, vector<int>());
-    for(int i = 0; i<verticies.size(); i++){
-        for(int j = 0; j<graph[verticies[i]].size(); j++){
-            int cur = graph[verticies[i]][j];
-            if(specV[cur]){
-                sccGraph[verticies[i]].push_back(cur);
-                sccGraphR[cur].push_back(verticies[i]);
+    for(int i = 1; i<=n; i++){
+        for(int j = 0; j<graph[i].size(); j++){
+            int cur = graph[i][j];
+            if(specV[roots[cur]]){
+                sccGraph[roots[i]].push_back(roots[cur]);
+                sccGraphR[roots[cur]].push_back(roots[i]);
             }
         }
     }
@@ -131,17 +132,19 @@ vector<int> solve(){
         toOrder[order[i]] = i;
     }
 
-    vector<bool> R(n+1, false);
+    vector<bool> R(n+1, true);
     vector<bool> vis(n+1, false);
     int maxInd = 0;
     for(int i = 0; i<order.size(); i++){
-        if(i >= maxInd){
-            R[order[i]] = true;
+        if(i < maxInd){
+            R[order[i]] = false;
         }
+        int temp = INF;
         for(int j = 0; j<sccGraph[order[i]].size(); j++){
             int cur = sccGraph[order[i]][j];
-            maxInd = max(maxInd, toOrder[cur]);
+            temp = min(temp, toOrder[cur]);
         }
+        maxInd = max(temp,maxInd);
     }
 
     reverse(order.begin(), order.end());
@@ -151,13 +154,15 @@ vector<int> solve(){
 
     maxInd = 0;
     for(int i = 0; i<order.size(); i++){
-        if(i >= maxInd){
-            R[order[i]] = true;
+        if(i < maxInd){
+            R[order[i]] = false;
         }
+        int temp = INF;
         for(int j = 0; j<sccGraphR[order[i]].size(); j++){
             int cur = sccGraphR[order[i]][j];
-            maxInd = max(maxInd, toOrder[cur]);
+            temp = min(temp, toOrder[cur]);
         }
+        maxInd = max(temp,maxInd);
     }
 
     vector<int> ans;
