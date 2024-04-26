@@ -79,29 +79,28 @@ int brute() {
     //brute iteration
     for(int i = 1; i<=n; i++){
         for(int j = 1; j<=i; j++){
-            vector<int> avPair;
-            for(int o = j; o<=i; o++){
-                if(nextA[o] != -1 && nextA[o] <= i){
-                    avPair.PB(A[o]);
-                    o = nextA[o];
-                }
+            vector<vector<int>> avPair;
+            for(int p = 0; p<=i-j; p++){
+                
             }
-            bool ok = true;
-            int ind = 0, itr = 0;
-            for(int o = 1; o<=m; o++){
-                if(ind >= avPair.size()) break;
-                if(B[o] == avPair[ind]){
-                    if(itr == 0){
-                        itr++;
-                    }else{
-                        itr = 0;
-                        ind++;
+            for(int p = 0; p<avPair.size(); p++){
+                bool ok = true;
+                int ind = 0, itr = 0;
+                for(int o = 1; o<=m; o++){
+                    if(ind >= avPair[p].size()) break;
+                    if(B[o] == avPair[p][ind]){
+                        if(itr == 0){
+                            itr++;
+                        }else{
+                            itr = 0;
+                            ind++;
+                        }
                     }
                 }
-            }
-            if(ind < avPair.size()) ok = false;
-            if(ok){
-                ans = max(ans, (int)(avPair.size()*2));
+                if(ind < avPair[p].size()) ok = false;
+                if(ok){
+                    ans = max(ans, (int)(avPair[p].size()*2));
+                }
             }
         }
     }
@@ -161,8 +160,8 @@ int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
-    for (int test = 1; test <= 1; test++) {
+    int op = 0;
+    for (int test = 1; test <= 5; test++) {
         cout << "TEST nr." << test << " = ";
         if (op == 1) {
             getData();
@@ -175,9 +174,10 @@ int main() {
             cout << "ERROR\n";
             cout << "BRUTE: " << ansB << "\n";
             cout << "SOLVE: " << ansS << "\n";
+            printData();
             return 0;
-            }
-            cout << "CORRECT\n";
         }
+            cout << "CORRECT\n";
+    }
     return 0;
 }
