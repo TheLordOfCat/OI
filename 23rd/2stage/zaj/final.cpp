@@ -21,6 +21,7 @@ void getData() {
         cin >> temp;    
         A.PB(temp);
         prevA.PB(-1);
+        //unefficient due to little memory
         for(int j = i-1; j>0; j--){
             if(A[j] == A[i]){
                 prevA[i] = j;
@@ -34,6 +35,7 @@ void getData() {
         cin >> temp;
         B.PB(temp);
         prevB.PB(-1);
+        //unefficient due to little memory
         for(int j = i-1; j>0; j--){
             if(B[j] == B[i]){
                 prevB[i] = j;
