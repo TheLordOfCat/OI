@@ -1,6 +1,7 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <algorithm>
 
 #include <cstdlib>
 #include <ctime>
@@ -10,18 +11,18 @@
 #define PB push_back
 
 using namespace std;
-using ll = long long int;
-using ull = unsigned long long int;
+typedef long long int ll;
+typedef unsigned long long int ull;
 
-const ull ullINF = 18'000'000'000'000'000;
+const ull ullINF = 18'000'000'000'000;
 const int INF = 2'000'000'000;
 
-ull n, m, k;
-vector<pair<ull, ull>> blocks;
-ull startX = m;
-ull startY = 0;
+int n, m, k;
+vector<pair<int, int>> blocks;
+int startX = m;
+int startY = 0;
 
-ull gcd(ull a, ull b) {
+int gcd(int a, int b) {
     while (b) {
         a %= b;
         swap(a, b);
@@ -32,7 +33,7 @@ ull gcd(ull a, ull b) {
 void getData() {
     cin >> m >> n >> k;
     for (int i = 0; i < k; i++) {
-        ull a, b;
+        int a, b;
         cin >> a >> b;
         blocks.PB(MP(a, b));
     }
@@ -41,7 +42,7 @@ void getData() {
 void getRandom() {
     n = rand() % 10 + 1;
     m = rand() % 10 + 1;
-    ull g = gcd(n, m);
+    int g = gcd(n, m);
     if (g != 1) {
         n /= g;
         m /= g;
@@ -49,8 +50,8 @@ void getRandom() {
     k = rand() % (n * m);
     vector<vector<bool>> vis(m + 1, vector<bool> (n + 1, false));
     for (int i = 0; i < k; i++) {
-        ull a = rand() % n + 1;
-        ull b = rand() % m + 1;
+        int a = rand() % n + 1;
+        int b = rand() % m + 1;
         if (!vis[a][b]) {
             blocks.PB(MP(a, b));
             vis[a][b] = true;
@@ -67,7 +68,7 @@ void printData() {
     }
 }
 
-pair<bool, bool> isWall(ull x, ull y) {
+pair<bool, bool> isWall(int x, int y) {
     // second value idicates the which wall is conntact made with
     if (x == 0 || x == m) {
         return MP(true, true);
@@ -78,7 +79,7 @@ pair<bool, bool> isWall(ull x, ull y) {
     return MP(false, false); // second value not used
 }
 
-pair<ull, ull> middle(ull x, ull y, pair<int, int> d) {
+pair<int, int> middle(int x, int y, pair<int, int> d) {
     if (x % 2 == 0) {
         if (d.first == 1) {
             return MP(x + 1, y);
@@ -106,9 +107,9 @@ pair<int, int> reflect(pair<int, int> d, bool side) {
 
 ull brute() {
     ull ans = 0;
-    ull K = k;
-    ull curX = startX;
-    ull curY = startY;
+    int K = k;
+    int curX = startX;
+    int curY = startY;
     pair<int, int> dir = MP(-1, 1);
     vector<bool> vis(k + 1, false);
 
@@ -117,7 +118,7 @@ ull brute() {
         if (wall.first) {
             reflect(dir, wall.second);
         } else {
-            pair<ull, ull> mid = middle(curX, curY, dir);
+            pair<int, int> mid = middle(curX, curY, dir);
             for (int i = 0; i < k; i++) {
                 if (blocks[i].first == mid.first && blocks[i].second == mid.second && !vis[i]) {
                     if (mid.first != curX) {
@@ -137,8 +138,210 @@ ull brute() {
     return ans;
 }
 
-ull solve() {
+struct pos{
+    PII dir;
+    PII cord;
+    pos(PII cord1, PII dir1){
+        dir = dir1;
+        cord = cord1;
+    }
+    pos(){
+        dir = MP(0,0);
+        cord = MP(-1,-1);
+    }
+};
 
+map<pos,pos> graph;
+
+bool customPairSort(pair<int,PII> a, pair<int,PII> b){
+    if(a.first == b.first){
+        if(a.second.first == b.second.first){
+            return a.second.second < b.second.second;
+        }
+        return a.second.first < b.second.first;
+    }
+    return a.first < b.first;
+}
+
+void makeEdge(PII a, PII b, PII dir){
+    pos start(a,dir);
+    pos final(b, dir);
+    graph.insert(MP(start,final));
+    start.dir.first *= -1;
+    start.dir.second *= -1;
+    final.dir.first *= -1;
+    final.dir.second *= -1;
+    graph.insert(MP(final,start));
+}
+
+void createGraph(){
+    //right tilted
+
+    //finding points of intrest
+    vector<pair<int,PII>> intrestPoint;
+    intrestPoint.PB(MP(0,MP(0,0)));
+    for(int i = 1; i<=n; i++){
+        intrestPoint.PB(MP((-1)*i,MP(i,0)));
+        intrestPoint.PB(MP(m-i,MP(i,m)));
+    }
+    for(int i = 1; i<=m; i++){
+        intrestPoint.PB(MP(i,MP(0,i)));
+        intrestPoint.PB(MP(i-n,MP(n,i)));
+    }
+    for(int i = 0; i<k; i++){
+        pair<int,int> mid = MP(blocks[i].first-1, blocks[i].second-1);
+        intrestPoint.PB(MP(mid.second - (mid.first-1),MP(mid.second, mid.first-1)));
+        intrestPoint.PB(MP(mid.second - (mid.first+1),MP(mid.second, mid.first+1)));
+        intrestPoint.PB(MP(mid.second-1 - (mid.first),MP(mid.second-1, mid.first)));
+        intrestPoint.PB(MP(mid.second+1 - (mid.first),MP(mid.second+1, mid.first)));
+    }
+    //sorting
+    sort(intrestPoint.begin(), intrestPoint.end(), customPairSort);
+
+    //creating edges
+    for(int i = 0; i<intrestPoint.size()-1; i++){
+        if(intrestPoint[i].first == intrestPoint[i+1].first){
+            makeEdge(intrestPoint[i].second, intrestPoint[i+1].second, MP(1,1));
+        }
+    }
+
+    //left tilted
+
+    //finding points of intrest
+    vector<pair<int,PII>> intrestPoint;
+    intrestPoint.PB(MP(0,MP(0,0)));
+    for(int i = 1; i<=n; i++){
+        intrestPoint.PB(MP(i,MP(i,0)));
+        intrestPoint.PB(MP(m+i,MP(i,m)));
+    }
+    for(int i = 1; i<=m; i++){
+        intrestPoint.PB(MP(i,MP(0,i)));
+        intrestPoint.PB(MP(i+n,MP(n,i)));
+    }
+    for(int i = 0; i<k; i++){
+        pair<int,int> mid = MP(blocks[i].first-1, blocks[i].second-1);
+        intrestPoint.PB(MP(mid.second + (mid.first-1),MP(mid.second, mid.first-1)));
+        intrestPoint.PB(MP(mid.second + (mid.first+1),MP(mid.second, mid.first+1)));
+        intrestPoint.PB(MP(mid.second-1 + (mid.first),MP(mid.second-1, mid.first)));
+        intrestPoint.PB(MP(mid.second+1 + (mid.first),MP(mid.second+1, mid.first)));
+    }
+    //sorting
+    sort(intrestPoint.begin(), intrestPoint.end(), customPairSort);
+
+    //creating edges
+    for(int i = 0; i<intrestPoint.size()-1; i++){
+        if(intrestPoint[i].first == intrestPoint[i+1].first){
+            makeEdge(intrestPoint[i].second, intrestPoint[i+1].second, MP(-1,1));
+        }
+    }
+
+}
+
+void compressGraph(){
+    //walls
+    for(int i = 1; i<=n; i++){
+        //bottom
+        pos a = graph[pos(MP(i,0), MP(-1,1))];
+        pos b = graph[pos(MP(i,0), MP(1,1))];
+        a.dir.first *= -1;
+        a.dir.second *= -1;
+        graph.erase(a);
+        graph.insert(MP(a,b));
+
+        a.dir.first *= -1;
+        a.dir.second *= -1;
+        b.dir.first *= -1;
+        b.dir.second *= -1;
+        graph.erase(b);
+        graph.insert(MP(b,a));
+        
+        //top
+        a = graph[pos(MP(i,m), MP(-1,-1))];
+        b = graph[pos(MP(i,m), MP(1,-1))];
+        a.dir.first *= -1;
+        a.dir.second *= -1;
+        graph.erase(a);
+        graph.insert(MP(a,b));
+
+        a.dir.first *= -1;
+        a.dir.second *= -1;
+        b.dir.first *= -1;
+        b.dir.second *= -1;
+        graph.erase(b);
+        graph.insert(MP(b,a));
+    }
+    for(int i = 1; i<=m; i++){
+        //left
+        pos a = graph[pos(MP(0,i), MP(1,1))];
+        pos b = graph[pos(MP(0,i), MP(1,-1))];
+        a.dir.first *= -1;
+        a.dir.second *= -1;
+        graph.erase(a);
+        graph.insert(MP(a,b));
+
+        a.dir.first *= -1;
+        a.dir.second *= -1;
+        b.dir.first *= -1;
+        b.dir.second *= -1;
+        graph.erase(b);
+        graph.insert(MP(b,a));
+        
+        //right
+        a = graph[pos(MP(i,m), MP(-1,1))];
+        b = graph[pos(MP(i,m), MP(-1,-1))];
+        a.dir.first *= -1;
+        a.dir.second *= -1;
+        graph.erase(a);
+        graph.insert(MP(a,b));
+
+        a.dir.first *= -1;
+        a.dir.second *= -1;
+        b.dir.first *= -1;
+        b.dir.second *= -1;
+        graph.erase(b);
+        graph.insert(MP(b,a));
+    }
+
+    //blocks
+    for(int i = 0; i<k; i++){
+        pair<int,int> mid = MP(blocks[i].first-1, blocks[i].second-1);
+        intrestPoint.PB(MP(mid.second - (mid.first-1),MP(mid.second, mid.first-1)));
+        intrestPoint.PB(MP(mid.second - (mid.first+1),MP(mid.second, mid.first+1)));
+        intrestPoint.PB(MP(mid.second-1 - (mid.first),MP(mid.second-1, mid.first)));
+        intrestPoint.PB(MP(mid.second+1 - (mid.first),MP(mid.second+1, mid.first)));
+    }
+    //sorting
+    sort(intrestPoint.begin(), intrestPoint.end(), customPairSort);
+
+    //creating edges
+    for(int i = 0; i<intrestPoint.size()-1; i++){
+        if(intrestPoint[i].first == intrestPoint[i+1].first){
+            makeEdge(intrestPoint[i].second, intrestPoint[i+1].second, MP(1,1));
+        }
+    }
+
+}
+
+ull traverse(){
+    ull ans = 0;
+    int K = k;
+
+    while(K > 0){
+
+        ans++;
+    }
+
+    return ans;
+}
+
+ull solve() {
+    //create graph
+    createGraph();
+    //compress graph
+    compressGraph();
+    //traverse graph
+    ull ans = traverse();
+    return ans;
 }
 
 int main() {
@@ -149,26 +352,26 @@ int main() {
     for (int test = 1; test <= 1; test++) {
         cout << "TEST nr." << test << " = ";
         if (op == 1) {
-        getData();
+            getData();
         } else {
-        getRandom();
+            getRandom();
         }
         // scaling up by 2 to have no fractions
         n *= 2;
         m *= 2;
         for (int i = 0; i < k; i++) {
-        blocks[i].first *= 2;
-        blocks[i].second *= 2;
+            blocks[i].first *= 2;
+            blocks[i].second *= 2;
         }
 
         ull ansB = brute();
         ull ansS = solve();
         if (ansB != ansS) {
-        cout << "ERROR\n";
-        cout << "BRUTE: " << ansB << "\n";
-        cout << "SOLVE: " << ansS << "\n";
-        printData();
-        return 0;
+            cout << "ERROR\n";
+            cout << "BRUTE: " << ansB << "\n";
+            cout << "SOLVE: " << ansS << "\n";
+            printData();
+            return 0;
         }
         cout << "CORRECT\n";
     }
