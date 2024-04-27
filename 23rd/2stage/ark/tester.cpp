@@ -151,7 +151,21 @@ struct pos{
     }
 };
 
-map<pos,pos> graph;
+struct comparePos {
+    bool operator()(const pos& lhs, const pos& rhs) const {
+        if (lhs.cord.first != rhs.cord.first) {
+            return lhs.cord.first < rhs.cord.first;
+        }else if(lhs.cord.second == rhs.cord.second){
+            return lhs.cord.second < rhs.cord.second;
+        }else if(lhs.dir.first == lhs.dir.second){
+            return lhs.dir.first < rhs.dir.first;
+        }else{
+            return lhs.dir.second < rhs.dir.second;
+        }
+    }
+};
+
+map<pos,pair<pos,int>, comparePos> graph;
 
 bool customPairSort(pair<int,PII> a, pair<int,PII> b){
     if(a.first == b.first){
@@ -166,12 +180,12 @@ bool customPairSort(pair<int,PII> a, pair<int,PII> b){
 void makeEdge(PII a, PII b, PII dir){
     pos start(a,dir);
     pos final(b, dir);
-    graph.insert(MP(start,final));
+    graph.insert(MP(start,MP(final,b.first-a.first)));
     start.dir.first *= -1;
     start.dir.second *= -1;
     final.dir.first *= -1;
     final.dir.second *= -1;
-    graph.insert(MP(final,start));
+    graph.insert(MP(final,MP(start,b.first-a.first)));
 }
 
 void createGraph(){
@@ -190,10 +204,10 @@ void createGraph(){
     }
     for(int i = 0; i<k; i++){
         pair<int,int> mid = MP(blocks[i].first-1, blocks[i].second-1);
-        intrestPoint.PB(MP(mid.second - (mid.first-1),MP(mid.second, mid.first-1)));
-        intrestPoint.PB(MP(mid.second - (mid.first+1),MP(mid.second, mid.first+1)));
-        intrestPoint.PB(MP(mid.second-1 - (mid.first),MP(mid.second-1, mid.first)));
-        intrestPoint.PB(MP(mid.second+1 - (mid.first),MP(mid.second+1, mid.first)));
+        intrestPoint.PB(MP(mid.second - (mid.first-1),MP(mid.first, mid.second-1)));
+        intrestPoint.PB(MP(mid.second - (mid.first+1),MP(mid.first, mid.second+1)));
+        intrestPoint.PB(MP(mid.second-1 - (mid.first),MP(mid.first-1, mid.second)));
+        intrestPoint.PB(MP(mid.second+1 - (mid.first),MP(mid.first+1, mid.second)));
     }
     //sorting
     sort(intrestPoint.begin(), intrestPoint.end(), customPairSort);
@@ -208,7 +222,7 @@ void createGraph(){
     //left tilted
 
     //finding points of intrest
-    vector<pair<int,PII>> intrestPoint;
+    intrestPoint.clear();
     intrestPoint.PB(MP(0,MP(0,0)));
     for(int i = 1; i<=n; i++){
         intrestPoint.PB(MP(i,MP(i,0)));
@@ -220,10 +234,10 @@ void createGraph(){
     }
     for(int i = 0; i<k; i++){
         pair<int,int> mid = MP(blocks[i].first-1, blocks[i].second-1);
-        intrestPoint.PB(MP(mid.second + (mid.first-1),MP(mid.second, mid.first-1)));
-        intrestPoint.PB(MP(mid.second + (mid.first+1),MP(mid.second, mid.first+1)));
-        intrestPoint.PB(MP(mid.second-1 + (mid.first),MP(mid.second-1, mid.first)));
-        intrestPoint.PB(MP(mid.second+1 + (mid.first),MP(mid.second+1, mid.first)));
+        intrestPoint.PB(MP(mid.second + (mid.first-1),MP(mid.first, mid.second-1)));
+        intrestPoint.PB(MP(mid.second + (mid.first+1),MP(mid.first, mid.second+1)));
+        intrestPoint.PB(MP(mid.second-1 + (mid.first),MP(mid.first-1, mid.second)));
+        intrestPoint.PB(MP(mid.second+1 + (mid.first),MP(mid.first+1, mid.second)));
     }
     //sorting
     sort(intrestPoint.begin(), intrestPoint.end(), customPairSort);
@@ -237,98 +251,106 @@ void createGraph(){
 
 }
 
+void compressEdge(pos a, pos b, int len){
+    a.dir.first *= -1;
+    a.dir.second *= -1;
+    graph.erase(a);
+    graph.insert(MP(a,MP(b,len)));
+
+    a.dir.first *= -1;
+    a.dir.second *= -1;
+    b.dir.first *= -1;
+    b.dir.second *= -1;
+    graph.erase(b);
+    graph.insert(MP(b,MP(a,len)));
+}
+
 void compressGraph(){
     //walls
     for(int i = 1; i<=n; i++){
         //bottom
-        pos a = graph[pos(MP(i,0), MP(-1,1))];
-        pos b = graph[pos(MP(i,0), MP(1,1))];
-        a.dir.first *= -1;
-        a.dir.second *= -1;
-        graph.erase(a);
-        graph.insert(MP(a,b));
-
-        a.dir.first *= -1;
-        a.dir.second *= -1;
-        b.dir.first *= -1;
-        b.dir.second *= -1;
-        graph.erase(b);
-        graph.insert(MP(b,a));
+        pos a = graph[pos(MP(i,0), MP(-1,1))].first;
+        pos b = graph[pos(MP(i,0), MP(1,1))].first;
+        int lena = graph[pos(MP(i,0), MP(-1,1))].second;
+        int lenb = graph[pos(MP(i,0), MP(1,1))].second;
+        compressEdge(a,b,lena+lenb);
         
         //top
-        a = graph[pos(MP(i,m), MP(-1,-1))];
-        b = graph[pos(MP(i,m), MP(1,-1))];
-        a.dir.first *= -1;
-        a.dir.second *= -1;
-        graph.erase(a);
-        graph.insert(MP(a,b));
-
-        a.dir.first *= -1;
-        a.dir.second *= -1;
-        b.dir.first *= -1;
-        b.dir.second *= -1;
-        graph.erase(b);
-        graph.insert(MP(b,a));
+        a = graph[pos(MP(i,m), MP(-1,-1))].first;
+        b = graph[pos(MP(i,m), MP(1,-1))].first;
+        lena = graph[pos(MP(i,0), MP(-1,-1))].second;
+        lenb = graph[pos(MP(i,0), MP(1,-1))].second;
+        compressEdge(a,b,lena+lenb);
     }
     for(int i = 1; i<=m; i++){
         //left
-        pos a = graph[pos(MP(0,i), MP(1,1))];
-        pos b = graph[pos(MP(0,i), MP(1,-1))];
-        a.dir.first *= -1;
-        a.dir.second *= -1;
-        graph.erase(a);
-        graph.insert(MP(a,b));
-
-        a.dir.first *= -1;
-        a.dir.second *= -1;
-        b.dir.first *= -1;
-        b.dir.second *= -1;
-        graph.erase(b);
-        graph.insert(MP(b,a));
+        pos a = graph[pos(MP(0,i), MP(1,1))].first;
+        pos b = graph[pos(MP(0,i), MP(1,-1))].first;
+        int lena = graph[pos(MP(0,i), MP(1,1))].second;
+        int lenb = graph[pos(MP(0,i), MP(1,-1))].second;
+        compressEdge(a,b,lena+lenb);
         
         //right
-        a = graph[pos(MP(i,m), MP(-1,1))];
-        b = graph[pos(MP(i,m), MP(-1,-1))];
-        a.dir.first *= -1;
-        a.dir.second *= -1;
-        graph.erase(a);
-        graph.insert(MP(a,b));
-
-        a.dir.first *= -1;
-        a.dir.second *= -1;
-        b.dir.first *= -1;
-        b.dir.second *= -1;
-        graph.erase(b);
-        graph.insert(MP(b,a));
+        a = graph[pos(MP(i,m), MP(-1,1))].first;
+        b = graph[pos(MP(i,m), MP(-1,-1))].first;
+        lena = graph[pos(MP(i,m), MP(-1,1))].second;
+        lenb = graph[pos(MP(i,m), MP(-1,-1))].second;
+        compressEdge(a,b,lena+lenb);
     }
-
-    //blocks
-    for(int i = 0; i<k; i++){
-        pair<int,int> mid = MP(blocks[i].first-1, blocks[i].second-1);
-        intrestPoint.PB(MP(mid.second - (mid.first-1),MP(mid.second, mid.first-1)));
-        intrestPoint.PB(MP(mid.second - (mid.first+1),MP(mid.second, mid.first+1)));
-        intrestPoint.PB(MP(mid.second-1 - (mid.first),MP(mid.second-1, mid.first)));
-        intrestPoint.PB(MP(mid.second+1 - (mid.first),MP(mid.second+1, mid.first)));
-    }
-    //sorting
-    sort(intrestPoint.begin(), intrestPoint.end(), customPairSort);
-
-    //creating edges
-    for(int i = 0; i<intrestPoint.size()-1; i++){
-        if(intrestPoint[i].first == intrestPoint[i+1].first){
-            makeEdge(intrestPoint[i].second, intrestPoint[i+1].second, MP(1,1));
-        }
-    }
-
 }
+
+map<PII, bool> remBlock;
 
 ull traverse(){
     ull ans = 0;
     int K = k;
 
-    while(K > 0){
+    for(int i = 0; i<k; i++){
+        remBlock.insert(MP(blocks[i], false));
+    }
 
-        ans++;
+    pos cur(MP(startX,startY),MP(-1,1));
+    while(K > 0){
+        ans += graph[cur].second;
+        cur = graph[cur].first;
+        if(remBlock.find(cur.cord) != remBlock.end()){
+            if(!remBlock[cur.cord]){
+                K--;
+                remBlock[cur.cord] = true;
+
+                pair<int,int> mid = middle(cur.cord.first, cur.cord.second,cur.dir);
+
+                if(cur.cord.first != mid.first){
+                    cur.dir.second *= -1;
+                }else if(cur.cord.second != mid.second){
+                    cur.dir.first *= -1;
+                }
+
+                pos a = graph[pos(MP(mid.first-1, mid.second), MP(-1,-1))].first;
+                pos b = graph[pos(MP(mid.first, mid.second+1), MP(1,1))].first;
+                int lena = graph[pos(MP(mid.first-1, mid.second), MP(-1,-1))].second;
+                int lenb = graph[pos(MP(mid.first, mid.second+1), MP(1,1))].second;
+                compressEdge(a,b, lena+lenb);
+
+                a = graph[pos(MP(mid.first, mid.second-1), MP(-1,-1))].first;
+                b = graph[pos(MP(mid.first+1, mid.second), MP(1,1))].first;
+                lena = graph[pos(MP(mid.first, mid.second-1), MP(-1,-1))].second;
+                lenb = graph[pos(MP(mid.first+1, mid.second), MP(1,1))].second;
+                compressEdge(a,b, lena+lenb);
+                
+                a = graph[pos(MP(mid.first-1, mid.second), MP(-1,1))].first;
+                b = graph[pos(MP(mid.first, mid.second-1), MP(1,-1))].first;
+                lena = graph[pos(MP(mid.first-1, mid.second), MP(-1,1))].second;
+                lenb = graph[pos(MP(mid.first, mid.second-1), MP(1,-1))].second;
+                compressEdge(a,b, lena+lenb);
+
+                a = graph[pos(MP(mid.first, mid.second+1), MP(-1,1))].first;
+                b = graph[pos(MP(mid.first+1, mid.second), MP(1,-1))].first;
+                lena = graph[pos(MP(mid.first, mid.second+1), MP(-1,1))].second;
+                lenb = graph[pos(MP(mid.first+1, mid.second), MP(1,-1))].second;
+                compressEdge(a,b, lena+lenb);
+            }
+        }
     }
 
     return ans;
