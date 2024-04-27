@@ -8,50 +8,46 @@ using namespace std;
 int n, m;
 vector<int> A, B;
 
+vector<int> prevA, prevB;
+
 void getData() {
     cin >> n >> m;
     A.push_back(-1);
     B.push_back(-1);
-    for (int i = 0; i < n; i++) {
+    prevA.push_back(-1);
+    prevB.push_back(-1);
+    for (int i = 1; i <= n; i++) {
         int temp;
         cin >> temp;    
         A.PB(temp);
+        prevA.PB(-1);
+        for(int j = i-1; j>0; j--){
+            if(A[j] == A[i]){
+                prevA[i] = j;
+                break;
+            }
+        }
     }
-    for (int i = 0; i < m; i++) {
+
+    for (int i = 1; i <= m; i++) {
         int temp;
         cin >> temp;
         B.PB(temp);
+        prevB.PB(-1);
+        for(int j = i-1; j>0; j--){
+            if(B[j] == B[i]){
+                prevB[i] = j;
+                break;
+            }
+        }
     }
 }
 
 int solve() {
-    // creating prevA, prevB
-    int maxNum = 0;
-    for(int i = 0; i<n; i++) maxNum = max(maxNum, A[i]);
-    for(int i = 0; i<m; i++) maxNum = max(maxNum, B[i]);
-    vector<int> prevA(n+1, -1), prevB(m+1, -1);
-
-    vector<int> last(maxNum+1, -1);
-    for(int i = n; i>0; i--){
-        prevA[i] = last[A[i]];
-        last[A[i]] = i;
-    }
-
-    last.clear();
-    for(int i = 0; i<maxNum+1; i++) last.PB(-1);
-
-    for(int i = m; i>0; i--){
-        prevB[i] = last[B[i]];
-        last[B[i]] = i;
-    }
-
     // filling WNP
-    vector<int> NWP[2] = {vector<int>(m+1, 0), vector<int>(m+1, 0)};
+    vector<vector<int>> NWP(2, vector<int>(m+1, 0));
 
     vector<int> mem(m+1, 0); //holding the NWP for the last val
-    for(int j = 0; j<=m; j++){
-        NWP[0][j] = 0;
-    }
     for(int i = 1; i<=n; i++){
         NWP[i%2][0] = 0;
         for(int j = 1;j<=m; j++){
@@ -69,7 +65,7 @@ int solve() {
         }
     }
 
-    int ans = NWP[n%2].back();
+    int ans = NWP[n%2][m];
     return ans;
 }
 

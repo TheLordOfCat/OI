@@ -28,9 +28,11 @@ void getData() {
 }
 
 void getRandom() {
+    A.clear();
+    B.clear();
     srand(time(0));
-    n = rand() % 10 + 1;
-    m = rand() % 15 + 1;
+    n = rand() % 10 + 2;
+    m = rand() % 15 + 2;
     A.push_back(-1);
     B.push_back(-1);
 
@@ -57,84 +59,70 @@ void printData() {
 }
 
 int brute() {
-    int ans = 0;
-    //nextA nextB
-    int maxNum = 0;
-    for(int i = 1; i<=n; i++) maxNum = max(maxNum, A[i]);
-    for(int i = 1; i<=m; i++) maxNum = max(maxNum, B[i]);
-    vector<int> nextA(n+1, -1),nextB(m+1, -1);
+    vector<vector<int>> NWP(n+1, vector<int>(m+1, 0));
 
-    vector<int> memo(maxNum+1, -1);
-    for(int i = n; i>0; i--){
-        nextA[i] = memo[A[i]];
-        memo[A[i]] = i;
-    }
-    memo.clear();
-    for(int i = 0; i<maxNum+1; i++)memo.PB(-1);
-    for(int i = m; i>0; i--){
-        nextB[i] = memo[B[i]];
-        memo[B[i]] = i;
-    }
-
-    //brute iteration
     for(int i = 1; i<=n; i++){
-        for(int j = 1; j<=i; j++){
-            vector<vector<int>> avPair;
-            for(int p = 0; p<=i-j; p++){
-                
-            }
-            for(int p = 0; p<avPair.size(); p++){
-                bool ok = true;
-                int ind = 0, itr = 0;
-                for(int o = 1; o<=m; o++){
-                    if(ind >= avPair[p].size()) break;
-                    if(B[o] == avPair[p][ind]){
-                        if(itr == 0){
-                            itr++;
-                        }else{
-                            itr = 0;
-                            ind++;
-                        }
+        for(int j = 1; j<=m; j++){
+            if(A[i] == B[j]){
+                int prevA = -1;
+                for(int o = i-1; o > 0; o--){
+                    if(A[o] == A[i]){
+                        prevA = o;
+                        break;
                     }
                 }
-                if(ind < avPair[p].size()) ok = false;
-                if(ok){
-                    ans = max(ans, (int)(avPair[p].size()*2));
+                int prevB = -1;
+                for(int o = j-1; o > 0; o--){
+                    if(B[o] == B[j]){
+                        prevB = o;
+                        break;
+                    }
                 }
+                if(prevA > 0 && prevB > 0){
+                    NWP[i][j] = NWP[prevA-1][prevB-1] + 2;
+                }else{
+                    NWP[i][j] = 0;
+                }
+            }else{
+                NWP[i][j] = 0;
             }
+            NWP[i][j] = max(NWP[i][j], max(NWP[i-1][j],NWP[i][j-1]));
         }
     }
-    return ans;
+
+    return NWP[n][m];
 }
 
 int solve() {
     // creating prevA, prevB
-    int maxNum = 0;
-    for(int i = 0; i<n; i++) maxNum = max(maxNum, A[i]);
-    for(int i = 0; i<m; i++) maxNum = max(maxNum, B[i]);
     vector<int> prevA(n+1, -1), prevB(m+1, -1);
 
-    vector<int> last(maxNum+1, -1);
-    for(int i = n; i>0; i--){
-        prevA[i] = last[A[i]];
-        last[A[i]] = i;
+    for (int i = 1; i <= n; i++) {
+        for(int j = i-1; j>0; j--){
+            if(A[j] == A[i]){
+                prevA[i] = j;
+                break;
+            }
+        }
     }
-
-    last.clear();
-    for(int i = 0; i<maxNum+1; i++) last.PB(-1);
-
-    for(int i = m; i>0; i--){
-        prevB[i] = last[B[i]];
-        last[B[i]] = i;
+    
+    for (int i = 1; i <= m; i++) {
+        int temp;
+        cin >> temp;
+        B.PB(temp);
+        prevB.PB(-1);
+        for(int j = i-1; j>0; j--){
+            if(B[j] == B[i]){
+                prevB[i] = j;
+                break;
+            }
+        }
     }
 
     // filling WNP
-    vector<int> NWP[2] = {vector<int>(m+1, 0), vector<int>(m+1, 0)};
+    vector<vector<int>> NWP(2, vector<int>(m+1, 0));
 
     vector<int> mem(m+1, 0); //holding the NWP for the last val
-    for(int j = 0; j<=m; j++){
-        NWP[0][j] = 0;
-    }
     for(int i = 1; i<=n; i++){
         NWP[i%2][0] = 0;
         for(int j = 1;j<=m; j++){
@@ -152,7 +140,7 @@ int solve() {
         }
     }
 
-    int ans = NWP[n%2].back();
+    int ans = NWP[n%2][m];
     return ans;
 }
 
@@ -161,7 +149,7 @@ int main() {
     cin.tie(NULL);
 
     int op = 0;
-    for (int test = 1; test <= 5; test++) {
+    for (int test = 1; test <= 10'000; test++) {
         cout << "TEST nr." << test << " = ";
         if (op == 1) {
             getData();
