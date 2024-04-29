@@ -19,8 +19,8 @@ const int INF = 2'000'000'000;
 
 int n, m, k;
 vector<pair<int, int>> blocks;
-int startX = m;
-int startY = 0;
+int startX;
+int startY;
 
 int gcd(int a, int b) {
     while (b) {
@@ -114,25 +114,26 @@ ull brute() {
     vector<bool> vis(k + 1, false);
 
     while (K > 0) {
-        pair<bool, bool> wall = isWall(curX, curY);
-        if (wall.first) {
-            reflect(dir, wall.second);
-        } else {
-            pair<int, int> mid = middle(curX, curY, dir);
-            for (int i = 0; i < k; i++) {
-                if (blocks[i].first == mid.first && blocks[i].second == mid.second && !vis[i]) {
-                    if (mid.first != curX) {
-                        reflect(dir, true);
-                    } else if (mid.second != curY) {
-                        reflect(dir, false);
-                    }
-                    vis[i] = true;
-                }
-            }
-        }
         curX += dir.first;
         curY += dir.second;
         ans++;
+        pair<bool, bool> wall = isWall(curX, curY);
+        if (wall.first) {
+            dir = reflect(dir, wall.second);
+        } else {
+            pair<int, int> mid = middle(curX, curY, dir);
+            for (int i = 0; i < k; i++) {
+                if (blocks[i].first-1 == mid.first && blocks[i].second-1 == mid.second && !vis[i]) {
+                    if (mid.first != curX) {
+                        dir = reflect(dir, true);
+                    } else if (mid.second != curY) {
+                        dir = reflect(dir, false);
+                    }
+                    vis[i] = true;
+                    K--;
+                }
+            }
+        }
     }
 
     return ans;
@@ -278,8 +279,8 @@ void compressGraph(){
         //top
         a = graph[pos(MP(i,m), MP(-1,-1))].first;
         b = graph[pos(MP(i,m), MP(1,-1))].first;
-        lena = graph[pos(MP(i,0), MP(-1,-1))].second;
-        lenb = graph[pos(MP(i,0), MP(1,-1))].second;
+        lena = graph[pos(MP(i,m), MP(-1,-1))].second;
+        lenb = graph[pos(MP(i,m), MP(1,-1))].second;
         compressEdge(a,b,lena+lenb);
     }
     for(int i = 1; i<=m; i++){
@@ -378,6 +379,9 @@ int main() {
         } else {
             getRandom();
         }
+        //startig pos
+        startX = m;
+        startY = 0;
         // scaling up by 2 to have no fractions
         n *= 2;
         m *= 2;
