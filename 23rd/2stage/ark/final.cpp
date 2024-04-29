@@ -2,9 +2,7 @@
 #include <map>
 #include <vector>
 #include <algorithm>
-
-#include <cstdlib>
-#include <ctime>
+#include <tuple>
 
 #define MP make_pair
 #define PII pair<int, int>
@@ -71,15 +69,8 @@ struct pos{
 
 struct comparePos {
     bool operator()(const pos& lhs, const pos& rhs) const {
-        if (lhs.cord.first != rhs.cord.first) {
-            return lhs.cord.first < rhs.cord.first;
-        }else if(lhs.cord.second == rhs.cord.second){
-            return lhs.cord.second < rhs.cord.second;
-        }else if(lhs.dir.first == lhs.dir.second){
-            return lhs.dir.first < rhs.dir.first;
-        }else{
-            return lhs.dir.second < rhs.dir.second;
-        }
+        return tie(lhs.cord.first, lhs.cord.second, lhs.dir.first, lhs.dir.second) < 
+        tie(rhs.cord.first, rhs.cord.second, rhs.dir.first, rhs.dir.second);
     }
 };
 
@@ -98,12 +89,16 @@ bool customPairSort(pair<int,PII> a, pair<int,PII> b){
 void makeEdge(PII a, PII b, PII dir){
     pos start(a,dir);
     pos final(b, dir);
-    graph.insert(MP(start,MP(final,b.first-a.first)));
+    if(graph.find(start) == graph.end()){
+        graph.insert(MP(start,MP(final,b.first-a.first)));
+    }
     start.dir.first *= -1;
     start.dir.second *= -1;
     final.dir.first *= -1;
     final.dir.second *= -1;
-    graph.insert(MP(final,MP(start,b.first-a.first)));
+    if(graph.find(final) == graph.end()){
+        graph.insert(MP(final,MP(start,b.first-a.first)));
+    }
 }
 
 void createGraph(){
@@ -111,21 +106,20 @@ void createGraph(){
 
     //finding points of intrest
     vector<pair<int,PII>> intrestPoint;
-    intrestPoint.PB(MP(0,MP(0,0)));
-    for(int i = 1; i<=n; i++){
+    for(int i = 1; i<m; i++){
         intrestPoint.PB(MP((-1)*i,MP(i,0)));
-        intrestPoint.PB(MP(m-i,MP(i,m)));
+        intrestPoint.PB(MP(n-i,MP(i,n)));
     }
-    for(int i = 1; i<=m; i++){
+    for(int i = 1; i<n; i++){
         intrestPoint.PB(MP(i,MP(0,i)));
-        intrestPoint.PB(MP(i-n,MP(n,i)));
+        intrestPoint.PB(MP(i-m,MP(m,i)));
     }
     for(int i = 0; i<k; i++){
         pair<int,int> mid = MP(blocks[i].first-1, blocks[i].second-1);
-        intrestPoint.PB(MP(mid.second - (mid.first-1),MP(mid.first, mid.second-1)));
-        intrestPoint.PB(MP(mid.second - (mid.first+1),MP(mid.first, mid.second+1)));
-        intrestPoint.PB(MP(mid.second-1 - (mid.first),MP(mid.first-1, mid.second)));
-        intrestPoint.PB(MP(mid.second+1 - (mid.first),MP(mid.first+1, mid.second)));
+        intrestPoint.PB(MP(mid.second - (mid.first-1),MP(mid.first-1, mid.second)));
+        intrestPoint.PB(MP(mid.second - (mid.first+1),MP(mid.first+1, mid.second)));
+        intrestPoint.PB(MP(mid.second-1 - (mid.first),MP(mid.first, mid.second-1)));
+        intrestPoint.PB(MP(mid.second+1 - (mid.first),MP(mid.first, mid.second+1)));
     }
     //sorting
     sort(intrestPoint.begin(), intrestPoint.end(), customPairSort);
@@ -141,21 +135,20 @@ void createGraph(){
 
     //finding points of intrest
     intrestPoint.clear();
-    intrestPoint.PB(MP(0,MP(0,0)));
-    for(int i = 1; i<=n; i++){
+    for(int i = 1; i<m; i++){
         intrestPoint.PB(MP(i,MP(i,0)));
-        intrestPoint.PB(MP(m+i,MP(i,m)));
+        intrestPoint.PB(MP(n+i,MP(i,n)));
     }
-    for(int i = 1; i<=m; i++){
+    for(int i = 1; i<n; i++){
         intrestPoint.PB(MP(i,MP(0,i)));
-        intrestPoint.PB(MP(i+n,MP(n,i)));
+        intrestPoint.PB(MP(i+m,MP(m,i)));
     }
     for(int i = 0; i<k; i++){
         pair<int,int> mid = MP(blocks[i].first-1, blocks[i].second-1);
-        intrestPoint.PB(MP(mid.second + (mid.first-1),MP(mid.first, mid.second-1)));
-        intrestPoint.PB(MP(mid.second + (mid.first+1),MP(mid.first, mid.second+1)));
-        intrestPoint.PB(MP(mid.second-1 + (mid.first),MP(mid.first-1, mid.second)));
-        intrestPoint.PB(MP(mid.second+1 + (mid.first),MP(mid.first+1, mid.second)));
+        intrestPoint.PB(MP(mid.second + (mid.first-1),MP(mid.first-1, mid.second)));
+        intrestPoint.PB(MP(mid.second + (mid.first+1),MP(mid.first+1, mid.second)));
+        intrestPoint.PB(MP(mid.second-1 + (mid.first),MP(mid.first, mid.second-1)));
+        intrestPoint.PB(MP(mid.second+1 + (mid.first),MP(mid.first, mid.second+1)));
     }
     //sorting
     sort(intrestPoint.begin(), intrestPoint.end(), customPairSort);
@@ -163,7 +156,7 @@ void createGraph(){
     //creating edges
     for(int i = 0; i<intrestPoint.size()-1; i++){
         if(intrestPoint[i].first == intrestPoint[i+1].first){
-            makeEdge(intrestPoint[i].second, intrestPoint[i+1].second, MP(-1,1));
+            makeEdge(intrestPoint[i].second, intrestPoint[i+1].second, MP(1,-1));
         }
     }
 
@@ -184,35 +177,36 @@ void compressEdge(pos a, pos b, int len){
 }
 
 void compressGraph(){
-    //walls
-    for(int i = 1; i<=n; i++){
+    for(int i = 1; i<m; i++){
         //bottom
         pos a = graph[pos(MP(i,0), MP(-1,1))].first;
         pos b = graph[pos(MP(i,0), MP(1,1))].first;
         int lena = graph[pos(MP(i,0), MP(-1,1))].second;
         int lenb = graph[pos(MP(i,0), MP(1,1))].second;
         compressEdge(a,b,lena+lenb);
-        
-        //top
-        a = graph[pos(MP(i,m), MP(-1,-1))].first;
-        b = graph[pos(MP(i,m), MP(1,-1))].first;
-        lena = graph[pos(MP(i,m), MP(-1,-1))].second;
-        lenb = graph[pos(MP(i,m), MP(1,-1))].second;
+    }
+    for(int i = 1; i<n; i++){ 
+        //right
+        pos a = graph[pos(MP(m,i), MP(-1,1))].first;
+        pos b = graph[pos(MP(m,i), MP(-1,-1))].first;
+        int lena = graph[pos(MP(m,i), MP(-1,1))].second;
+        int lenb = graph[pos(MP(m,i), MP(-1,-1))].second;
         compressEdge(a,b,lena+lenb);
     }
-    for(int i = 1; i<=m; i++){
+    for(int i = 1; i<m; i++){
+        //top
+        pos a = graph[pos(MP(i,n), MP(-1,-1))].first;
+        pos b = graph[pos(MP(i,n), MP(1,-1))].first;
+        int lena = graph[pos(MP(i,n), MP(-1,-1))].second;
+        int lenb = graph[pos(MP(i,n), MP(1,-1))].second;
+        compressEdge(a,b,lena+lenb);
+    }
+    for(int i = 1; i<n; i++){
         //left
         pos a = graph[pos(MP(0,i), MP(1,1))].first;
         pos b = graph[pos(MP(0,i), MP(1,-1))].first;
         int lena = graph[pos(MP(0,i), MP(1,1))].second;
         int lenb = graph[pos(MP(0,i), MP(1,-1))].second;
-        compressEdge(a,b,lena+lenb);
-        
-        //right
-        a = graph[pos(MP(i,m), MP(-1,1))].first;
-        b = graph[pos(MP(i,m), MP(-1,-1))].first;
-        lena = graph[pos(MP(i,m), MP(-1,1))].second;
-        lenb = graph[pos(MP(i,m), MP(-1,-1))].second;
         compressEdge(a,b,lena+lenb);
     }
 }
@@ -224,23 +218,28 @@ ull traverse(){
     int K = k;
 
     for(int i = 0; i<k; i++){
-        remBlock.insert(MP(blocks[i], false));
+        remBlock.insert(MP(MP(blocks[i].first-1, blocks[i].second-1), false));
     }
 
     pos cur(MP(startX,startY),MP(-1,1));
     while(K > 0){
         ans += graph[cur].second;
         cur = graph[cur].first;
-        if(remBlock.find(cur.cord) != remBlock.end()){
-            if(!remBlock[cur.cord]){
+        if(cur.cord.first == 0 || cur.cord.first == m){
+            cur.dir.first *= -1;
+        }else if(cur.cord.second == 0 || cur.cord.second == n){
+            cur.dir.second *= -1;
+        }else if(remBlock.find(middle(cur.cord.first, cur.cord.second, cur.dir)) != remBlock.end()){
+            pair<int,int> blockCords = middle(cur.cord.first, cur.cord.second, cur.dir);
+            if(!remBlock[blockCords]){
                 K--;
-                remBlock[cur.cord] = true;
+                remBlock[blockCords] = true;
 
                 pair<int,int> mid = middle(cur.cord.first, cur.cord.second,cur.dir);
 
-                if(cur.cord.first != mid.first){
+                if(cur.cord.first == mid.first){
                     cur.dir.second *= -1;
-                }else if(cur.cord.second != mid.second){
+                }else if(cur.cord.second == mid.second){
                     cur.dir.first *= -1;
                 }
 
@@ -305,7 +304,7 @@ int main() {
 
     ull ansS = solve();
 
-    cout << "SOLVE: " << ansS << "\n";
+    cout << ansS << "\n";
 
     return 0;
 }
