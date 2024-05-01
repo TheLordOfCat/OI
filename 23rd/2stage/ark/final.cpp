@@ -247,25 +247,25 @@ ull traverse(){
                 pos b = graph[pos(MP(mid.first, mid.second+1), MP(1,1))].first;
                 int lena = graph[pos(MP(mid.first-1, mid.second), MP(-1,-1))].second;
                 int lenb = graph[pos(MP(mid.first, mid.second+1), MP(1,1))].second;
-                compressEdge(a,b, lena+lenb);
+                compressEdge(a,b, lena+lenb+1);
 
                 a = graph[pos(MP(mid.first, mid.second-1), MP(-1,-1))].first;
                 b = graph[pos(MP(mid.first+1, mid.second), MP(1,1))].first;
                 lena = graph[pos(MP(mid.first, mid.second-1), MP(-1,-1))].second;
                 lenb = graph[pos(MP(mid.first+1, mid.second), MP(1,1))].second;
-                compressEdge(a,b, lena+lenb);
+                compressEdge(a,b, lena+lenb+1);
                 
                 a = graph[pos(MP(mid.first-1, mid.second), MP(-1,1))].first;
                 b = graph[pos(MP(mid.first, mid.second-1), MP(1,-1))].first;
                 lena = graph[pos(MP(mid.first-1, mid.second), MP(-1,1))].second;
                 lenb = graph[pos(MP(mid.first, mid.second-1), MP(1,-1))].second;
-                compressEdge(a,b, lena+lenb);
+                compressEdge(a,b, lena+lenb+1);
 
                 a = graph[pos(MP(mid.first, mid.second+1), MP(-1,1))].first;
                 b = graph[pos(MP(mid.first+1, mid.second), MP(1,-1))].first;
                 lena = graph[pos(MP(mid.first, mid.second+1), MP(-1,1))].second;
                 lenb = graph[pos(MP(mid.first+1, mid.second), MP(1,-1))].second;
-                compressEdge(a,b, lena+lenb);
+                compressEdge(a,b, lena+lenb+1);
             }
         }
     }
