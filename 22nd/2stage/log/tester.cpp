@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <algorithm>
 
 using namespace std;
 
@@ -9,7 +10,7 @@ using namespace std;
 
 using ll = long long int;
 
-const int MAXN = 1'000'000;
+const int MAXN = 100;
 const int MAXM = 1'000'000;
 
 pair<int, ll> operator + (const pair<int, ll>& a, const pair<int, ll> b)
@@ -40,18 +41,18 @@ int depth = 1;
 
 void getRandom(){
     srand(time(0));
-    n = rand()%10+1;
-    m = rand()%10+1;
+    n = rand()%20+1;
+    m = rand()%50+1;
     request.clear();
     for(int i = 0; i<m; i++){
         int type = rand()%2+1;
         if(type == 1){ //U
             int k = rand()%n+1;
-            ll a = rand()%10;
+            ll a = rand()%100+1;
             request.PB(MP('Z',MP(k,a)));
         }else if(type == 2){ //Z
             int c = rand()%n+1;
-            ll s = rand()%10+1;
+            ll s = rand()%100+1;
             request.PB(MP('Z',MP(c,s)));
         }
     }
@@ -112,14 +113,14 @@ int right(int v){
 }
 
 int leaf(int v){
-    return R+v;
+    return R+1+v;
 }
 
 void update(int v, pair<int,ll> change){
     int V = leaf(v);
     tree[V] = tree[V] + change;
     while(V > 1){
-        V /= 2;
+        V = parent(V);
         tree[V] = tree[left(V)] + tree[right(V)];
     }
 }
@@ -128,7 +129,7 @@ int findPos(ll value){
     int b = 0, e = m;
     while(b < e){
         int mid = (b+e)/2;
-        if(val[mid] <= value){
+        if(val[mid] >= value){
             e = mid;
         }else{
             b = mid+1;
@@ -140,9 +141,10 @@ int findPos(ll value){
 ll rangeSum( ll s){
     int v = findPos(s);
     ll sum = 0;
-    v--;
-    int l = leaf(1);
+    int l = leaf(0);
     int r = leaf(v);
+    sum += tree[l].second;
+    if(l != r) sum += tree[r].second;
     while(parent(l) != parent(r)){
         if(left(parent(l)) == l){
             sum += tree[right(parent(l))].second;
@@ -175,12 +177,13 @@ vector<bool> solve(){
     }
     
     while(1<<depth < m){
+        R += 1<<depth;
         depth++;
-        R += R*2;
     }
 
     //procesing requests
     vector<bool> ans;
+    sort(val, val+m);
 
     for(int i = 0; i<m; i++){
         if(request[i].first == 'U'){
@@ -205,13 +208,14 @@ vector<bool> solve(){
     return ans;
 }   
 
+
 int main()
 {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
-    for(int test =1 ;test<=1;test++){
+    int op = 0;
+    for(int test =1 ;test<=10'000;test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
