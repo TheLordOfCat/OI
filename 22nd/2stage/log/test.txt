@@ -35,3 +35,15 @@ U 9 10
 Z 10 1
 U 10 10
 Z 10 1
+
+NIE
+NIE
+NIE
+NIE
+NIE
+NIE
+NIE
+NIE
+NIE
+TAK
+======

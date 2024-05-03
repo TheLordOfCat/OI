@@ -10,7 +10,7 @@ using namespace std;
 
 using ll = long long int;
 
-const int MAXN = 100;
+const int MAXN = 1'000'000;
 const int MAXM = 1'000'000;
 
 pair<int, ll> operator + (const pair<int, ll>& a, const pair<int, ll> b)
@@ -39,10 +39,11 @@ int license[MAXN+1];
 int R = 1;
 int depth = 1;
 
+//not really effective at finding bugs
 void getRandom(){
     srand(time(0));
-    n = rand()%20+1;
-    m = rand()%50+1;
+    n = rand()%10+1;
+    m = rand()%20+1;
     request.clear();
     for(int i = 0; i<m; i++){
         int type = rand()%2+1;
@@ -157,6 +158,8 @@ ll rangeSum( ll s){
     }
     l = leaf(v+1);
     r = leaf(m);
+    sum += tree[l].second;
+    if(l != r) sum += tree[r].second;
     while(parent(l) != parent(r)){
         if(left(parent(l)) == l){
             sum += (ll)tree[right(parent(l))].first * s;
@@ -214,7 +217,7 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 0;
+    int op = 1;
     for(int test =1 ;test<=10'000;test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){

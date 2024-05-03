@@ -96,6 +96,8 @@ ll rangeSum( ll s){
     }
     l = leaf(v+1);
     r = leaf(m);
+    sum += tree[l].second;
+    if(l != r) sum += tree[r].second;
     while(parent(l) != parent(r)){
         if(left(parent(l)) == l){
             sum += (ll)tree[right(parent(l))].first * s;
