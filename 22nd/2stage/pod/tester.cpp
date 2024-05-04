@@ -10,8 +10,11 @@ using ull = unsigned long long int;
 
 #define MP make_pair
 #define PB push_back
+#define PII pair<int,int>
 
 const int INF = 2'000'000'000;
+const int MAXN = 1'000'000;
+const int MAXK = 1'000'000;
 
 int n, k;
 vector<int> r;
@@ -68,6 +71,33 @@ pair<ull, int> brute(){
             }
         }
     }
+    return ans;
+} 
+
+int tree[4*MAXN+1];
+int detph = 1;
+int R = 1;
+
+int parent(int v){
+    return v/2;
+}
+
+int left(int v){
+    return 2*v;
+}
+
+int right(int v){
+    return 2*v+1;
+}
+
+int leaf(int v){
+    return R+v;
+}
+
+PII coveredRange(int v, int d){
+    PII ans = MP(v,v);
+    ans.first *= 1<<(detph-d);
+    ans.second =ans.first += (1<<d) - 1;
     return ans;
 } 
 
