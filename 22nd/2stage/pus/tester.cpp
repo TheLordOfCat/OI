@@ -125,7 +125,7 @@ pair<bool,vector<int>> brute(){
             }
         }
         for(int j = 0; j<lower.size();j++){
-            for(int o =0; o<x.size(); o++){
+            for(int o =0; o<x.size()-1; o++){
                 graph[x[o]].PB(lower[j]);
                 inEdges[lower[j]]++;
             }
@@ -146,7 +146,7 @@ pair<bool,vector<int>> brute(){
                     int cur = graph[v][j];
                     inEdges[cur]--;
                     depth[cur] = min(depth[cur], depth[v]-1);
-                    if(inEdges[cur] == 0 && !vis[i]){
+                    if(inEdges[cur] == 0 && !vis[cur]){
                         vis[cur] = true;
                         S.push(cur);
                     }
@@ -191,29 +191,31 @@ int leaf(int v){
 
 vector<int> cover(int l, int r){
     vector<int> ans;
-    int L = leaf(l);
-    int R = leaf(r);
-    ans.PB(L);
-    if(L != R) ans.PB(R);
+    int vL = leaf(l);
+    int vR = leaf(r);
+    ans.PB(vL);
+    if(vL != vR) ans.PB(vR);
     
-    while(parent(L) != parent(R)){
-        if(L == left(parent(L))){
-            ans.PB(right(parent(L)));
+    while(parent(vL) != parent(vR)){
+        if(vL == left(parent(vL))){
+            ans.PB(right(parent(vL)));
         }
-        if(R == right(parent(R))){
-            ans.PB(left(parent(R)));
+        if(vR == right(parent(vR))){
+            ans.PB(left(parent(vR)));
         }
-        L = parent(L);
-        R = parent(R);
+        vL = parent(vL);
+        vR = parent(vR);
     }
     return ans;
 }
 
 pair<bool, vector<int>> solve(){
+    R = 1;
+    depth = 1;
     vector<int> tree(4*n+1, INF);
     while(1<<depth < n){
-        depth++;
         R += 1<<depth;
+        depth++;
     }
 
     for(int i = 0; i<s; i++){
@@ -232,19 +234,31 @@ pair<bool, vector<int>> solve(){
         for(auto t: x){
             graph[t].PB(graph.size()-1);
         }
-        vector<int> temp = cover(l, x.front()-1);
-        for(auto t: temp) vec.PB(t);
-        temp = cover(x.back()+1, r);
-        for(auto t: temp) vec.PB(t);
+        
+        //left to first of x
+        if(l != x.front()){
+            vector<int> temp = cover(l, x.front()-1);
+            for(auto t: temp) vec.PB(t);
+        }
+        //last of x to right
+        if(r != x.back()){
+            vector<int> temp = cover(x.back()+1, r);
+            for(auto t: temp) vec.PB(t);
+        }
+
+        //between x
+        vector<int> temp;
         if(x.size() > 1){
-            for(int i = 1; i<x.size(); i++){
-                if(x[i] != x[i+1]+1)
+            for(int i = 0; i<x.size()-1; i++){
+                if(x[i] != x[i+1]-1)
                 temp = cover(x[i] +1, x[i+1]-1);
                 for(auto t: temp) vec.PB(t);
             }
         }
+
         for(auto v:vec){
             graph.back().PB(v);
+            inEdge[v]++;
         }
     }
 
@@ -257,11 +271,11 @@ pair<bool, vector<int>> solve(){
         vis[v] = true;
         if(v < R){
             if(inEdge[left(v)] == 0){
-                tree[left(v)] = min(tree[v]-1,tree[left(v)]);
+                tree[left(v)] = min(tree[v],tree[left(v)]);
                 S.push(left(v));
             }
             if(inEdge[right(v)] == 0){
-                tree[right(v)] = min(tree[v]-1,tree[right(v)]);
+                tree[right(v)] = min(tree[v],tree[right(v)]);
                 S.push(right(v));
             }
         }else{
@@ -290,7 +304,7 @@ pair<bool, vector<int>> solve(){
     }
 
     if(ok){
-        vector<int> ans = {-1};
+        vector<int> ans = {INF};
         for(int i = leaf(1); i<= leaf(n); i++){
             ans.PB(tree[i]);
         }
