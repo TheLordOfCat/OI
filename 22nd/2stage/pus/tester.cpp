@@ -157,7 +157,7 @@ pair<bool,vector<int>> brute(){
 
     bool ok = true;
     for(int i = 1; i<=n; i++){
-        if(depth[i] == INF || !vis[i]){
+        if(!vis[i]){
             ok = false;
             break;
         }
@@ -170,8 +170,134 @@ pair<bool,vector<int>> brute(){
     }
 }
 
-pair<bool, vector<int>> solve(){
+int R = 1;
+int depth = 1;
 
+int parent(int v){
+    return v/2;
+}
+
+int left(int v){
+    return 2*v;
+}
+
+int right(int v){
+    return 2*v+1;
+}
+
+int leaf(int v){
+    return R+v;
+}
+
+vector<int> cover(int l, int r){
+    vector<int> ans;
+    int L = leaf(l);
+    int R = leaf(r);
+    ans.PB(L);
+    if(L != R) ans.PB(R);
+    
+    while(parent(L) != parent(R)){
+        if(L == left(parent(L))){
+            ans.PB(right(parent(L)));
+        }
+        if(R == right(parent(R))){
+            ans.PB(left(parent(R)));
+        }
+        L = parent(L);
+        R = parent(R);
+    }
+    return ans;
+}
+
+pair<bool, vector<int>> solve(){
+    vector<int> tree(4*n+1, INF);
+    while(1<<depth < n){
+        depth++;
+        R += 1<<depth;
+    }
+
+    for(int i = 0; i<s; i++){
+        tree[leaf(stable[i].first)] = stable[i].second;
+    }
+
+    vector<int> inEdge(4*n+1, 0);
+    vector<vector<int>> graph(n+1, vector<int>());
+    for(int i = 0; i<m; i++){
+        int l = depend[i].first.first;
+        int r = depend[i].first.second;
+        vector<int> x = depend[i].second;
+        vector<int> vec;
+
+        graph.PB(vector<int>());
+        for(auto t: x){
+            graph[t].PB(graph.size()-1);
+        }
+        vector<int> temp = cover(l, x.front()-1);
+        for(auto t: temp) vec.PB(t);
+        temp = cover(x.back()+1, r);
+        for(auto t: temp) vec.PB(t);
+        if(x.size() > 1){
+            for(int i = 1; i<x.size(); i++){
+                if(x[i] != x[i+1]+1)
+                temp = cover(x[i] +1, x[i+1]-1);
+                for(auto t: temp) vec.PB(t);
+            }
+        }
+        for(auto v:vec){
+            graph.back().PB(v);
+        }
+    }
+
+    vector<bool> vis(n+1, false);
+    stack<int> S;
+    S.push(1);
+    while(!S.empty()){
+        int v = S.top();
+        S.pop();
+        vis[v] = true;
+        if(v < R){
+            if(inEdge[left(v)] == 0){
+                tree[left(v)] = min(tree[v]-1,tree[left(v)]);
+                S.push(left(v));
+            }
+            if(inEdge[right(v)] == 0){
+                tree[right(v)] = min(tree[v]-1,tree[right(v)]);
+                S.push(right(v));
+            }
+        }else{
+            v -= R;
+            if(graph[v].size() > 0){
+                for(int i = 0; i<graph[v].size(); i++){
+                    int cur = graph[v][i];
+                    for(int j = 0; j<graph[cur].size(); j++){
+                        tree[graph[cur][j]] = min(tree[graph[cur][j]], tree[leaf(v)]-1);
+                        inEdge[graph[cur][j]]--;
+                        if(inEdge[graph[cur][j]] == 0){
+                            S.push(graph[cur][j]);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    bool ok = true;
+    for(int i = 1; i<=n; i++){
+        if(!vis[i] || tree[leaf(i)] <= 0){
+            ok = false;
+            break;
+        }
+    }
+
+    if(ok){
+        vector<int> ans = {-1};
+        for(int i = leaf(1); i<= leaf(n); i++){
+            ans.PB(tree[i]);
+        }
+        return MP(true, ans);
+    }else{
+        return MP(false, vector<int>());
+    }
 }
 
 int main()
