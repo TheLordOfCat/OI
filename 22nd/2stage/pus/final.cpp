@@ -2,6 +2,7 @@
 #include <vector>
 #include <algorithm>
 #include <stack>
+#include <queue>
 
 #include <ctime>
 #include <cstdlib>
@@ -136,16 +137,16 @@ pair<bool, vector<int>> solve(){
     }
 
     vector<bool> vis(n+1, false);
-    stack<int> S;
+    queue<int> S;
     S.push(1);
     bool ok = true;
     while(!S.empty()){
-        int v = S.top();
+        int v = S.front();
         S.pop();
         if(v <= R){
             if(inEdge[left(v)] == 0){
                 if(left(v) > R){
-                    if(stab[left(v)]){
+                    if(stab[left(v)-R]){
                         if(tree[v] < tree[left(v)]){
                             ok = false;
                             break;
@@ -160,7 +161,7 @@ pair<bool, vector<int>> solve(){
             }
             if(inEdge[right(v)] == 0){
                 if(right(v) > R){
-                    if(stab[right(v)]){
+                    if(stab[right(v)-R]){
                         if(tree[v] < tree[right(v)]){
                             ok = false;
                             break;
@@ -180,10 +181,12 @@ pair<bool, vector<int>> solve(){
                 for(int i = 0; i<graph[v].size(); i++){
                     int cur = graph[v][i];
                     for(int j = 0; j<graph[cur].size(); j++){
-                        if(stab[graph[cur][j]]){
-                            if(tree[graph[cur][j]] > tree[leaf(v)]-1){
-                                ok = false;
-                                break;
+                        if(graph[cur][j] > R){
+                            if(stab[graph[cur][j] - R]){
+                                if(tree[graph[cur][j]] > tree[leaf(v)]-1){
+                                    ok = false;
+                                    break;
+                                }
                             }
                         }
                         tree[graph[cur][j]] = min(tree[graph[cur][j]], tree[leaf(v)]-1);

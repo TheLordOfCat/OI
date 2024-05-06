@@ -2,6 +2,7 @@
 #include <vector>
 #include <algorithm>
 #include <stack>
+#include <queue>
 
 #include <ctime>
 #include <cstdlib>
@@ -72,11 +73,11 @@ void getRandom(){
                 l--;
             }
         }
-        int k = rand()%(l-r+1)+1;
+        int k = rand()%(r-l+1)+1;
         vector<int> x;
         vector<int> used(n+1, false);
         for(int j = 0; j<k; j++){
-            int a = l + rand()%(l-r+1);
+            int a = l + rand()%(r-l+1);
             if(!used[a]){
                 used[a] = true;
                 x.PB(a);
@@ -92,7 +93,7 @@ void getRandom(){
 void printData(){
     cout<<n<<" "<<s<<" "<<m<<"\n";
     for(auto a:stable){
-        cout<<a.first<<"  "<<a.second<<"\n";
+        cout<<a.first<<" "<<a.second<<"\n";
     }
     for(auto a:depend){
         cout<<a.first.first<<" "<<a.first.second<<" "<<a.second.size()<<" ";
@@ -131,6 +132,12 @@ pair<bool,vector<int>> brute(){
             }
         }
     }
+    bool ok = true;
+
+    vector<bool> stab(n+1, false);
+    for(int i = 0; i<s; i++){
+        stab[stable[i].first] = true;
+    }
 
     vector<bool> vis(n+1, false);
     for(int i = 1; i<=n; i++){
@@ -145,19 +152,31 @@ pair<bool,vector<int>> brute(){
                 for(int j = 0; j<graph[v].size();j++){
                     int cur = graph[v][j];
                     inEdges[cur]--;
-                    depth[cur] = min(depth[cur], depth[v]-1);
+                    if(stab[cur]){
+                        if(depth[cur] > depth[v] - 1){
+                            ok = false;
+                            break;
+                        }
+                    }else{
+                        depth[cur] = min(depth[cur], depth[v]-1);
+                    }
                     if(inEdges[cur] == 0 && !vis[cur]){
                         vis[cur] = true;
                         S.push(cur);
                     }
                 }
+                if(!ok){
+                    break;
+                }
             }
+        }
+        if(!ok){
+            break;
         }
     }
 
-    bool ok = true;
     for(int i = 1; i<=n; i++){
-        if(!vis[i]){
+        if(!vis[i] || depth[i] <= 0){
             ok = false;
             break;
         }
@@ -166,7 +185,7 @@ pair<bool,vector<int>> brute(){
     if(ok){
         return MP(ok, depth);
     }else{
-        return MP(ok, vector<int>(n+1, -1));
+        return MP(ok, vector<int>());
     }
 }
 
@@ -218,8 +237,10 @@ pair<bool, vector<int>> solve(){
         depth++;
     }
 
+    vector<bool> stab(n+1, false);
     for(int i = 0; i<s; i++){
         tree[leaf(stable[i].first)] = stable[i].second;
+        stab[stable[i].first] = true;
     }
 
     vector<int> inEdge(4*n+1, 0);
@@ -263,39 +284,75 @@ pair<bool, vector<int>> solve(){
     }
 
     vector<bool> vis(n+1, false);
-    stack<int> S;
+    queue<int> S;
     S.push(1);
+    bool ok = true;
     while(!S.empty()){
-        int v = S.top();
+        int v = S.front();
         S.pop();
-        vis[v] = true;
-        if(v < R){
+        if(v <= R){
             if(inEdge[left(v)] == 0){
-                tree[left(v)] = min(tree[v],tree[left(v)]);
+                if(left(v) > R){
+                    if(stab[left(v)-R]){
+                        if(tree[v] < tree[left(v)]){
+                            ok = false;
+                            break;
+                        }else{
+                           tree[left(v)] = min(tree[v],tree[left(v)]); 
+                        }
+                    }
+                }else{
+                    tree[left(v)] = min(tree[v],tree[left(v)]);
+                }
                 S.push(left(v));
             }
             if(inEdge[right(v)] == 0){
-                tree[right(v)] = min(tree[v],tree[right(v)]);
+                if(right(v) > R){
+                    if(stab[right(v)-R]){
+                        if(tree[v] < tree[right(v)]){
+                            ok = false;
+                            break;
+                        }else{
+                           tree[right(v)] = min(tree[v],tree[right(v)]); 
+                        }
+                    }
+                }else{
+                    tree[right(v)] = min(tree[v],tree[right(v)]);
+                }
                 S.push(right(v));
             }
         }else{
             v -= R;
+            vis[v] = true;
             if(graph[v].size() > 0){
                 for(int i = 0; i<graph[v].size(); i++){
                     int cur = graph[v][i];
                     for(int j = 0; j<graph[cur].size(); j++){
+                        if(graph[cur][j] > R){
+                            if(stab[graph[cur][j] - R]){
+                                if(tree[graph[cur][j]] > tree[leaf(v)]-1){
+                                    ok = false;
+                                    break;
+                                }
+                            }
+                        }
                         tree[graph[cur][j]] = min(tree[graph[cur][j]], tree[leaf(v)]-1);
                         inEdge[graph[cur][j]]--;
                         if(inEdge[graph[cur][j]] == 0){
                             S.push(graph[cur][j]);
                         }
                     }
+                    if(!ok){
+                        break;
+                    }
                 }
             }
         }
+        if(!ok){
+            break;
+        }
     }
     
-    bool ok = true;
     for(int i = 1; i<=n; i++){
         if(!vis[i] || tree[leaf(i)] <= 0){
             ok = false;
@@ -319,8 +376,8 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
-    for(int test = 1; test<=1; test++){
+    int op = 0;
+    for(int test = 1; test<=10'000; test++){
         cout<<"TEST nr. "<<test<<" = ";
         if(op == 1){
             getData();
@@ -341,6 +398,7 @@ int main()
                 cout<<v<<" ";
             }
             cout<<"\n";
+            printData();
             return 0;
         }else{
             for(int i = 0; i<ansB.second.size(); i++){
@@ -356,6 +414,7 @@ int main()
                         cout<<v<<" ";
                     }
                     cout<<"\n";
+                    printData();
                     return 0;
                 }
             }
