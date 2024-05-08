@@ -135,41 +135,57 @@ void merge(int v){
     tree[v].B = {{false, false},{false, false}};
     tree[v].I = {{l.I[0][0], r.I[0][1]}, {l.I[1][0], r.I[1][1]}};
     
-    for(int i = 0; i<2; i++){
-        for(int j = 0; j<2; j++){
-            for(int o = 0; o<2; o++){
-                if(l.B[i][o] && r.B[o][j] && l.I[i][o] <= r.I[o][j]){
+    if(left(v)> R || right(v) > R){
+        for(int i = 0; i<2; i++){
+            for(int j = 0; j<2; j++){
+                if(l.I[i][0] <= r.I[j][0]){
                     tree[v].B[i][j] = true;
+                    break;
+                }
+            }
+        }
+    }else{
+        for(int i = 0; i<2; i++){
+            for(int j = 0; j<2; j++){
+
+                for(int k = 0; k<2; k++){
+                    for(int o = 0; o<2; o++){
+                        if(l.B[i][k] && r.B[o][j] && l.I[k][1] <= r.I[o][0]){
+                            tree[v].B[i][j] = true;
+                            break;
+                        }
+                    }
                 }
             }
         }
     }
 }
 
-void update(int v, int cX, int xY){
+void update(int v, int cX, int cY){
     int V = leaf(v+1);
+    tree[V].I = {{cX,cX}, {cY,cY}};
     V = parent(V);
     while(V >= 1){
-        merge(v);
+        merge(V);
         V = parent(V);
     }
 }
 
 vector<bool> solve(){
     tree.clear();
-    tree.assign(n, node());
+    tree.assign(4*n+1, node());
 
     //prepare tree
     while(n > (1<<depth)){
         R += 1<<depth;
         depth++;
     }
-    for(int i = 0; i<m; i++){
+    for(int i = 0; i<n; i++){
         int V = leaf(i+1);
-        tree[V].I = {{x[i], y[i]}, {x[i], y[i]}};
-        tree[V].B = {{false, false},{false, false}};
+        tree[V].I = {{x[i], x[i]}, {y[i], y[i]}};
+        tree[V].B = {{true, true},{true, true}};
     }
-    for(int i = R; i>=1; R++){
+    for(int i = R; i>=1; i--){
         merge(i);
     }
 
