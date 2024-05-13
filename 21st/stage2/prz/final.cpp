@@ -35,16 +35,17 @@ void getData(){
 
 vector<int> solve(){
     int left = 1;
+    int right = n-2;
+    
     for(int i = 0; i<m-1; i++){
         if(c[left] != x[i]){
             left++;
             i--;
         }
-        if(left >= m){
+        if(left >= n){
             break;
         }
     }
-    int right = n-2;
     for(int i = 0; i<l-1; i++){
         if(c[right] != y[i]){
             right--;

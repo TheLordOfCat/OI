@@ -42,8 +42,10 @@ void getRandom(){
     x.clear();
     y.clear();
 
-    n =rand()%20+1;
-    k = rand()%20+1;
+    // n =rand()%20+3;
+    // k = rand()%n+1;
+    n = 10;
+    k = 3;
     vector<bool> used(k+1, false);
     int K = 0;
     for(int i = 0; i<n; i++){
@@ -59,13 +61,15 @@ void getRandom(){
             c.PB(temp);
         }
     }
-    l = min(rand()%(n-1)+1,k-1);
-    m = min(rand()%(n-m)+1,k-1);
+    // l = min(rand()%(n-1)+1,k-1);
+    // m = min(rand()%(n-1)+1,k-1);
+    m = 2;
+    l = 1;
     used.clear();
     int last = 1;
     used.assign(k+1,false);
     used[last] = true;
-    for(int i =0 ; i<l; i++){
+    for(int i =0 ; i<m; i++){
         int temp = rand()%k+1;
         while(used[temp]){
             temp = rand()%k+1;
@@ -74,7 +78,7 @@ void getRandom(){
         x.PB(temp);
     }
     x.PB(last);
-    l++;
+    m++;
     used.clear();
     used.assign(k+1,false);
     used[last] = true;
@@ -87,7 +91,7 @@ void getRandom(){
         y.PB(temp);
     }
     y.PB(last);
-    m++;
+    l++;
 }
 
 void printData(){
@@ -121,12 +125,13 @@ vector<int> brute(){
                     j++;
                     ind--;
                 }
-                if(ind == -1){
+                if(ind == 0){
                     ok = false;
                     break;
                 }
             }
         }
+        int left = ind;
 
         ind = i;
         if(ok){
@@ -135,14 +140,24 @@ vector<int> brute(){
                     j++;
                     ind++;
                 }
-                if(ind == n){
+                if(ind == n-1){
                     ok = false;
                     break;
                 }
             }
         }
+        int right = ind;
+        bool sameHouse = false;
+        for(int i  = 0; i<n/2; i++){
+            if(i >= left ) break;
+            if(n-i-1 <= right ) break;
+            if(c[i] == c[n-i-1]){
+                sameHouse = true;
+                break;
+            }
+        }
 
-        if(ok){
+        if(ok && sameHouse){
             ans.PB(i+1);
         }
     }
@@ -156,7 +171,7 @@ vector<int> solve(){
             left++;
             i--;
         }
-        if(left >= m){
+        if(left >= n){
             break;
         }
     }
@@ -185,7 +200,7 @@ int main()
     cin.tie(NULL);
 
     int op = 0;
-    for(int test = 1; test<=10; test++){
+    for(int test = 1; test<=100'000; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
