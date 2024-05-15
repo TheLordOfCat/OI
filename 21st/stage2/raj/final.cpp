@@ -179,12 +179,14 @@ PII solve(){
     //ans
     int ansLen = INF;
     int ansVec = 11;
-    for(int i = 1; i<=n; i++){
-        int temp = max(leftPath[i]-1, rightPath[i]-1);
-        temp = max(temp, query(toOrder[i]));
+    for(int i = 0; i<n; i++){
+        int temp = -1;
+        if(i > 0) temp = max(temp, longestLeft[i-1]);
+        if(i<n-1) temp = max(temp, longestRight[i+1]);
+        temp = max(temp, query(i));
         if(temp < ansLen){
             ansLen = temp;
-            ansVec = i;
+            ansVec = toOrder[i];
         }
     }
     return MP(ansVec, ansLen);
