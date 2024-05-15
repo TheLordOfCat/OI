@@ -1,6 +1,8 @@
 #include<iostream>
 #include <vector>
 #include <queue>
+#include <stack>
+#include <algorithm>
 
 using namespace std;
 
@@ -14,6 +16,9 @@ const int INF = 2'000'000'000;
 
 int n, m;
 vector<vector<int>> graph;
+vector<vector<int>> graphR;
+vector<int> toOrder;
+
 
 void getData(){
     cin>>n>>m;
@@ -98,8 +103,142 @@ PII brute(){
     return MP(ansVec, ansLen);    
 }
 
-PII solve(){
+vector<int> topoSort(){
+    toOrder.clear();
+
+    vector<int> order;
+    vector<bool> vis(n+1, false);
+
+    for(int i = 1; i<=n ;i++){
+        if(!vis[i]){
+            stack<pair<int,bool>> S;
+            S.push(MP(i,false));
+            while(!S.empty()){
+                int v = S.top().first;
+                bool b = S.top().second;
+                S.pop();
+                if(b){
+                    order.PB(v);
+                    continue;
+                }
+                if(vis[v]){
+                    continue;
+                }
+                vis[v] = true;
+                for(int j = 0; j<graph[v].size(); j++){
+                    int cur = graph[v][j];
+                    if(vis[cur]){
+                        S.push(MP(cur, false));
+                    }   
+                }
+                S.push(MP(v, true));
+            }
+        }
+    }
+
+    reverse(order.begin(), order.end());
+    toOrder.clear();
+    toOrder.assign(n+1, 0);
+
+    for(int i = 0; i<n; i++){
+        toOrder[order[i]] = i;
+    }
+    return order;
+}
+
+vector<int> tree;
+int R;
+int depth;
+
+int parent(int v){
+    return v/2;
+}
+
+int left(int v){
+    return 2*v;
+}
+
+int right(int v){
+    return 2*v+1;
+}
+
+int leaf(int v){
+    return R+v;
+}
+
+void addRange(int l, int r, int val){
+
+}
+
+int query(int v){
     
+}
+
+PII solve(){
+    int ansLen = 0;
+    int ansVec = 0;
+    graph.clear();
+
+    graphR.assign(n+1, vector<int>());
+    for(int i = 1; i<=n; i++){
+        for(int j = 0; j<graph[i].size(); j++){
+            graphR[graph[i][j]].PB(i);
+        }
+    }
+
+    //topological sort
+    vector<int> order = topoSort();
+
+    //left best
+    // standard indexes
+    vector<int> leftPath(n+1, 0);
+    for(int i = 0; i<n; i++){
+        int cur = order[i];
+        if(ansLen < leftPath[cur]-1){
+            ansLen = leftPath[cur]-1;
+            ansVec = i;
+        }
+        for(int j = 0; j<graph[cur].size(); j++){
+            leftPath[graph[cur][j]] = max(leftPath[graph[cur][j]], leftPath[cur]+1); 
+        }
+    }
+
+    //right best
+    // standard indexes
+    vector<int> rightPath(n+1, 0);
+    for(int i = n-1; i>=0; i--){
+        int cur = order[i];
+        if(ansLen < rightPath[cur]-1){
+            ansLen = rightPath[cur]-1;
+            ansVec = i;
+        }
+        for(int j = 0; j<graph[cur].size(); j++){
+            rightPath[graph[cur][j]] = max(rightPath[graph[cur][j]], rightPath[cur]+1); 
+        }
+    }
+
+    //bypass best
+    while(1<<depth < n){
+        R += 1<<depth;
+        depth++;
+    }
+
+    for(int i = 0; i<n; i++){
+        int v = order[i];
+        for(int j =0; j<graph[v].size(); j++){
+            addRange(i+1, toOrder[graph[v][j]]-1, leftPath[v] + rightPath[graph[v][j]] + 1);
+        }
+    }
+
+    //ans
+    for(int i = 0; i<n; i++){
+        int temp = query(i);
+        if(ansLen < temp){
+            ansLen = temp;
+            ansVec = toOrder[i];
+        }
+    }
+    return MP(ansLen, ansVec);
 }
 
 int main()

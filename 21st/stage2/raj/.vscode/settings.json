@@ -1,5 +1,17 @@
 {
     "files.associations": {
-        "queue": "cpp"
+        "queue": "cpp",
+        "stack": "cpp",
+        "xiosbase": "cpp",
+        "deque": "cpp",
+        "initializer_list": "cpp",
+        "type_traits": "cpp",
+        "vector": "cpp",
+        "xstring": "cpp",
+        "xutility": "cpp",
+        "xlocale": "cpp",
+        "algorithm": "cpp",
+        "limits": "cpp",
+        "utility": "cpp"
     }
 }
