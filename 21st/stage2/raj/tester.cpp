@@ -32,18 +32,19 @@ void getData(){
 
 void getRandom(){
     srand(time(0));
+    n = rand()%10+1;
+    m = 0;
+
     graph.clear();
     graph.assign(n+1, vector<int>());
 
-    n = rand()%10+1;
-    m = 0;
-    for(int i  = 1; i<=n; i++){
-        int con = rand()%(n-i);
+    for(int i  = 1; i<n; i++){
+        int con = rand()%(min(n-i,2));
         vector<bool> vis(n+1, false);
         vis[0] = true;
         for(int j =0 ; j<con; j++){
             int a = 0;
-            while(vis[a] && a<=i){
+            while(vis[a] || a<=i){
                 a = rand()%n+1;
             }
             vis[a] = true;
@@ -73,30 +74,41 @@ PII brute(){
 
     //iterating through each edge
     int ansLen = INF;
-    int ansVec = -1;
+    int ansVec = 0;
     for(int i = 1; i<=n; i++){
         queue<int> Q;
         vector<int> dp(n+1, 0);
-        for(int o = 1; o<=n;o++){
-            if(graph[o].size() == 0){
-                Q.push(o);
+        for(int j = 1; j<=n;j++){
+            if(graph[j].size() == 0 && j != i){
+                Q.push(j);
+            }
+        }
+        for(int j = 0; j<graphR[i].size(); j++){
+            if(graph[graphR[i][j]].size() == 1){
+                Q.push(graphR[i][j]);
             }
         }
 
         while(!Q.empty()){
             int v = Q.front();
-            if(dp[v] > ansLen){
-                ansLen = dp[v];
-                ansVec = i;
-            }
             Q.pop();
 
             for(int o = 0; o<graphR[v].size(); o++){
-                if(!(graphR[v][o] != i)){
+                if(graphR[v][o] != i){
                     Q.push(graphR[v][o]);
-                    dp[graph[v][o]] = max(dp[graph[v][o]], dp[v]+1);
+                    dp[graphR[v][o]] = max(dp[graphR[v][o]], dp[v]+1);
                 }
             }
+        }
+        int maxLen = 0;
+        for(int j = 1; j<=n; j++){
+            if(dp[j] > maxLen){
+                maxLen = dp[j];
+            }
+        }
+        if(ansLen > maxLen){
+            ansLen = maxLen;
+            ansVec = i;
         }
     }
 
@@ -167,18 +179,33 @@ int leaf(int v){
 }
 
 void addRange(int l, int r, int val){
-
+    int vL = leaf(l);
+    int vR = leaf(r);
+    tree[vL] = max(tree[vL], val);
+    if(vL != vR) max(tree[vR], val);
+    while(parent(vL) != parent(vR)){
+        if(vL = left(parent(vL))){
+            tree[right(parent(vL))] = max(tree[right(parent(vL))] , val);
+        }
+        if(vR = right(parent(vR))){
+            tree[left(parent(vL))] = max(tree[left(parent(vR))] , val);
+        }
+        vL = parent(vL);
+        vR = parent(vR);
+    }
 }
 
 int query(int v){
-    
+    int V = leaf(v);
+    int ans = 0;
+    while(V > 0){
+        ans = max(tree[V], ans);
+        V = parent(V);
+    }    
+    return ans;
 }
 
 PII solve(){
-    int ansLen = 0;
-    int ansVec = 0;
-    graph.clear();
-
     graphR.assign(n+1, vector<int>());
     for(int i = 1; i<=n; i++){
         for(int j = 0; j<graph[i].size(); j++){
@@ -194,30 +221,35 @@ PII solve(){
     vector<int> leftPath(n+1, 0);
     for(int i = 0; i<n; i++){
         int cur = order[i];
-        if(ansLen < leftPath[cur]-1){
-            ansLen = leftPath[cur]-1;
-            ansVec = i;
-        }
         for(int j = 0; j<graph[cur].size(); j++){
             leftPath[graph[cur][j]] = max(leftPath[graph[cur][j]], leftPath[cur]+1); 
         }
     }
+
+    vector<int> longestLeft(n+1, 0);
+    longestLeft[order[0]] = leftPath[order[0]];
+    for(int i = 1; i<n; i++){
+        longestLeft[order[i]] = max(longestLeft[order[i-1]], leftPath[order[i]]);
+    }
+
 
     //right best
     // standard indexes
     vector<int> rightPath(n+1, 0);
     for(int i = n-1; i>=0; i--){
         int cur = order[i];
-        if(ansLen < rightPath[cur]-1){
-            ansLen = rightPath[cur]-1;
-            ansVec = i;
+        for(int j = 0; j<graphR[cur].size(); j++){
+            rightPath[graphR[cur][j]] = max(rightPath[graphR[cur][j]], rightPath[cur]+1); 
         }
-        for(int j = 0; j<graph[cur].size(); j++){
-            rightPath[graph[cur][j]] = max(rightPath[graph[cur][j]], rightPath[cur]+1); 
-        }
+    }
+    vector<int> longestRight(n+1, 0);
+    longestRight[order[0]] = rightPath[order[0]];
+    for(int i = 1; i<n; i++){
+        longestRight[order[i]] = max(longestRight[order[i-1]], rightPath[order[i]]);
     }
 
     //bypass best
+    tree.assign(4*n+1, 0);
     while(1<<depth < n){
         R += 1<<depth;
         depth++;
@@ -231,14 +263,17 @@ PII solve(){
     }
 
     //ans
-    for(int i = 0; i<n; i++){
-        int temp = query(i);
-        if(ansLen < temp){
+    int ansLen = INF;
+    int ansVec = 11;
+    for(int i = 1; i<=n; i++){
+        int temp = max(leftPath[i]-1, rightPath[i]+1);
+        temp = max(temp, query(toOrder[i]));
+        if(temp < ansLen){
             ansLen = temp;
-            ansVec = toOrder[i];
+            ansVec = i;
         }
     }
-    return MP(ansLen, ansVec);
+    return MP(ansVec, ansLen);
 }
 
 int main()
@@ -256,7 +291,7 @@ int main()
         }
         PII ansB = brute();
         PII ansS = solve();
-        if(ansB.first != ansS.first && ansB.second != ansS.second){
+        if(ansB.second != ansS.second){
             cout<<"ERROR\n";
             cout<<"BRUTE: "<<ansB.first<<" "<<ansB.second<<"\n";
             cout<<"SOLVE: "<<ansS.first<<" "<<ansS.second<<"\n";
