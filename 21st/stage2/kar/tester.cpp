@@ -11,111 +11,94 @@ using namespace std;
 #define PB push_back
 
 int n;
-vector<int> x;
-vector<int> y;
-
+vector<PII> cards;
 int m;
-vector<PII> changes;
+vector<PII> change;
 
 void getData(){
     cin>>n;
-    for(int i =0; i<n; i++){
-        int a,b;
+    for(int i = 0; i<n; i++){
+        int a, b;
         cin>>a>>b;
-        x.PB(a);
-        y.PB(b);
-    }
+        cards.PB(MP(a,b));
+    }    
     cin>>m;
-    for(int i =0 ; i<m; i++){
-        int a,b;
+    for(int i =0; i<m; i++){
+        int a, b;
         cin>>a>>b;
-        changes.PB(MP(a,b));
+        change.PB(MP(a,b));
     }
 }
 
 void getRandom(){
     srand(time(0));
-    x.clear();
-    y.clear();
+    cards.clear();
+    change.clear();
+    cards.PB(MP(-1,-1));
+    change.PB(MP(-1,-1));
 
-    n = rand()%10+1;
-    for(int i  = 0; i<n; i++){
-        x.PB(rand()%40+1);
-        y.PB(rand()%40+1);
+    n =rand()%n+1;
+    for(int i = 0; i<n; i++){
+        int a = rand()%(3*n)+1;
+        int b = rand()%(3*n)+1;
+        cards.PB(MP(a,b));
     }
-    m = rand()%10+1;
+    m = rand()%5+1;
     for(int i = 0; i<m; i++){
         int a = rand()%n+1;
         int b = rand()%n+1;
-        changes.PB(MP(a,b));
+        if(a == b){
+            if(b == n){
+                b--;
+            }else{
+                a++;
+            }
+        }
     }
 }
 
 void printData(){
     cout<<n<<"\n";
-    for(int i = 0; i<n; i++){
-        cout<<x[i]<<" "<<y[i]<<"\n";
+    for(int  i =0; i<cards.size(); i++){
+        cout<<cards[i].first<<" "<<cards[i].second<<"\n";
     }
     cout<<m<<"\n";
-    for(int i =0 ;i<m; i++){
-        cout<<changes[i].first<<" "<<changes[i].second<<"\n";
+    for(int i = 0 ;i<change.size(); i++){
+        cout<<change[i].first<<" "<<change[i].second<<"\n";
     }
 }
 
 vector<bool> brute(){
     vector<bool> ans;
+
     for(int i = 0; i<m; i++){
         //change
-        int tempX = x[changes[i].first-1], tempY = y[changes[i].first-1];
-        x[changes[i].first-1] = x[changes[i].second-1];
-        y[changes[i].first-1] = y[changes[i].second-1];
-        x[changes[i].second-1] = tempX;
-        y[changes[i].second-1] = tempY;
+        PII temp = cards[change[i].first];
+        cards[change[i].first] = cards[change[i].second];
+        cards[change[i].second] = temp;
 
-        //verify
+        //verifying
+        int cur = min(cards[1].first, cards[1].second);
         bool ok = true;
-        int last = min(x[0],y[0]);
-        for(int  j = 1; j<n; j++){
-            int smaller = min(x[j],y[j]);
-            int bigger = max(x[j],y[j]);
-            if(last <= smaller){
-                last = smaller;
-            }else if(last <= bigger){
-                last = bigger;
+        for(int j = 2; j<=n; j++){
+            if(cur <= min(cards[j].first, cards[j].second)){
+                cur = min(cards[j].first, cards[j].second);
+            }else if(cur <= max(cards[j].first, cards[j].second)){
+                cur = max(cards[j].first, cards[j].second);
             }else{
                 ok = false;
                 break;
             }
         }
-        if(ok){
-            ans.PB(true);
-        }else{
-            ans.PB(false);
-        }
+        ans.PB(ok);
     }
+
     return ans;
 }
 
-struct node{
-    vector<vector<int>> I;
-    vector<vector<bool>> B;
-    node(int xL1, int yL1, int xR1, int yR1, bool xx1, bool xy1, bool yx1, bool yy1){
-        I = {{xL1, xR1}, {yL1, yR1}};
-        B = {{xx1, xy1}, {yx1, yy1}};
-    }
-    node(){
-        I = {{-1, -1}, {-1, -1}};
-        B = {{false, false}, {false, false}};
-    }
-};
-
-vector<node> tree;
-int depth = 1;
-int R = 1;
-
-int leaf(int v){
-    return R+v;
-}
+vector<vector<vector<bool>>> tree;
+int R;
+int totalDepth;
 
 int parent(int v){
     return v/2;
@@ -129,79 +112,92 @@ int right(int v){
     return 2*v+1;
 }
 
-void merge(int v){
-    node l = tree[left(v)];
-    node r = tree[right(v)];
-    tree[v].B = {{false, false},{false, false}};
-    tree[v].I = {{l.I[0][0], r.I[0][1]}, {l.I[1][0], r.I[1][1]}};
-    
-    if(left(v)> R || right(v) > R){
-        for(int i = 0; i<2; i++){
-            for(int j = 0; j<2; j++){
-                if(l.I[i][0] <= r.I[j][0]){
-                    tree[v].B[i][j] = true;
-                    break;
-                }
-            }
-        }
-    }else{
-        for(int i = 0; i<2; i++){
-            for(int j = 0; j<2; j++){
+int leaf(int v){
+    return v+R;
+}
 
-                for(int k = 0; k<2; k++){
-                    for(int o = 0; o<2; o++){
-                        if(l.B[i][k] && r.B[o][j] && l.I[k][1] <= r.I[o][0]){
-                            tree[v].B[i][j] = true;
-                            break;
+int leftLeaf(int v, int depth){
+    int l = v * 1<<(totalDepth - depth);
+    return l;
+}
+
+int rightLeaf(int v, int depth){
+    int r = leftLeaf(v, depth) + 1<<(totalDepth - depth);
+    return r;
+}
+
+void merge(int v, int depth){
+    vector<vector<bool>> l = tree[left(v)];
+    vector<vector<bool>> r = tree[right(v)];
+
+    vector<vector<bool>> mid(2, vector<bool>(2,false));
+    for(int i = 0; i<=1; i++){
+        for(int j = 0; j<=1; j++){
+            for(int o = 0; o<=1; o++){
+                for(int w = 0; w<=1; w++){
+                    if(l[i][o] && r[w][j]){
+                        if(rightLeaf(leaf(v), depth) <= leftLeaf(right(v), depth)){
+                            mid[i][j] = true;
                         }
                     }
                 }
             }
         }
     }
+
+    tree[v] = mid;
 }
 
-void update(int v, int cX, int cY){
-    int V = leaf(v+1);
-    tree[V].I = {{cX,cX}, {cY,cY}};
-    V = parent(V);
+void update(int v){
+    int V = leaf(v);
+    int depth = totalDepth;
     while(V >= 1){
-        merge(V);
+        merge(V, depth);
         V = parent(V);
+        depth--;
     }
 }
 
 vector<bool> solve(){
     tree.clear();
-    tree.assign(4*n+1, node());
+    R = 1;
+    totalDepth = 1;
+    //getting the size
+    while(1<<totalDepth < n){
+        R += 1<<totalDepth;
+        totalDepth++;
+    }
 
-    //prepare tree
-    while(n > (1<<depth)){
-        R += 1<<depth;
-        depth++;
-    }
-    for(int i = 0; i<n; i++){
-        int V = leaf(i+1);
-        tree[V].I = {{x[i], x[i]}, {y[i], y[i]}};
-        tree[V].B = {{true, true},{true, true}};
-    }
+    tree.assign(4*n+1, vector<vector<bool>>(2,vector<bool>(2,true)));
+    int tempDepth = totalDepth-1;
+    int count = 1<<tempDepth;
     for(int i = R; i>=1; i--){
-        merge(i);
-    }
+        if(count == 0){
+            tempDepth--;
+            count = 1<<tempDepth;
+        }
+        count--;
+        merge(i, tempDepth);
+    }   
 
-    //proces chagnes
+    //procesing the changes
     vector<bool> ans;
     for(int i = 0; i<m; i++){
-        int tempX = x[changes[i].first-1], tempY = y[changes[i].first-1];
-        update(changes[i].first-1, x[changes[i].second-1], y[changes[i].second-1]);
-        update(changes[i].second-1, tempX, tempY);
-        if(tree[1].B[0][0] || tree[1].B[0][1] || tree[1].B[1][0] || tree[1].B[1][1]){
+        //swap
+        PII temp = cards[change[i].first];
+        cards[change[i].first] = cards[change[i].second];
+        cards[change[i].second] = temp;
+
+        //update the tree
+        update(change[i].first);
+        update(change[i].second);
+
+        if(tree[1][0][0] || tree[1][0][1] || tree[1][1][0]|| tree[1][0][1]){
             ans.PB(true);
         }else{
             ans.PB(false);
         }
     }
-
     return ans;
 }
 
