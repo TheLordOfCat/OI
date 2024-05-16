@@ -17,12 +17,14 @@ vector<PII> change;
 
 void getData(){
     cin>>n;
+    cards.PB(MP(-1,-1));
     for(int i = 0; i<n; i++){
         int a, b;
         cin>>a>>b;
         cards.PB(MP(a,b));
     }    
     cin>>m;
+    change.PB(MP(-1,-1));
     for(int i =0; i<m; i++){
         int a, b;
         cin>>a>>b;
@@ -68,10 +70,10 @@ void printData(){
     }
 }
 
-vector<bool> brute(){
-    vector<bool> ans;
+vector<int> brute(){
+    vector<int> ans;
 
-    for(int i = 0; i<m; i++){
+    for(int i = 1; i<=m; i++){
         //change
         PII temp = cards[change[i].first];
         cards[change[i].first] = cards[change[i].second];
@@ -96,7 +98,7 @@ vector<bool> brute(){
     return ans;
 }
 
-vector<vector<vector<bool>>> tree;
+vector<vector<vector<int>>> tree;
 int R;
 int totalDepth;
 
@@ -127,17 +129,17 @@ int rightLeaf(int v, int depth){
 }
 
 void merge(int v, int depth){
-    vector<vector<bool>> l = tree[left(v)];
-    vector<vector<bool>> r = tree[right(v)];
+    vector<vector<int>> l = tree[left(v)];
+    vector<vector<int>> r = tree[right(v)];
 
-    vector<vector<bool>> mid(2, vector<bool>(2,false));
+    vector<vector<int>> mid(2, vector<int>(2,0));
     for(int i = 0; i<=1; i++){
         for(int j = 0; j<=1; j++){
             for(int o = 0; o<=1; o++){
                 for(int w = 0; w<=1; w++){
                     if(l[i][o] && r[w][j]){
                         if(rightLeaf(leaf(v), depth) <= leftLeaf(right(v), depth)){
-                            mid[i][j] = true;
+                            mid[i][j] = 1;
                         }
                     }
                 }
@@ -158,17 +160,17 @@ void update(int v){
     }
 }
 
-vector<bool> solve(){
+vector<int> solve(){
     tree.clear();
     R = 1;
     totalDepth = 1;
-    //getting the size
+    // getting the size
     while(1<<totalDepth < n){
         R += 1<<totalDepth;
         totalDepth++;
     }
 
-    tree.assign(4*n+1, vector<vector<bool>>(2,vector<bool>(2,true)));
+    tree.assign(4*n+1, vector<vector<int>>(2,vector<int>(2,1)));
     int tempDepth = totalDepth-1;
     int count = 1<<tempDepth;
     for(int i = R; i>=1; i--){
@@ -180,8 +182,8 @@ vector<bool> solve(){
         merge(i, tempDepth);
     }   
 
-    //procesing the changes
-    vector<bool> ans;
+    // procesing the changes
+    vector<int> ans;
     for(int i = 0; i<m; i++){
         //swap
         PII temp = cards[change[i].first];
@@ -192,10 +194,10 @@ vector<bool> solve(){
         update(change[i].first);
         update(change[i].second);
 
-        if(tree[1][0][0] || tree[1][0][1] || tree[1][1][0]|| tree[1][0][1]){
-            ans.PB(true);
+        if(tree[1][0][0] || tree[1][0][1] || tree[1][1][0]|| tree[1][1][1]){
+            ans.PB(1);
         }else{
-            ans.PB(false);
+            ans.PB(0);
         }
     }
     return ans;
@@ -214,8 +216,8 @@ int main()
         }else{
             getRandom();
         }
-        vector<bool> ansB = brute();
-        vector<bool> ansS = solve();
+        vector<int> ansB = brute();
+        vector<int> ansS = solve();
         for(int i = 0; i <m; i++){
             if(ansB[i] != ansS[i]){
                 cout<<"ERROR\n";
