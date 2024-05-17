@@ -124,7 +124,8 @@ int leftLeaf(int v, int depth){
 }
 
 int rightLeaf(int v, int depth){
-    int r = leftLeaf(v, depth) + 1<<(totalDepth - depth);
+    int r = leftLeaf(v, depth);
+    if(totalDepth != depth) r += 1<<(totalDepth - depth) -1;
     return r;
 }
 
@@ -132,13 +133,32 @@ void merge(int v, int depth){
     vector<vector<int>> l = tree[left(v)];
     vector<vector<int>> r = tree[right(v)];
 
+    vector<vector<int>> c;
+    for(int i = 0; i<=n; i++){
+        vector<int> temp;
+        temp.PB(cards[i].first);
+        temp.PB(cards[i].second);
+        c.PB(temp);
+    }
+
     vector<vector<int>> mid(2, vector<int>(2,0));
     for(int i = 0; i<=1; i++){
         for(int j = 0; j<=1; j++){
+
             for(int o = 0; o<=1; o++){
                 for(int w = 0; w<=1; w++){
+
                     if(l[i][o] && r[w][j]){
-                        if(rightLeaf(leaf(v), depth) <= leftLeaf(right(v), depth)){
+                        int leftOne;
+                        int rightOne;
+                        if(depth == totalDepth-1){
+                            leftOne = c[left(v)-R][i];
+                            rightOne = c[right(v)-R][j];
+                        }else{
+                            leftOne = c[rightLeaf(left(v), depth+1)-R][o];
+                            rightOne = c[leftLeaf(right(v), depth+1)-R][w];
+                        }
+                        if(leftOne <= rightOne){
                             mid[i][j] = 1;
                         }
                     }
@@ -151,8 +171,8 @@ void merge(int v, int depth){
 }
 
 void update(int v){
-    int V = leaf(v);
-    int depth = totalDepth;
+    int V = parent(leaf(v));
+    int depth = totalDepth-1;
     while(V >= 1){
         merge(V, depth);
         V = parent(V);
@@ -169,14 +189,15 @@ vector<int> solve(){
         R += 1<<totalDepth;
         totalDepth++;
     }
+    totalDepth++;
 
     tree.assign(4*n+1, vector<vector<int>>(2,vector<int>(2,1)));
     int tempDepth = totalDepth-1;
-    int count = 1<<tempDepth;
+    int count = 1<<(tempDepth-1);
     for(int i = R; i>=1; i--){
         if(count == 0){
             tempDepth--;
-            count = 1<<tempDepth;
+            count = 1<<(tempDepth-1);
         }
         count--;
         merge(i, tempDepth);
@@ -184,7 +205,7 @@ vector<int> solve(){
 
     // procesing the changes
     vector<int> ans;
-    for(int i = 0; i<m; i++){
+    for(int i = 1; i<=m; i++){
         //swap
         PII temp = cards[change[i].first];
         cards[change[i].first] = cards[change[i].second];
@@ -202,7 +223,6 @@ vector<int> solve(){
     }
     return ans;
 }
-
 int main()
 {
     ios_base::sync_with_stdio(false);

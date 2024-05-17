@@ -59,7 +59,7 @@ int leftLeaf(int v, int depth){
 
 int rightLeaf(int v, int depth){
     int r = leftLeaf(v, depth);
-    if(totalDepth != depth) r += 1<<(totalDepth - depth);
+    if(totalDepth != depth) r += 1<<(totalDepth - depth) -1;
     return r;
 }
 
@@ -83,8 +83,15 @@ void merge(int v, int depth){
                 for(int w = 0; w<=1; w++){
 
                     if(l[i][o] && r[w][j]){
-                        int leftOne = c[rightLeaf(left(v), depth+1)-R][o];
-                        int rightOne = c[leftLeaf(right(v), depth+1)-R][w];
+                        int leftOne;
+                        int rightOne;
+                        if(depth == totalDepth-1){
+                            leftOne = c[left(v)-R][i];
+                            rightOne = c[right(v)-R][j];
+                        }else{
+                            leftOne = c[rightLeaf(left(v), depth+1)-R][o];
+                            rightOne = c[leftLeaf(right(v), depth+1)-R][w];
+                        }
                         if(leftOne <= rightOne){
                             mid[i][j] = 1;
                         }
@@ -98,8 +105,8 @@ void merge(int v, int depth){
 }
 
 void update(int v){
-    int V = leaf(v);
-    int depth = totalDepth;
+    int V = parent(leaf(v));
+    int depth = totalDepth-1;
     while(V >= 1){
         merge(V, depth);
         V = parent(V);
@@ -132,7 +139,7 @@ vector<int> solve(){
 
     // procesing the changes
     vector<int> ans;
-    for(int i = 0; i<m; i++){
+    for(int i = 1; i<=m; i++){
         //swap
         PII temp = cards[change[i].first];
         cards[change[i].first] = cards[change[i].second];
@@ -161,9 +168,14 @@ int main()
     vector<int> ansS = solve();
 
     for(int i = 0; i<m; i++){
-        cout<<ansS[i]<<" ";
+        if(ansS[i] == 0){
+            cout<<"NIE\n";
+        }else{
+            cout<<"TAK\n";
+        }
+        // cout<<ansS[i]<<" ";
     }
-    cout<<"\n";
+    // cout<<"\n";
 
 
     return 0;
