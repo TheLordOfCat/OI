@@ -11,48 +11,30 @@ using namespace std;
 #define PB push_back
 
 int n;
-vector<int> x;
-vector<int> y;
-
+vector<PII> cards;
 int m;
-vector<PII> changes;
+vector<PII> change;
 
 void getData(){
     cin>>n;
-    for(int i =0; i<n; i++){
-        int a,b;
+    cards.PB(MP(-1,-1));
+    for(int i = 0; i<n; i++){
+        int a, b;
         cin>>a>>b;
-        x.PB(a);
-        y.PB(b);
-    }
+        cards.PB(MP(a,b));
+    }    
     cin>>m;
-    for(int i =0 ; i<m; i++){
-        int a,b;
+    change.PB(MP(-1,-1));
+    for(int i =0; i<m; i++){
+        int a, b;
         cin>>a>>b;
-        changes.PB(MP(a,b));
+        change.PB(MP(a,b));
     }
 }
 
-struct node{
-    vector<vector<int>> I;
-    vector<vector<bool>> B;
-    node(int xL1, int yL1, int xR1, int yR1, bool xx1, bool xy1, bool yx1, bool yy1){
-        I = {{xL1, xR1}, {yL1, yR1}};
-        B = {{xx1, xy1}, {yx1, yy1}};
-    }
-    node(){
-        I = {{-1, -1}, {-1, -1}};
-        B = {{false, false}, {false, false}};
-    }
-};
-
-vector<node> tree;
-int depth = 1;
-int R = 1;
-
-int leaf(int v){
-    return R+v;
-}
+vector<vector<vector<int>>> tree;
+int R;
+int totalDepth;
 
 int parent(int v){
     return v/2;
@@ -66,79 +48,106 @@ int right(int v){
     return 2*v+1;
 }
 
-void merge(int v){
-    node l = tree[left(v)];
-    node r = tree[right(v)];
-    tree[v].B = {{false, false},{false, false}};
-    tree[v].I = {{l.I[0][0], r.I[0][1]}, {l.I[1][0], r.I[1][1]}};
-    
-    if(left(v)> R || right(v) > R){
-        for(int i = 0; i<2; i++){
-            for(int j = 0; j<2; j++){
-                if(l.I[i][0] <= r.I[j][0]){
-                    tree[v].B[i][j] = true;
-                    break;
-                }
-            }
-        }
-    }else{
-        for(int i = 0; i<2; i++){
-            for(int j = 0; j<2; j++){
+int leaf(int v){
+    return v+R;
+}
 
-                for(int k = 0; k<2; k++){
-                    for(int o = 0; o<2; o++){
-                        if(l.B[i][k] && r.B[o][j] && l.I[k][1] <= r.I[o][0]){
-                            tree[v].B[i][j] = true;
-                            break;
+int leftLeaf(int v, int depth){
+    int l = v * 1<<(totalDepth - depth);
+    return l;
+}
+
+int rightLeaf(int v, int depth){
+    int r = leftLeaf(v, depth);
+    if(totalDepth != depth) r += 1<<(totalDepth - depth);
+    return r;
+}
+
+void merge(int v, int depth){
+    vector<vector<int>> l = tree[left(v)];
+    vector<vector<int>> r = tree[right(v)];
+
+    vector<vector<int>> c;
+    for(int i = 0; i<=n; i++){
+        vector<int> temp;
+        temp.PB(cards[i].first);
+        temp.PB(cards[i].second);
+        c.PB(temp);
+    }
+
+    vector<vector<int>> mid(2, vector<int>(2,0));
+    for(int i = 0; i<=1; i++){
+        for(int j = 0; j<=1; j++){
+
+            for(int o = 0; o<=1; o++){
+                for(int w = 0; w<=1; w++){
+
+                    if(l[i][o] && r[w][j]){
+                        int leftOne = c[rightLeaf(left(v), depth+1)-R][o];
+                        int rightOne = c[leftLeaf(right(v), depth+1)-R][w];
+                        if(leftOne <= rightOne){
+                            mid[i][j] = 1;
                         }
                     }
                 }
             }
         }
     }
+
+    tree[v] = mid;
 }
 
-void update(int v, int cX, int cY){
-    int V = leaf(v+1);
-    tree[V].I = {{cX,cX}, {cY,cY}};
-    V = parent(V);
+void update(int v){
+    int V = leaf(v);
+    int depth = totalDepth;
     while(V >= 1){
-        merge(V);
+        merge(V, depth);
         V = parent(V);
+        depth--;
     }
 }
 
-vector<bool> solve(){
+vector<int> solve(){
     tree.clear();
-    tree.assign(4*n+1, node());
+    R = 1;
+    totalDepth = 1;
+    // getting the size
+    while(1<<totalDepth < n){
+        R += 1<<totalDepth;
+        totalDepth++;
+    }
+    totalDepth++;
 
-    //prepare tree
-    while(n > (1<<depth)){
-        R += 1<<depth;
-        depth++;
-    }
-    for(int i = 0; i<n; i++){
-        int V = leaf(i+1);
-        tree[V].I = {{x[i], x[i]}, {y[i], y[i]}};
-        tree[V].B = {{true, true},{true, true}};
-    }
+    tree.assign(4*n+1, vector<vector<int>>(2,vector<int>(2,1)));
+    int tempDepth = totalDepth-1;
+    int count = 1<<(tempDepth-1);
     for(int i = R; i>=1; i--){
-        merge(i);
-    }
+        if(count == 0){
+            tempDepth--;
+            count = 1<<(tempDepth-1);
+        }
+        count--;
+        merge(i, tempDepth);
+    }   
 
-    //proces chagnes
-    vector<bool> ans;
+    // procesing the changes
+    vector<int> ans;
     for(int i = 0; i<m; i++){
-        int tempX = x[changes[i].first-1], tempY = y[changes[i].first-1];
-        update(changes[i].first-1, x[changes[i].second-1], y[changes[i].second-1]);
-        update(changes[i].second-1, tempX, tempY);
-        if(tree[1].B[0][0] || tree[1].B[0][1] || tree[1].B[1][0] || tree[1].B[1][1]){
-            ans.PB(true);
+        //swap
+        PII temp = cards[change[i].first];
+        cards[change[i].first] = cards[change[i].second];
+        cards[change[i].second] = temp;
+
+        //update the tree
+        update(change[i].first);
+        update(change[i].second);
+
+        if(tree[1][0][0] || tree[1][0][1] || tree[1][1][0]|| tree[1][1][1]){
+            ans.PB(1);
         }else{
-            ans.PB(false);
+            ans.PB(0);
         }
     }
-
     return ans;
 }
 
@@ -147,14 +156,12 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
+
     getData();
-    vector<bool> ansS = solve();
+    vector<int> ansS = solve();
+
     for(int i = 0; i<m; i++){
-        if(ansS[i] == 0 ){
-            cout<<"NIE\n";
-        }else{
-            cout<<"TAK\n";
-        }
+        cout<<ansS[i]<<" ";
     }
     cout<<"\n";
 
