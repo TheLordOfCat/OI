@@ -39,7 +39,8 @@ void getRandom(){
     cards.PB(MP(-1,-1));
     change.PB(MP(-1,-1));
 
-    n =rand()%n+1;
+    n = 4;
+    // rand()%10+1;
     for(int i = 0; i<n; i++){
         int a = rand()%(3*n)+1;
         int b = rand()%(3*n)+1;
@@ -51,42 +52,44 @@ void getRandom(){
         int b = rand()%n+1;
         if(a == b){
             if(b == n){
-                b--;
+                a--;
             }else{
-                a++;
+                b++;
             }
         }
+        change.PB(MP(a,b));
     }
 }
 
 void printData(){
     cout<<n<<"\n";
-    for(int  i =0; i<cards.size(); i++){
+    for(int  i =1; i<cards.size(); i++){
         cout<<cards[i].first<<" "<<cards[i].second<<"\n";
     }
     cout<<m<<"\n";
-    for(int i = 0 ;i<change.size(); i++){
+    for(int i = 1; i<change.size(); i++){
         cout<<change[i].first<<" "<<change[i].second<<"\n";
     }
 }
 
 vector<int> brute(){
     vector<int> ans;
+    vector<PII> car = cards;
 
     for(int i = 1; i<=m; i++){
         //change
         PII temp = cards[change[i].first];
-        cards[change[i].first] = cards[change[i].second];
-        cards[change[i].second] = temp;
+        car[change[i].first] = car[change[i].second];
+        car[change[i].second] = temp;
 
         //verifying
-        int cur = min(cards[1].first, cards[1].second);
+        int cur = min(car[1].first, car[1].second);
         bool ok = true;
         for(int j = 2; j<=n; j++){
-            if(cur <= min(cards[j].first, cards[j].second)){
-                cur = min(cards[j].first, cards[j].second);
-            }else if(cur <= max(cards[j].first, cards[j].second)){
-                cur = max(cards[j].first, cards[j].second);
+            if(cur <= min(car[j].first, car[j].second)){
+                cur = min(car[j].first, car[j].second);
+            }else if(cur <= max(car[j].first, car[j].second)){
+                cur = max(car[j].first, car[j].second);
             }else{
                 ok = false;
                 break;
@@ -101,6 +104,8 @@ vector<int> brute(){
 vector<vector<vector<int>>> tree;
 int R;
 int totalDepth;
+
+vector<PII> cardsSolve;
 
 int parent(int v){
     return v/2;
@@ -136,8 +141,8 @@ void merge(int v, int depth){
     vector<vector<int>> c;
     for(int i = 0; i<=n; i++){
         vector<int> temp;
-        temp.PB(cards[i].first);
-        temp.PB(cards[i].second);
+        temp.PB(cardsSolve[i].first);
+        temp.PB(cardsSolve[i].second);
         c.PB(temp);
     }
 
@@ -181,6 +186,7 @@ void update(int v){
 }
 
 vector<int> solve(){
+    cardsSolve = cards;
     tree.clear();
     R = 1;
     totalDepth = 1;
@@ -207,9 +213,9 @@ vector<int> solve(){
     vector<int> ans;
     for(int i = 1; i<=m; i++){
         //swap
-        PII temp = cards[change[i].first];
-        cards[change[i].first] = cards[change[i].second];
-        cards[change[i].second] = temp;
+        PII temp = cardsSolve[change[i].first];
+        cardsSolve[change[i].first] = cardsSolve[change[i].second];
+        cardsSolve[change[i].second] = temp;
 
         //update the tree
         update(change[i].first);
@@ -223,6 +229,7 @@ vector<int> solve(){
     }
     return ans;
 }
+
 int main()
 {
     ios_base::sync_with_stdio(false);

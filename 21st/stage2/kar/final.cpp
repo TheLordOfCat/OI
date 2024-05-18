@@ -10,6 +10,8 @@ using namespace std;
 #define PII pair<int,int>
 #define PB push_back
 
+const int INF = 2'000'000'000;
+
 int n;
 vector<PII> cards;
 int m;
@@ -59,7 +61,8 @@ int leftLeaf(int v, int depth){
 
 int rightLeaf(int v, int depth){
     int r = leftLeaf(v, depth);
-    if(totalDepth != depth) r += 1<<(totalDepth - depth) -1;
+    if(totalDepth != depth) r += 1<<(totalDepth - depth);
+    r--;
     return r;
 }
 
@@ -68,7 +71,7 @@ void merge(int v, int depth){
     vector<vector<int>> r = tree[right(v)];
 
     vector<vector<int>> c;
-    for(int i = 0; i<=n; i++){
+    for(int i = 0; i<=cards.size(); i++){
         vector<int> temp;
         temp.PB(cards[i].first);
         temp.PB(cards[i].second);
@@ -76,27 +79,31 @@ void merge(int v, int depth){
     }
 
     vector<vector<int>> mid(2, vector<int>(2,0));
-    for(int i = 0; i<=1; i++){
-        for(int j = 0; j<=1; j++){
-
-            for(int o = 0; o<=1; o++){
-                for(int w = 0; w<=1; w++){
-
-                    if(l[i][o] && r[w][j]){
-                        int leftOne;
-                        int rightOne;
-                        if(depth == totalDepth-1){
-                            leftOne = c[left(v)-R][i];
-                            rightOne = c[right(v)-R][j];
-                        }else{
-                            leftOne = c[rightLeaf(left(v), depth+1)-R][o];
-                            rightOne = c[leftLeaf(right(v), depth+1)-R][w];
-                        }
-                        if(leftOne <= rightOne){
-                            mid[i][j] = 1;
+    for(int o = 0; o<=1; o++){
+        for(int w = 0; w<=1; w++){
+            int leftOne;
+            int rightOne;
+            if(depth == totalDepth-1){
+                leftOne = c[left(v)-R][o];
+                rightOne = c[right(v)-R][w];
+                if(leftOne <= rightOne){
+                    mid[o][w] = 1;
+                }
+            }else{
+                leftOne = c[rightLeaf(left(v), depth+1)-R][o];
+                rightOne = c[leftLeaf(right(v), depth+1)-R][w];
+                if(leftOne <= rightOne){
+                    for(int i = 0; i<=1; i++){
+                        for(int j = 0; j<=1; j++){
+                            if(l[i][o] && r[w][j]){
+                                mid[i][j] = 1;
+                            }
                         }
                     }
                 }
+            }
+            if(leftOne > rightOne){
+                continue;
             }
         }
     }
@@ -124,6 +131,10 @@ vector<int> solve(){
         totalDepth++;
     }
     totalDepth++;
+
+    for(int i = n; i<=1<<totalDepth; i++){
+        cards.PB(MP(INF,INF));
+    }
 
     tree.assign(4*n+1, vector<vector<int>>(2,vector<int>(2,1)));
     int tempDepth = totalDepth-1;
