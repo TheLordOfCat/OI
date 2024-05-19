@@ -35,6 +35,7 @@ void getData(){
 }
 
 vector<vector<vector<int>>> tree;
+vector<vector<vector<int>>> border;
 int R;
 int totalDepth;
 
@@ -90,8 +91,10 @@ void merge(int v, int depth){
                     mid[o][w] = 1;
                 }
             }else{
-                leftOne = c[rightLeaf(left(v), depth+1)-R][o];
-                rightOne = c[leftLeaf(right(v), depth+1)-R][w];
+                leftOne = border[left(v)][1][o];
+                rightOne = border[right(v)][0][w];
+                // leftOne = c[rightLeaf(left(v), depth+1)-R][o];
+                // rightOne = c[leftLeaf(right(v), depth+1)-R][w];
                 if(leftOne <= rightOne){
                     for(int i = 0; i<=1; i++){
                         for(int j = 0; j<=1; j++){
@@ -115,6 +118,8 @@ void update(int v){
     int V = parent(leaf(v));
     int depth = totalDepth-1;
     while(V >= 1){
+        border[V][0] = border[left(V)][0];
+        border[V][1] = border[right(V)][1];
         merge(V, depth);
         V = parent(V);
         depth--;
@@ -132,8 +137,14 @@ vector<int> solve(){
     }
     totalDepth++;
 
+    border.assign(4*n+1, vector<vector<int>>(2,vector<int>(2,0)));
+
     for(int i = n; i<=1<<totalDepth; i++){
         cards.PB(MP(INF,INF));
+    }
+    for(int i = 1; i<cards.size(); i++){
+        border[leaf(i)][0] = {cards[i].first, cards[i].second};
+        border[leaf(i)][1] = {cards[i].first, cards[i].second};
     }
 
     tree.assign(4*n+1, vector<vector<int>>(2,vector<int>(2,1)));
@@ -145,6 +156,8 @@ vector<int> solve(){
             count = 1<<(tempDepth-1);
         }
         count--;
+        border[i][0] = border[left(i)][0];
+        border[i][1] = border[right(i)][1];
         merge(i, tempDepth);
     }   
 
@@ -156,14 +169,21 @@ vector<int> solve(){
         cards[change[i].first] = cards[change[i].second];
         cards[change[i].second] = temp;
 
+        border[R + change[i].first][0] = {cards[change[i].first].first, cards[change[i].first].second};
+        border[R + change[i].first][1] = {cards[change[i].first].first, cards[change[i].first].second};
+        border[R + change[i].second][0] = {cards[change[i].second].first, cards[change[i].second].second};
+        border[R + change[i].second][1] = {cards[change[i].second].first, cards[change[i].second].second};
+
         //update the tree
         update(change[i].first);
         update(change[i].second);
 
         if(tree[1][0][0] || tree[1][0][1] || tree[1][1][0]|| tree[1][1][1]){
-            ans.PB(1);
+            // ans.PB(1);
+            cout<<"TAK\n";
         }else{
-            ans.PB(0);
+            cout<<"NIE\n";
+            // ans.PB(0);
         }
     }
     return ans;
@@ -178,14 +198,14 @@ int main()
     getData();
     vector<int> ansS = solve();
 
-    for(int i = 0; i<m; i++){
-        if(ansS[i] == 0){
-            cout<<"NIE\n";
-        }else{
-            cout<<"TAK\n";
-        }
-        // cout<<ansS[i]<<" ";
-    }
+    // for(int i = 0; i<m; i++){
+    //     if(ansS[i] == 0){
+    //         cout<<"NIE\n";
+    //     }else{
+    //         cout<<"TAK\n";
+    //     }
+    //     // cout<<ansS[i]<<" ";
+    // }
     // cout<<"\n";
 
 
