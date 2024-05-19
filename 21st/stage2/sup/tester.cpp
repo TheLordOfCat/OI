@@ -95,7 +95,7 @@ vector<int> brute(){
         }else{
             S.push(MP(v,true));
             for(int i = 0; i<graph[v].size(); i++){
-                S.push(MP(graph[v][i]+1,false));
+                S.push(MP(graph[v][i],false));
             }
         }
     }
@@ -121,8 +121,8 @@ vector<int> brute(){
             }
             turns++;
             for(int j = 0; j<next.size(); j++){
-                for(int o = 0; o <graph[next[i]].size(); o++){
-                    int cur = graph[next[i]][o];
+                for(int o = 0; o <graph[next[j]].size(); o++){
+                    int cur = graph[next[j]][o];
                     Q.push(MP(cur, maxDepth[cur]));
                 }
             }
