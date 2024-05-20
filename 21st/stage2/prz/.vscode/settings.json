@@ -1,5 +1,13 @@
 {
     "files.associations": {
-        "vector": "cpp"
+        "vector": "cpp",
+        "algorithm": "cpp",
+        "tuple": "cpp",
+        "istream": "cpp",
+        "memory": "cpp",
+        "type_traits": "cpp",
+        "utility": "cpp",
+        "xlocnum": "cpp",
+        "xutility": "cpp"
     }
 }
