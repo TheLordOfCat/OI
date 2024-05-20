@@ -85,7 +85,7 @@ vector<int> solve(){
     next.clear();
     begin.clear();
     next.assign(n+1, -INF);
-    begin.assign(k+1, MP(-INF,-INF));
+    begin.assign(k+1, MP(-INF,0));
 
     for(int i = 0; i< n; i++){
         next[i] = begin[c[i]].first;
@@ -100,7 +100,7 @@ vector<int> solve(){
     }
     sort(begin.begin()+1, begin.end());
 
-    for(int i = k-1; i>=0; i--){
+    for(int i = k; i>0; i--){
         int limit = begin[i].first;
         if(limit == -INF) limit++;
         for(int j = 0; j<y.size(); j++){
@@ -125,9 +125,14 @@ vector<int> solve(){
     int ind = 0;
     int active = 0;
     for(int i = 0; i<n; i++){
+        bool added = false;
+        if(active > 0 && c[i] == x.back()){
+            ans.PB(i+1);
+            added = true;
+        }
         while(get<0>(seg[ind]) <= i){
             if(get<1>(seg[ind]) == 1){
-                if(!started[get<2>(seg[ind])]){
+                if(started[get<2>(seg[ind])]){
                     active--;
                 }
                 started[get<2>(seg[ind])] = true;
@@ -139,7 +144,7 @@ vector<int> solve(){
             }
             ind++;
         }
-        if(active > 0 && c[i] == x.back()){
+        if(active > 0 && c[i] == x.back() && !added){
             ans.PB(i+1);
         }
     }
