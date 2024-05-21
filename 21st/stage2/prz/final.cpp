@@ -122,32 +122,39 @@ vector<int> solve(){
 
     vector<int> ans;
     vector<bool> started(k+1, false);
-    int ind = 0;
     int active = 0;
-    for(int i = 0; i<n; i++){
-        bool added = false;
-        if(active > 0 && c[i] == x.back()){
-            ans.PB(i+1);
-            added = true;
-        }
-        while(get<0>(seg[ind]) <= i){
-            if(get<1>(seg[ind]) == 1){
-                if(started[get<2>(seg[ind])]){
-                    active--;
+    seg.PB(make_tuple(n,0,0));
+    for(int i = 0; i<seg.size()-1;){
+        int ind = i;
+
+        do{
+            if(!(get<0>(seg[ind]) <0 || get<0>(seg[ind]) > n)){
+                if(started[get<1>(seg[ind])] == 1){
+                    if(started[get<2>(seg[ind])]){
+                        active--;
+                    }
+                    started[get<2>(seg[ind])] = true;
+                }else{
+                    if(!started[get<2>(seg[ind])]){
+                        active++;
+                    }
+                    started[get<2>(seg[ind])] = true;
                 }
-                started[get<2>(seg[ind])] = true;
             }else{
-                if(!started[get<2>(seg[ind])]){
-                    active++;
-                }
-                started[get<2>(seg[ind])] = true;
+               if(get<2>(seg[ind]) <= k) started[get<2>(seg[ind])] = true;
             }
             ind++;
+            if(ind >= seg.size()-2) break;
+        }while(get<0>(seg[i]) == get<0>(seg[ind]));
+
+        if(active > 0){
+            for(int j = get<0>(seg[i]); j<=min(get<0>(seg[ind]),n-1); j++){
+                if(c[j] == x.back()) ans.PB(j+1);
+            }
         }
-        if(active > 0 && c[i] == x.back() && !added){
-            ans.PB(i+1);
-        }
+        i = ind;
     }
+
 
     return ans;
 }
