@@ -1,5 +1,6 @@
 #include<iostream>
 #include <vector>
+#include <queue>
 
 using namespace std;
 
@@ -66,11 +67,32 @@ void printData(){
 }
 
 bool brute(){
-
+    vector<bool> vis((1<<n), false);
+    for(int i = 0; i<k; i++){
+        vis[removed[i]] = true;
+    }
+    queue<int> Q;
+    Q.push(start);
+    while(!Q.empty()){
+        int v =  Q.front();
+        Q.pop();
+        for(int j = 0; j<n; j++){
+            int cur = v;
+            cur ^= (1<<j);
+            if(!vis[cur]){
+                vis[cur] = true;
+                Q.push(cur);
+                if(cur == finish){
+                    return true;
+                }
+            }
+        }
+    }   
+    return false;
 }
 
 bool solve(){
-
+    
 }
 
 int main()
