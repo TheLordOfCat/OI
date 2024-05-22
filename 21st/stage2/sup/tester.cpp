@@ -133,8 +133,47 @@ vector<int> brute(){
     return ans;
 }
 
-vector<int> solve(){
+struct block{
+    int index;
+    int size;
+    int height;
+    block(int i1, int s1 ,int h1){
+        index = i1;
+        size = s1;
+        height = h1;
+    }
+    block(){
+        index = 0;
+        size = 0;
+        height = 0;
+    }
+};
 
+vector<int> solve(){
+    vector<int> time(n+1, 0);
+    vector<vector<block>> blocksVec(2, vector<block>());
+    for(int i = n-1; i>0; i--){
+        int exces = 0;
+        blocksVec[i%2].clear()
+        for(int j = 0; j<blocksVec[(i+1)%2].size(); j++){
+            block b = blocksVec[(i+1)%2][j];
+            if(b.height > i){
+                exces += (b.height-i)*b.size;
+                blocksVec.PB(block(b.index, b.size, b.height));
+            }else{
+                exces -= (i-b.height)*b.size;
+                
+            }
+        }   
+    }
+
+    //getting the answer
+    vector<int> ans;
+    for(int i = 0; i<q; i++){
+        ans.PB(time[k[i]]);
+    }
+
+    return ans;
 }
 
 int main()
