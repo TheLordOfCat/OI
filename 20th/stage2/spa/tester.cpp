@@ -92,7 +92,38 @@ bool brute(){
 }
 
 bool solve(){
-    
+    vector<int> firstVec = {start, finish};
+    bool ans = true;
+    for(int t = 0; t<2; t++){
+        int count = 0;
+        vector<bool> vis((1<<n), false);
+        for(int i = 0; i<k; i++){
+            vis[removed[i]] = true;
+        }
+        queue<int> Q;
+        Q.push(firstVec[t]);
+        while(!Q.empty()){
+            int v =  Q.front();
+            Q.pop();
+            count++;
+            for(int j = 0; j<n; j++){
+                int cur = v;
+                cur ^= (1<<j);
+                if(!vis[cur]){
+                    vis[cur] = true;
+                    Q.push(cur);
+                    if(cur == firstVec[(t+1)%2]){
+                        return true;
+                    }
+                }
+            }
+        }   
+        if(count < n*k){
+            ans = false;
+            break;
+        }
+    }
+    return ans;
 }
 
 int main()
