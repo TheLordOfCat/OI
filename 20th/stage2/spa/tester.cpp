@@ -15,21 +15,21 @@ vector<int> removed;
 void getData(){
     cin>>n>>k;
     for(int i = 1; i<=n; i++){
-        int temp;
+        char temp;
         cin>>temp;
-        start += (1<<(n-i)) * temp;
+        start += (1<<(n-i)) * (temp-'0');
     }
     for(int i = 1; i<=n; i++){
-        int temp;
+        char temp;
         cin>>temp;
-        start += (1<<(n-i)) * temp;
+        finish += (1<<(n-i)) * (temp-'0');
     }
     for(int i = 0; i<k; i++){
         int num = 0;
         for(int j = 1; j<=n; j++){
-            int temp;
+            char temp;
             cin>>temp;
-            num += (1<<(n-j)) * temp;
+            num += (1<<(n-j)) * (temp-'0');
         }
         removed.PB(num);
     }
