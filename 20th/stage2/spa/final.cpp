@@ -42,7 +42,8 @@ bool solve(){
     bool ans = true;
     for(int t = 0; t<2; t++){
         ll count = 0;
-        vector<bool> vis((1<<n), false);
+        ll s = ((ll)1)<<n;
+        vector<bool> vis(s, false);
         for(int i = 0; i<k; i++){
             vis[removed[i]] = true;
         }
