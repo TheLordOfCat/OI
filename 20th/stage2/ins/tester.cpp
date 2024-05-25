@@ -87,7 +87,20 @@ int brute(){
         for(int j = 1; j<=m; j++){
             int curWork = before+ work+after;
             if(curWork > attend[j].second){
-
+                while(curWork > attend[j].second){
+                    if(after > 0){
+                        after--;
+                        gone++;
+                        curWork--;
+                    }else if(before > 0){
+                        before--;
+                        gone++;
+                        curWork--;
+                    }else{
+                        ok = false;
+                        break;
+                    }
+                }
             }else if(curWork <attend[j].second){
                 int dif = attend[j].second- curWork;
                 if(dif > home){
@@ -96,6 +109,24 @@ int brute(){
                 }else{
                     home -= dif;
                     before += dif;
+                }
+            }
+            work -= attend[j].first.first;
+            gone += attend[j].first.first;
+            work += attend[j].first.second;
+            int count = attend[j].first.second;
+            while(count > 0){
+                if(before > 0){
+                    before--;
+                    count--;
+                    work++;
+                }else if(home > 0){
+                    home--;
+                    count--;
+                    work++;
+                }else{
+                    ok = false;
+                    break;
                 }
             }
         }
