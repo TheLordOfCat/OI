@@ -22,7 +22,7 @@ vector<vector<int>> logs;//t - j - i
 void getData(){
     logs.clear();
     cin>>n>>m;
-    logs.assign(n+1, vector<int>());
+    logs.assign(m+1, vector<int>());
     for(int o = 0; o<m; o++){
         int t,j,i;
         cin>>t>>j>>i;
@@ -60,6 +60,7 @@ int brute(){
         int home = n, before = 0, work = 0, after = 0, gone = 0;
         vector<pair<PII,int>> attend(m+1, MP(MP(0,0),INF));
         vector<PII> range(n+1, MP(INF,INF));
+        //process logs
         for(int j = 0; j<=i; j++){
             int t = logs[j][0];
             int p = logs[j][1];
@@ -84,10 +85,19 @@ int brute(){
                 break;
             }
         }
-        for(int j = 1; j<=m; j++){
+        //verify
+        int lastT = -1;
+        for(int j = 0; j<m; j++){
+            int t;
+            if(lastT == logs[j][0]){
+                continue;
+            }else{
+                lastT = logs[j][0];
+                t = lastT;
+            }
             int curWork = before+ work+after;
-            if(curWork > attend[j].second){
-                while(curWork > attend[j].second){
+            if(curWork > attend[t].second){
+                while(curWork > attend[t].second){
                     if(after > 0){
                         after--;
                         gone++;
@@ -101,8 +111,8 @@ int brute(){
                         break;
                     }
                 }
-            }else if(curWork <attend[j].second){
-                int dif = attend[j].second- curWork;
+            }else if(curWork <attend[t].second){
+                int dif = attend[t].second- curWork;
                 if(dif > home){
                     ok =false;
                     break;
@@ -111,10 +121,10 @@ int brute(){
                     before += dif;
                 }
             }
-            work -= attend[j].first.first;
-            gone += attend[j].first.first;
-            work += attend[j].first.second;
-            int count = attend[j].first.second;
+            work -= attend[t].first.first;
+            gone += attend[t].first.first;
+            work += attend[t].first.second;
+            int count = attend[t].first.second;
             while(count > 0){
                 if(before > 0){
                     before--;
