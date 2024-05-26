@@ -86,61 +86,47 @@ int brute(){
             }
         }
         //verify
-        int lastT = -1;
-        for(int j = 0; j<m; j++){
-            int t;
-            if(lastT == logs[j][0]){
+        for(int i = 1; i<=m; i++){
+            if(attend[i].second == INF){
                 continue;
-            }else{
-                lastT = logs[j][0];
-                t = lastT;
             }
-            int curWork = before+ work+after;
-            if(curWork > attend[t].second){
-                while(curWork > attend[t].second){
-                    if(after > 0){
-                        after--;
-                        gone++;
-                        curWork--;
-                    }else if(before > 0){
-                        before--;
-                        gone++;
-                        curWork--;
-                    }else{
-                        ok = false;
-                        break;
-                    }
-                }
-            }else if(curWork <attend[t].second){
-                int dif = attend[t].second- curWork;
-                if(dif > home){
-                    ok =false;
-                    break;
-                }else{
-                    home -= dif;
-                    before += dif;
-                }
+            work += attend[i].first.first;
+            before -= attend[i].first.first;
+            if(before < 0){
+                home += before;
+                before = 0;
             }
-            work -= attend[t].first.first;
-            gone += attend[t].first.first;
-            work += attend[t].first.second;
-            int count = attend[t].first.second;
-            while(count > 0){
-                if(before > 0){
-                    before--;
-                    count--;
-                    work++;
-                }else if(home > 0){
-                    home--;
-                    count--;
-                    work++;
-                }else{
+            if(home < 0){
+                ok = false;
+                break;
+            }
+            work -= attend[i].first.second;
+            after += attend[i].first.second;
+
+            int workers = before + work + after;
+            if(workers < attend[i].second){
+                int dif = attend[i].second - workers;
+                before += dif;
+                home -= dif;
+                if(home < 0){
                     ok = false;
                     break;
                 }
+            }else if(workers > attend[i].second){
+                int dif = workers - attend[i].second;
+                after -= dif;
+                if(after < 0){
+                    dif = (-1)*after;
+                    after = 0;
+                }
+                before -= dif;
+                if(before < 0){
+                    ok = false;
+                    break;
+                }
+                gone += workers - attend[i].second;
             }
         }
-
         if(ok){
             ans++;
         }else{
@@ -151,7 +137,7 @@ int brute(){
 }
 
 int solve(){
-
+    return 0;
 }
 
 int main()
