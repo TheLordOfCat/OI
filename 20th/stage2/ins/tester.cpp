@@ -59,7 +59,7 @@ int brute(){
     for(int i = 0; i<m; i++){
         int home = n, before = 0, work = 0, after = 0, gone = 0;
         vector<pair<PII,int>> attend(m+1, MP(MP(0,0),INF));
-        vector<PII> range(n+1, MP(INF,INF));
+        vector<PII> range(n+1, MP(INF,-1));
         //process logs
         for(int j = 0; j<=i; j++){
             int t = logs[j][0];
@@ -74,7 +74,7 @@ int brute(){
                     range[p].first = t;
                 }
                 if(range[p].second < t){
-                    if(range[p].second != INF){
+                    if(range[p].second != -1){
                         attend[range[p].second].first.second--;
                     }
                     attend[t].first.second++;
@@ -86,12 +86,12 @@ int brute(){
             }
         }
         //verify
-        for(int i = 1; i<=m; i++){
-            if(attend[i].second == INF){
+        for(int j = 1; j<=m; j++){
+            if(attend[j].second == INF){
                 continue;
             }
-            work += attend[i].first.first;
-            before -= attend[i].first.first;
+            work += attend[j].first.first;
+            before -= attend[j].first.first;
             if(before < 0){
                 home += before;
                 before = 0;
@@ -100,32 +100,32 @@ int brute(){
                 ok = false;
                 break;
             }
-            work -= attend[i].first.second;
-            after += attend[i].first.second;
 
             int workers = before + work + after;
-            if(workers < attend[i].second){
-                int dif = attend[i].second - workers;
+            if(workers < attend[j].second){
+                int dif = attend[j].second - workers;
                 before += dif;
                 home -= dif;
                 if(home < 0){
                     ok = false;
                     break;
                 }
-            }else if(workers > attend[i].second){
-                int dif = workers - attend[i].second;
+            }else if(workers > attend[j].second){
+                int dif = workers - attend[j].second;
                 after -= dif;
                 if(after < 0){
                     dif = (-1)*after;
                     after = 0;
+                    before -= dif;
+                    if(before < 0){
+                        ok = false;
+                        break;
+                    }
                 }
-                before -= dif;
-                if(before < 0){
-                    ok = false;
-                    break;
-                }
-                gone += workers - attend[i].second;
+                gone += workers - attend[j].second;
             }
+            work -= attend[j].first.second;
+            after += attend[j].first.second;
         }
         if(ok){
             ans++;
