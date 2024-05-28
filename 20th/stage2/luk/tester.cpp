@@ -1,6 +1,7 @@
 #include<iostream>
 #include <vector>
 #include <stack>
+#include <queue>
 
 using namespace std;
 
@@ -62,7 +63,65 @@ void printData(){
 }
 
 int brute(){
+    vector<int> depth(n+1, 0);
 
+    stack<PII> S;
+    vector<bool>check(n+1, false);
+    S.push(MP(1,1));
+    check[1] = true;
+    while(!S.empty()){
+        int v = S.top().first;
+        int d = S.top().second;
+        S.pop();
+        depth[v] = d;
+        for(int i = 0; i<graph[v].size(); i++){
+            int cur = graph[v][i];
+            if(!check[cur]){
+                check[cur] = true;
+                S.push(MP(cur, d+1));
+            }
+        }
+    }
+
+    int ans = n;
+    for(int i = n-1; i> 0; i--){
+        bool ok = true;
+
+        int t = 1;
+        vector<int> turn(n+1, 0);
+        queue<int> Q;
+        vector<bool>vis(n+1, false);
+
+        Q.push(1);
+        vis[1] = true;
+        for(int k = 0; k<i; k++){
+            while(!Q.empty()){
+                int v = Q.front();
+                Q.pop();
+                turn[v] = t;
+                if(t < depth[v]){
+                    ok = false;
+                    break;
+                }
+                for(int j = 0; j<graph[v].size(); j++){
+                    int cur = graph[v][j];
+                    if(!vis[cur]){
+                        vis[cur] = true;
+                        Q.push(cur);
+                    }
+                }
+            }
+            t++;
+        }
+
+        if(ok){
+            ans--;
+        }else{
+            break;
+        }
+    }
+
+    return ans;
 }
 
 int solve(){
