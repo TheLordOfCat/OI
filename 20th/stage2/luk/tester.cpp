@@ -17,7 +17,7 @@ vector<vector<int>> graph;
 void getData(){
     cin>>n;
     graph.assign(n+1, vector<int>());
-    for(int i = 0; i<n; i++){
+    for(int i = 0; i<n-1; i++){
         int a, b;
         cin>>a>>b;
         graph[a].PB(b);
@@ -94,12 +94,15 @@ int brute(){
 
         Q.push(1);
         vis[1] = true;
-        for(int k = 0; k<i; k++){
-            while(!Q.empty()){
+        while(!Q.empty()){
+            for(int k = 0; k<i; k++){
+                if(Q.empty()){
+                    break;
+                }
                 int v = Q.front();
                 Q.pop();
                 turn[v] = t;
-                if(t < depth[v]){
+                if(t > depth[v]){
                     ok = false;
                     break;
                 }
@@ -125,7 +128,73 @@ int brute(){
 }
 
 int solve(){
+    vector<int> depth(n+1, 0);
 
+    stack<PII> S;
+    vector<bool>check(n+1, false);
+    S.push(MP(1,1));
+    check[1] = true;
+    while(!S.empty()){
+        int v = S.top().first;
+        int d = S.top().second;
+        S.pop();
+        depth[v] = d;
+        for(int i = 0; i<graph[v].size(); i++){
+            int cur = graph[v][i];
+            if(!check[cur]){
+                check[cur] = true;
+                S.push(MP(cur, d+1));
+            }
+        }
+    }
+
+
+    int left = 1, right = n-1; 
+    int ans = n;
+    while(left < right){
+        int mid = left + (right - left)/2;
+        bool ok = true;
+        int i = mid;
+
+        int t = 1;
+        vector<int> turn(n+1, 0);
+        queue<int> Q;
+        vector<bool>vis(n+1, false);
+
+        Q.push(1);
+        vis[1] = true;
+        while(!Q.empty()){
+            for(int k = 0; k<i; k++){
+                if(Q.empty()){
+                    break;
+                }
+                int v = Q.front();
+                Q.pop();
+                turn[v] = t;
+                if(t > depth[v]){
+                    ok = false;
+                    break;
+                }
+                for(int j = 0; j<graph[v].size(); j++){
+                    int cur = graph[v][j];
+                    if(!vis[cur]){
+                        vis[cur] = true;
+                        Q.push(cur);
+                    }
+                }
+            }
+            t++;
+        }
+
+        if(ok){
+            ans = mid;
+            right = mid-1;
+        }else{
+            left = mid+1;
+        }
+    }
+
+    return ans;
 }
 
 int main()
