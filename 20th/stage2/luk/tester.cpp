@@ -67,7 +67,7 @@ int brute(){
 
     stack<PII> S;
     vector<bool>check(n+1, false);
-    S.push(MP(1,1));
+    S.push(MP(1,0));
     check[1] = true;
     while(!S.empty()){
         int v = S.top().first;
@@ -91,9 +91,13 @@ int brute(){
         vector<int> turn(n+1, 0);
         queue<int> Q;
         vector<bool>vis(n+1, false);
-
-        Q.push(1);
         vis[1] = true;
+        for(int j =0; j<graph[1].size(); j++){
+            int cur = graph[1][j];
+            Q.push(cur);
+            vis[cur] = true;
+        }
+        
         while(!Q.empty()){
             for(int k = 0; k<i; k++){
                 if(Q.empty()){
@@ -132,7 +136,7 @@ int solve(){
 
     stack<PII> S;
     vector<bool>check(n+1, false);
-    S.push(MP(1,1));
+    S.push(MP(1,0));
     check[1] = true;
     while(!S.empty()){
         int v = S.top().first;
@@ -151,7 +155,7 @@ int solve(){
 
     int left = 1, right = n-1; 
     int ans = n;
-    while(left < right){
+    while(left <= right){
         int mid = left + (right - left)/2;
         bool ok = true;
         int i = mid;
@@ -161,8 +165,13 @@ int solve(){
         queue<int> Q;
         vector<bool>vis(n+1, false);
 
-        Q.push(1);
         vis[1] = true;
+        for(int j =0; j<graph[1].size(); j++){
+            int cur = graph[1][j];
+            Q.push(cur);
+            vis[cur] = true;
+        }
+
         while(!Q.empty()){
             for(int k = 0; k<i; k++){
                 if(Q.empty()){
