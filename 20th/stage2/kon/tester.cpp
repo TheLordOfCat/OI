@@ -1,5 +1,7 @@
 #include <iostream>
 #include <vector>
+#include <queue>
+#include <algorithm>
 
 #include <ctime>
 #include <cstdlib>
@@ -31,10 +33,14 @@ void getData(){
 }
 
 void getRandom(){
+    graph.clear();
+    query.clear();
+
     srand(time(0));
     n = rand()%10+1;
     m = rand()%20+1;
     k = rand()%5+1;
+    graph.assign(n+1, vector<int>());
     for(int i =0; i<m; i++){
         int a = rand()%n+1;
         int b = rand()%n+1;
@@ -62,11 +68,119 @@ void printData(){
 }
 
 vector<bool> brute(){
+    vector<bool> ans;
+    for(int i = 0; i<k; i++){
+        int beg = query[i].first.first;
+        int end = query[i].first.second;
+        int len = query[i].second;
+        
+        bool ok = false;
 
+        queue<PII> Q;
+        Q.push(MP(beg,0));
+        while(!Q.empty()){
+            int v = Q.front().first;
+            int l = Q.front().second;
+            Q.pop();
+
+            if(v == end){
+                if(l > len){
+                    break;
+                }else{
+                    if(l%2 == len%2){
+                        ok = true;
+                        break;
+                    }
+                }
+            }
+            if(l < len){
+                for(int i = 0; i<graph[v].size(); i++){
+                    int cur = graph[v][i];
+                    Q.push(MP(cur,l+1));
+                }
+            }
+
+        }
+
+        ans.PB(ok);
+    }
+
+    return ans;
+}
+
+bool customCompare(pair<PII,int> a, pair<PII,int> b) {
+    return a.first.first < b.first.first; 
 }
 
 vector<bool> solve(){
+    for(int i =0; i<query.size(); i++){
+        if(query[i].first.first > query[i].first.second){
+            int temp = query[i].first.first;
+            query[i].first.first = query[i].first.second;
+            query[i].first.second = temp;
+        }
+    }
 
+    sort(query.begin(), query.end(), customCompare);
+
+    vector<bool> ans(n+1, false);
+    int p = -1;
+    vector<PII> shortPath(n+1, MP(-1,-1));
+    for(int i = 0; i<query.size(); i++){
+        int beg = query[i].first.first;
+        int end = query[i].first.second;
+        int len = query[i].second;
+
+        if(beg != p){
+            shortPath.clear();
+            shortPath.assign(n+1, MP(-1,-1));
+
+            queue<PII> Q;
+            Q.push(MP(beg, 0));
+            while(!Q.empty()){
+                int v = Q.front().first;
+                int l = Q.front().second;
+                Q.pop();
+                bool next = true;
+
+                if(l%2 == 0){
+                    if(shortPath[v].first == -1){
+                        shortPath[v].first = l;
+                    }else{
+                        next = false;        
+                    }
+                }else{
+                    if(shortPath[v].second == -1){
+                        shortPath[v].second = l;
+                    }else{
+                        next = false;        
+                    }
+                }
+
+                if(next){
+                    for(int j = 0; j<graph[v].size(); j++){
+                        int cur =graph[v][j];
+                        Q.push(MP(cur, len+1));
+                    }
+                }
+            }
+        }
+
+        bool ok = false;
+        if(len%2 == 0){
+            if(shortPath[end].first <= len){
+                ok = true;
+            }
+        }else{
+            if(shortPath[end].second <= len){
+                ok = true;
+            }
+        }
+
+        ans.PB(ok);
+        p = beg;
+    }
+    return ans;
 }
 
 int main()
