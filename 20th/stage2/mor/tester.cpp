@@ -38,7 +38,7 @@ void getRandom(){
 
     srand(time(0));
     n = rand()%10+1;
-    m = rand()%20+1;
+    m = rand()%(2*n)+1;
     k = rand()%5+1;
     graph.assign(n+1, vector<int>());
     for(int i =0; i<m; i++){
@@ -108,28 +108,30 @@ vector<bool> brute(){
     return ans;
 }
 
-bool customCompare(pair<PII,int> a, pair<PII,int> b) {
-    return a.first.first < b.first.first; 
+bool customCompare(pair<pair<PII,int>, int> a, pair<pair<PII,int>, int> b) {
+    return a.first.first.first < b.first.first.first; 
 }
 
 vector<bool> solve(){
+    vector<pair<pair<PII,int>, int>> que;
     for(int i =0; i<query.size(); i++){
         if(query[i].first.first > query[i].first.second){
             int temp = query[i].first.first;
             query[i].first.first = query[i].first.second;
             query[i].first.second = temp;
         }
+        que.PB(MP(query[i], i));
     }
 
-    sort(query.begin(), query.end(), customCompare);
+    sort(que.begin(), que.end(), customCompare);
 
-    vector<bool> ans(n+1, false);
+    vector<bool> ans(k, false);
     int p = -1;
     vector<PII> shortPath(n+1, MP(-1,-1));
-    for(int i = 0; i<query.size(); i++){
-        int beg = query[i].first.first;
-        int end = query[i].first.second;
-        int len = query[i].second;
+    for(int i = 0; i<que.size(); i++){
+        int beg = que[i].first.first.first;
+        int end = que[i].first.first.second;
+        int len = que[i].first.second;
 
         if(beg != p){
             shortPath.clear();
@@ -160,7 +162,7 @@ vector<bool> solve(){
                 if(next){
                     for(int j = 0; j<graph[v].size(); j++){
                         int cur =graph[v][j];
-                        Q.push(MP(cur, len+1));
+                        Q.push(MP(cur, l+1));
                     }
                 }
             }
@@ -168,16 +170,16 @@ vector<bool> solve(){
 
         bool ok = false;
         if(len%2 == 0){
-            if(shortPath[end].first <= len){
+            if(shortPath[end].first <= len && shortPath[end].first != -1){
                 ok = true;
             }
         }else{
-            if(shortPath[end].second <= len){
+            if(shortPath[end].second <= len && shortPath[end].second != -1){
                 ok = true;
             }
         }
 
-        ans.PB(ok);
+        ans[que[i].second] = ok;
         p = beg;
     }
     return ans;
@@ -188,8 +190,8 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
-    for(int test = 1; test<=1; test++){
+    int op = 0;
+    for(int test = 1; test<=10'000; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
