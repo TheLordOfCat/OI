@@ -112,7 +112,42 @@ vector<PII> brute(){
 }
 
 vector<PII> solve(){
+    vector<PII> ans;
 
+    vector<bool> vis(n+1, false);
+    vector<bool> con(n+1, false);
+    for(int i = 1; i<=k; i++){
+        if(!vis[i]){
+            bool oneOut = false;
+            queue<int> Q;
+            Q.push(i);
+            while(!Q.empty()){
+                int v = Q.front();
+                vis[v] = true;
+                Q.pop();
+
+                for(int j = 0; j< graph[v].size(); j++){
+                    int cur = graph[v][j];
+                    if(cur <= k){
+                        if(!con[cur]){
+                            Q.push(cur);
+                            con[cur] = true;
+                        }else if(!vis[cur]){
+                            ans.PB(MP(v,cur));
+                        }
+                    }else{
+                        if(!oneOut){
+                            oneOut = true;
+                        }else{
+                            ans.PB(MP(v,cur));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return ans;
 }
 
 int main()
@@ -140,6 +175,7 @@ int main()
             printData();
             return 0;
         }
+        cout<<"CORRECT\n";
     }
 
     return 0;
