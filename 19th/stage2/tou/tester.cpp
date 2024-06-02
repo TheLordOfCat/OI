@@ -80,31 +80,32 @@ vector<PII> brute(){
     for(int i = 1; i<=k; i++){
         int out = 0;
         int in = 0;
+        int trav = 0;
         if(!vis[i]){
-            vis[i] = true;
             queue<int> Q;
             Q.push(i);
             while(!Q.empty()){
                 int v = Q.front();
                 Q.pop();
+                if(vis[v]) continue;
                 vis[v] = true;
+                trav++;
 
                 for(int j = 0; j<graph[v].size(); j++){
                     int cur = graph[v][j];
                     if(cur <=k){
                         if(!vis[cur]){
                             Q.push(cur);
-                        }else{
-                            in++;
                         }
+                        in++;
                     }else{
                         out++;
                     }
                 }
             }
+            ans += (out-1);
+            ans += (in/2-(trav-1));
         }
-        ans += (out-1);
-        ans += in;
     }
 
     return vector<PII>(ans, MP(0,0));
