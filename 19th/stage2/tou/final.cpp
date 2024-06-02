@@ -41,6 +41,7 @@ vector<PII> solve(){
             while(!Q.empty()){
                 int v = Q.front();
                 vis[v] = true;
+                con[v] = true;
                 Q.pop();
 
                 for(int j = 0; j< graph[v].size(); j++){
@@ -71,16 +72,14 @@ int main()
 {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
-    
 
-            getData();
+    getData();
 
-        vector<PII> ansS = solve();
-
-            cout<<"SOVLE:"<<ansS.size()<<"\n";
-            for(int i = 0; i<ansS.size(); i++){
-                cout<<ansS[i].first<<" "<<ansS[i].second<<"\n";
-            }
+    vector<PII> ansS = solve();
+    cout<<ansS.size()<<"\n";
+    for(int i = 0; i<ansS.size(); i++){
+        cout<<min(ansS[i].first, ansS[i].second)<<" "<<max(ansS[i].first,ansS[i].second)<<"\n";
+    }
 
 
     return 0;

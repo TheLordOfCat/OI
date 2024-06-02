@@ -33,8 +33,9 @@ void getRandom(){
 
     n = rand()%10+1;
     m = rand()%(2*n)+1;
-    k = rand()%10+1;
+    k = rand()%n+1;
 
+    graph.assign(n+1, vector<int>());
     for(int i =0; i<m; i++){
         int a = rand()%n+1;
         int b = rand()%n+1;
@@ -55,16 +56,17 @@ void printData(){
         if(!vis[i]){
             queue<int> Q;
             Q.push(i);
-            vis[i] = true;
 
             while(!Q.empty()){
                 int v= Q.front();
                 Q.pop();
+                if(vis[v]) continue;
+                vis[v] = true;
+
                 for(int j = 0; j<graph[v].size(); j++){
                     int cur = graph[v][j];
                     if(!vis[cur]){
                         cout<<v<<" "<<cur<<"\n";
-                        vis[cur] = true;
                         Q.push(cur);
                     }
                 }
@@ -103,7 +105,7 @@ vector<PII> brute(){
                     }
                 }
             }
-            ans += (out-1);
+            if(out >= 1) ans += (out-1);
             ans += (in/2-(trav-1));
         }
     }
@@ -156,7 +158,7 @@ int main()
     cin.tie(NULL);
     
     int op = 1;
-    for(int test = 1; test<=1; test++){
+    for(int test = 1; test<=10; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
