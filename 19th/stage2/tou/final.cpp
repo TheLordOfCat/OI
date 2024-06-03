@@ -33,15 +33,40 @@ vector<PII> solve(){
 
     vector<bool> vis(n+1, false);
     vector<bool> con(n+1, false);
+
+    vector<int> seg(n+1, 0);
+    int ind = 0;
+    for(int i = k+1; i<=n; i++){
+        if(!vis[i]){
+            queue<int> Q;
+            ind++;
+            Q.push(i);
+            vis[i] = true;
+            while(!Q.empty()){
+                int v = Q.front();
+                Q.pop();
+
+                for(int j = 0; j<graph[v].size(); j++){
+                    int cur = graph[v][j];
+                    if(!vis[cur] && cur > k){
+                        vis[cur] = true;
+                        seg[cur] = ind;
+                        Q.push(cur);
+                    }
+                }
+            }
+        }
+    }
+
     for(int i = 1; i<=k; i++){
         if(!vis[i]){
-            bool oneOut = false;
+            vector<bool> oneOut(n+1, false);
             queue<int> Q;
             Q.push(i);
+            con[i] = true;
             while(!Q.empty()){
                 int v = Q.front();
                 vis[v] = true;
-                con[v] = true;
                 Q.pop();
 
                 for(int j = 0; j< graph[v].size(); j++){
@@ -54,8 +79,8 @@ vector<PII> solve(){
                             ans.PB(MP(v,cur));
                         }
                     }else{
-                        if(!oneOut){
-                            oneOut = true;
+                        if(!oneOut[seg[cur]]){
+                            oneOut[seg[cur]] = true;
                         }else{
                             ans.PB(MP(v,cur));
                         }
