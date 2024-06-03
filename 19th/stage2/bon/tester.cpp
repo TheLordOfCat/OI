@@ -68,9 +68,13 @@ vector<int> brute(){
         maxB = max(maxB, b[i]);
     }
 
-    vector<int> ans;
-
     vector<bool> bon(maxB+1, false);
+    for(int i = 0; i<m; i++){
+        bon[b[i]] = true;
+    }
+
+    int client = 1;
+    vector<int> ans;
     vector<bool> vis(maxB+1, false);
     for(int i = 0; i<n; i++){
         int cur = a[i];
@@ -81,8 +85,9 @@ vector<int> brute(){
                 count--;
                 vis[ind] = true;
                 if(bon[ind]){
-                    ans.PB(ind);
+                    ans.PB(client);
                 }
+                client++;
             }
             ind += cur;
         }
@@ -92,7 +97,42 @@ vector<int> brute(){
 }
 
 vector<int> solve(){
-    
+    int maxB = -1;
+    for(int i = 0; i<m; i++){
+        maxB = max(maxB, b[i]);
+    }
+
+    vector<bool> bon(maxB+1, false);
+        for(int i = 0; i<m; i++){
+        bon[b[i]] = true;
+    }
+
+    int client = 1;
+    vector<int> ans;
+    vector<bool> vis(maxB+1, false);
+    vector<int> last(maxB+1, 0);
+
+    for(int i = 0; i<n; i++){
+        int cur = a[i];
+        int count = cur;
+        if(cur <= maxB){
+            int ind = last[cur]+cur;
+            while(count > 0 && ind <= maxB){
+                if(!vis[ind]){
+                    count--;
+                    vis[ind] = true;
+                    if(bon[ind]){
+                        ans.PB(client);
+                    }
+                    client++;
+                }
+                ind += cur;
+            }
+            last[cur] = ind;
+        }
+    }
+
+    return ans;
 }
 
 int main()
@@ -100,8 +140,9 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
-    for(int test =1; test<=1; test++){
+    int op = 0;
+    for(int test =1; test<=100; test++){
+        cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
         }else{
@@ -120,6 +161,7 @@ int main()
             for(int i =0 ;i<ansS.size(); i++){
                 cout<<ansS[i]<<" ";
             }
+            cout<<"\n";
             printData();
             return 0;
         }
