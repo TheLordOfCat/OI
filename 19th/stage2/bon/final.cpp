@@ -7,6 +7,8 @@ using namespace std;
 #define PB push_back
 #define PII pair<int,int>
 
+using ull = unsigned long long int;
+
 int m;
 vector<int> b;
 int n;
@@ -27,7 +29,7 @@ void getData(){
     }
 }
 
-vector<int> solve(){
+vector<ull> solve(){
     int maxB = -1;
     for(int i = 0; i<m; i++){
         maxB = max(maxB, b[i]);
@@ -38,8 +40,8 @@ vector<int> solve(){
         bon[b[i]] = true;
     }
 
-    int client = 1;
-    vector<int> ans;
+    ull client = 1;
+    vector<ull> ans;
     vector<bool> vis(maxB+1, false);
     vector<int> last(maxB+1, 0);
 
@@ -59,12 +61,16 @@ vector<int> solve(){
                 }
                 ind += cur;
             }
+            if(count > 0){
+                client += count;
+            }
             last[cur] = ind-cur;
         }
     }
 
     return ans;
 }
+
 int main()
 {
     ios_base::sync_with_stdio(false);
@@ -72,7 +78,7 @@ int main()
 
     getData();
 
-    vector<int> ansS = solve();
+    vector<ull> ansS = solve();
     cout<<ansS.size()<<"\n";
     for(int i =0 ;i<ansS.size(); i++){
         cout<<ansS[i]<<"\n";

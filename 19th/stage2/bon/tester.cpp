@@ -31,9 +31,12 @@ void getData(){
 }
 
 void getRandom(){
+    b.clear();
+    a.clear();
+
     srand(time(0));
-    m =rand()%6+1;
-    int len = 20;
+    m =rand()%300+1;
+    int len = 1000;
     vector<bool> bon(len+1, false);
     for(int i =0; i<m; i++){
         int a = rand()%len +1;
@@ -43,7 +46,7 @@ void getRandom(){
         bon[a] = true;
         b.PB(a);
     }
-    n = rand()%5+1;
+    n = rand()%700+1;
     for(int i =0; i<n; i++){
         int temp = rand()%10+1;
         a.PB(temp);
@@ -91,6 +94,9 @@ vector<int> brute(){
             }
             ind += cur;
         }
+        if(count > 0){
+            client += count;
+        }
     }
 
     return ans;
@@ -128,7 +134,10 @@ vector<int> solve(){
                 }
                 ind += cur;
             }
-            last[cur] = ind;
+            if(count > 0){
+                client += count;
+            }
+            last[cur] = ind-cur;
         }
     }
 
@@ -141,7 +150,7 @@ int main()
     cin.tie(NULL);
 
     int op = 0;
-    for(int test =1; test<=100; test++){
+    for(int test =1; test<=100'000; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
