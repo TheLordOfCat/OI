@@ -30,7 +30,11 @@ int solve(){
 
     stack<PII> S;
     vector<bool>check(n+1, false);
+<<<<<<< HEAD
     S.push(MP(1,1));
+=======
+    S.push(MP(1,0));
+>>>>>>> 756e47bc2d0a4eabc89063878eb931dc1c853955
     check[1] = true;
     while(!S.empty()){
         int v = S.top().first;
@@ -49,7 +53,11 @@ int solve(){
 
     int left = 1, right = n-1; 
     int ans = n;
+<<<<<<< HEAD
     while(left < right){
+=======
+    while(left <= right){
+>>>>>>> 756e47bc2d0a4eabc89063878eb931dc1c853955
         int mid = left + (right - left)/2;
         bool ok = true;
         int i = mid;
@@ -59,8 +67,18 @@ int solve(){
         queue<int> Q;
         vector<bool>vis(n+1, false);
 
+<<<<<<< HEAD
         Q.push(1);
         vis[1] = true;
+=======
+        vis[1] = true;
+        for(int j =0; j<graph[1].size(); j++){
+            int cur = graph[1][j];
+            Q.push(cur);
+            vis[cur] = true;
+        }
+
+>>>>>>> 756e47bc2d0a4eabc89063878eb931dc1c853955
         while(!Q.empty()){
             for(int k = 0; k<i; k++){
                 if(Q.empty()){
