@@ -30,6 +30,7 @@ void getData(){
 }
 
 vector<ull> solve(){
+    //finding maxB
     int maxB = -1;
     for(int i = 0; i<m; i++){
         maxB = max(maxB, b[i]);
@@ -48,7 +49,9 @@ vector<ull> solve(){
     for(int i = 0; i<n; i++){
         int cur = a[i];
         int count = cur;
+        //checking for out of range
         if(cur <= maxB){
+            //starting from last used
             int ind = last[cur]+cur;
             while(count > 0 && ind <= maxB){
                 if(!vis[ind]){
@@ -61,10 +64,13 @@ vector<ull> solve(){
                 }
                 ind += cur;
             }
+            //adjusting for out of range
             if(count > 0){
                 client += count;
             }
             last[cur] = ind-cur;
+        }else{
+            client += cur;
         }
     }
 

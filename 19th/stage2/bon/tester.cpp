@@ -66,6 +66,7 @@ void printData(){
 }
 
 vector<int> brute(){
+    //fidning maxB
     int maxB = -1;
     for(int i = 0; i<m; i++){
         maxB = max(maxB, b[i]);
@@ -94,6 +95,7 @@ vector<int> brute(){
             }
             ind += cur;
         }
+        //adjusting for out of range
         if(count > 0){
             client += count;
         }
@@ -103,6 +105,7 @@ vector<int> brute(){
 }
 
 vector<int> solve(){
+    //finding maxB
     int maxB = -1;
     for(int i = 0; i<m; i++){
         maxB = max(maxB, b[i]);
@@ -113,6 +116,7 @@ vector<int> solve(){
         bon[b[i]] = true;
     }
 
+    //client should be unsinged long long int
     int client = 1;
     vector<int> ans;
     vector<bool> vis(maxB+1, false);
@@ -121,7 +125,9 @@ vector<int> solve(){
     for(int i = 0; i<n; i++){
         int cur = a[i];
         int count = cur;
+        //checking for out of range
         if(cur <= maxB){
+            //starting from last used
             int ind = last[cur]+cur;
             while(count > 0 && ind <= maxB){
                 if(!vis[ind]){
@@ -134,10 +140,13 @@ vector<int> solve(){
                 }
                 ind += cur;
             }
+            //adjusting for out of range
             if(count > 0){
                 client += count;
             }
             last[cur] = ind-cur;
+        }else{
+            client += cur;
         }
     }
 

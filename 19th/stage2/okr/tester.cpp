@@ -27,7 +27,7 @@ void getData(){
     for(int i =0; i<q; i++){
         int a, b;
         cin>>a>>b;
-        s.PB(MP(a,b));
+        seg.PB(MP(a,b));
     }
 }
 
@@ -62,7 +62,12 @@ void printData(){
 }
 
 vector<int> brute(){
-
+    for(int i = 0; i<q; i++){
+        int left = seg[i].first;
+        int right = seg[i].second;
+        int len = right - left +1;
+        
+    }
 }
 
 vector<int> solve(){
