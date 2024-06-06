@@ -62,12 +62,60 @@ void printData(){
 }
 
 vector<int> brute(){
+    vector<int> ans;
     for(int i = 0; i<q; i++){
         int left = seg[i].first;
         int right = seg[i].second;
         int len = right - left +1;
         
+        int smallest = len;
+        //finding the smallest divisor
+        for(int i = 2; i<=len; i++){
+            if(len%i == 0){
+                int k = i;
+                
+                //maximal power
+                int a = 1;
+                int temp = len;
+                while(temp%k == 0){
+                    temp /= k;
+                    a++;
+                }
+
+                int dif = 1;
+                for(int j =1; j<= a; j++){
+                    dif *= k;
+                }
+                bool ok = true;
+                
+                while(ok){
+                    //verify
+                    for(int j = left; j <= right; j += dif){
+                        
+                    }
+
+                    if(ok){
+                        smallest = min(smallest, dif);
+                    }
+                }
+            }
+        }
+        ans.PB(smallest);
     }
+
+    return ans;
+}
+
+vector<int> sieve(){
+    
+}
+
+bool hashCompare(int a, int b, int c, int d){
+
+}
+
+bool isCyclyc(int a, int b, int k){
+    return hashCompare(a, b-k, a+k, b);
 }
 
 vector<int> solve(){
