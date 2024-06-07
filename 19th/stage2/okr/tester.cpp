@@ -63,9 +63,9 @@ void printData(){
 
 vector<int> brute(){
     vector<int> ans;
-    for(int i = 0; i<q; i++){
-        int left = seg[i].first;
-        int right = seg[i].second;
+    for(int l = 0; l<q; l++){
+        int left = seg[l].first-1;
+        int right = seg[l].second-1;
         int len = right - left +1;
         
         int smallest = len;
@@ -88,14 +88,22 @@ vector<int> brute(){
                 }
                 bool ok = true;
                 
-                while(ok){
+                while(ok && dif >= 1){
                     //verify
                     for(int j = left; j <= right; j += dif){
-                        
+                        int ind = left;
+                        for(int o = j; o<j+dif; o++){
+                            if(s[o] != s[ind]){
+                                ok = false;
+                                break;    
+                            }
+                            ind++;
+                        }
                     }
 
                     if(ok){
                         smallest = min(smallest, dif);
+                        dif /= k;
                     }
                 }
             }
@@ -107,11 +115,24 @@ vector<int> brute(){
 }
 
 vector<int> sieve(){
-    
+    vector<int> div(n+1, 1);
+    for(int i = 2; i<=n; i++){
+        if(div[i] == 1){
+            div[i] = i;
+            for(int j = 2*i; j<=n; j += i){
+                div[i] = i;
+            }
+        }
+    }
+    return div;
 }
 
-bool hashCompare(int a, int b, int c, int d){
+vector<int> hashTab;
 
+bool hashCompare(int a, int b, int c, int d){
+    int left = (hashTab[b] - hashTab[a]);
+    int right = hashTab[d] - hashTab[c];
+    return left == right;
 }
 
 bool isCyclyc(int a, int b, int k){
