@@ -65,6 +65,8 @@ void printData(){
     }
 }
 
+
+//brute has erorrs
 vector<int> brute(){
     vector<int> ans;
     for(int l = 0; l<q; l++){
