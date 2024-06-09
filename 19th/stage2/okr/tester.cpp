@@ -35,6 +35,8 @@ void getData(){
 
 void getRandom(){
     srand(time(0));
+    s.clear();
+    seg.clear();
 
     n = rand()%10+1;
     for(int i = 0; i<n; i++){
@@ -45,7 +47,7 @@ void getRandom(){
     for(int i = 0; i<q; i++){
         int a = rand()%n+1;
         int b = rand()%n+1;
-        if(a == b){
+        if(a > b){
             swap(a,b);
         } 
         seg.PB(MP(a,b));
@@ -120,8 +122,8 @@ vector<int> sieve(){
     vector<int> div(n+1, 1);
     for(int i = 2; i<=n; i++){
         if(div[i] == 1){
-            for(int j = 2*i; j<=n; j += i){
-                div[i] = i;
+            for(int j = i; j<=n; j += i){
+                div[j] = i;
             }
         }
     }
@@ -194,8 +196,8 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
-    for(int test = 1; test <=1; test++){
+    int op = 0;
+    for(int test = 1; test <=1000'000; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
@@ -214,11 +216,13 @@ int main()
                 cout<<"\n";
                 cout<<"SOLVE: ";
                 for(int i =0; i<ansS.size(); i++){
-                    cout<<ansB[i]<<" ";
+                    cout<<ansS[i]<<" ";
                 }
                 cout<<"\n";
+                return 0;
             }
         }
+        cout<<"CORRECT\n";
     }
 
     return 0;
