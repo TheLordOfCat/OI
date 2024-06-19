@@ -51,14 +51,17 @@ void printData(){
 int brute(){
     int ans = 0;
 
+    //iterating through each segment
     for(int left = 0; left<n; left++){
         for(int right = left; right<n; right++){
             
+            //counting letters
             vector<int> let(ALPHA, 0);
             for(int i = left; i<=right; i++){
                 let[s[i] - 'a']++;
             }   
 
+            //finding best value
             for(int i = 0; i<ALPHA; i++){
                 for(int j = 0; j<ALPHA; j++){
                     if(let[i] > 0 && let[j] > 0){
@@ -76,6 +79,7 @@ int brute(){
 int solve(){
     int ans = 0;
 
+    //creating vector of next indexes of a given letter
     vector<vector<int>> next(26, vector<int>());
     for(int i = 0; i<n; i++){
         next[s[i] - 'a'].PB(i);
@@ -85,19 +89,21 @@ int solve(){
         next[i].PB(INF);
     }
 
+    //checking each pair of letters
     for(int l = 0; l<ALPHA; l++){
         for(int k = 0; k<ALPHA; k++){
-
+            
             if(next[l].size() > 0 && next[k].size() > 0 ){
                 int sum = 0, mini = INF, lastSum = 0;
                 int len = next[l].size() + next[k].size();                
                 int itrL = 0, itrK = 0;
-
+                
+                //traversing through next
                 for(int  i = 0; i<len; i++){
                     if(next[k][itrK] > next[l][itrL]){
                         sum += 1;
                         itrL++;
-                    }else if(itrK != INF){
+                    }else if(next[k][itrK] != INF){
                         sum -= 1;
                         itrK ++;
                         mini = min(mini, lastSum);
@@ -117,8 +123,8 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
-    for(int test = 1; test<=1; test++){
+    int op = 0;
+    for(int test = 1; test<=100'000; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
@@ -131,6 +137,7 @@ int main()
             cout<<"ERROR\n";
             cout<<"BRUTE: "<<ansB<<"\n";
             cout<<"SOLVE: "<<ansS<<"\n";
+            printData();
             return 0;
         }
         cout<<"CORRECT\n";
