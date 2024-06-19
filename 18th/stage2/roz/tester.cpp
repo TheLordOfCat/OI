@@ -13,6 +13,8 @@ using ull = unsigned long long int;
 #define PII pair<int,int>
 #define PB push_back
 
+const int ALPHA = 26;
+
 int n;
 vector<char> s;
 
@@ -46,7 +48,28 @@ void printData(){
 }
 
 int brute(){
-    
+    int ans = 0;
+
+    for(int left = 0; left<n; left++){
+        for(int right = left; right<n; right++){
+            
+            vector<int> let(ALPHA, 0);
+            for(int i = left; i<=right; i++){
+                let[s[i] - 'a']++;
+            }   
+
+            for(int i = 0; i<ALPHA; i++){
+                for(int j = 0; j<ALPHA; j++){
+                    if(let[i] > 0 && let[j] > 0){
+                        int dif = let[i] - let[j];
+                        ans = max(ans,dif);
+                    }
+                }
+            }
+        }
+    }
+
+    return ans;
 }
 
 int solve(){
