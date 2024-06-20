@@ -54,32 +54,36 @@ void getRandom(){
     }
 
     //check for loops
-    int l = rand()%4+1;
-    n = 1;
-    for(int i = 0; i<l; i++){
-        int start = n;
-        int v = n;
-        int len = rand()%3+1;
-        for(int j = 0; j<len; j++){
-            int con = rand()%2;
-            if(con || n == 1){
-                n++;
-                graph[v].PB(MP(n,MP(0,1)));
-                graph[n].PB(MP(v,MP(0,1)));
-                v = n;
-            }else{
-                int temp = v;
-                while(temp == v){
-                    temp = rand()%n+1;
-                }
-                graph[v].PB(MP(temp,MP(1,0)));
-                graph[temp].PB(MP(v,MP(1,0)));
-                v = temp;
-            }
-        }
-        graph[v].PB(MP(start,MP(1,0)));
-        graph[start].PB(MP(v,MP(1,0)));
-    }
+    // int l = rand()%4+1;
+    // n = 1;
+    // m = 0;
+    // for(int i = 0; i<l; i++){
+    //     int start = n;
+    //     int v = n;
+    //     int len = rand()%3+1;
+    //     for(int j = 0; j<len; j++){
+    //         int con = rand()%2;
+    //         if(con || n == 1){
+    //             n++;
+    //             graph[v].PB(MP(n,MP(0,1)));
+    //             graph[n].PB(MP(v,MP(0,1)));
+    //             v = n;
+    //             m++;
+    //         }else{
+    //             int temp = v;
+    //             while(temp == v){
+    //                 temp = rand()%n+1;
+    //             }
+    //             graph[v].PB(MP(temp,MP(1,0)));
+    //             graph[temp].PB(MP(v,MP(1,0)));
+    //             v = temp;
+    //             m++;
+    //         }
+    //     }
+    //     graph[v].PB(MP(start,MP(1,0)));
+    //     graph[start].PB(MP(v,MP(1,0)));
+    //     m++;
+    // }
 }
 
 void printData(){
@@ -154,7 +158,66 @@ bool verify(vector<vector<int>> v){
 }
 
 vector<vector<int>> solve(){
-    return vector<vector<int>>();
+    vector<vector<int>> ans;
+    //create a new graph
+    vector<vector<pair<int,bool>>> graph0(n+1, vector<pair<int,false>>());
+    for(int i = 1; i<=n; i++){
+        for(int j = 0; j < graph[i].size(); j++){
+            if(graph[i][j].second.first != graph[i][j].second.second){
+                graph0[i].PB(MP(j,false));
+                graph0[j].PB(MP(i,false));
+            }
+        }
+    }
+    
+    //check if valid 
+    for(int i = 1; i<=n; i++){
+        if(graph[i].size()%2 != 0){
+            return vector<vector<int>>();
+        }
+    }
+
+    //find loops
+    vector<int> vis(n+1, 0);
+    vector<int> pre(n+1, 0);
+    for(int i = 1; i<=n; i++){
+        if(vis[i] != graph0[i].size()){
+            stack<int> S;
+            S.push(i);
+            while(S.empty()){
+                int v = S.top();
+                S.pop();
+                vis[v] = true;
+
+                for(int j = 0; j<graph0[v].size(); j++){
+                    int cur = graph0[v][j].first;
+                    if(!graph0[v][j].second){
+                        graph0[v][j].second = true;
+                        if(vis[graph[v][j].first]){
+                            //loop found
+                            vector<int> temp;
+                            
+                            int end = graph[v][j].first;
+                            int V = v;
+                            while(V != v){
+                                temp.PB(V);
+                                vis[V] = false;
+                                V = pre[V];
+                            }
+
+                            reverse(temp.begin(), temp.end());
+                            ans.PB(temp);
+                        }else{
+                            pre[graph0[v][j].first] = v;
+                        }
+                        S.push(graph[v][j].first);
+                    }
+                }
+            }
+        }
+    }
+
+    return ans;
 }
 
 int main()
