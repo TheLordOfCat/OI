@@ -32,59 +32,62 @@ void getData(){
 void getRandom(){
     srand(time(0));
 
-    n = rand()%10+1;
-    m = rand()%(2*n)+1;
-    if(n == 1){
-        m = 0;
-    }
+    // n = rand()%10+1;
+    // m = rand()%(2*n)+1;
+    // if(n == 1){
+    //     m = 0;
+    // }
 
     //check for not existaning
-    for(int i = 0; i<m; i++){
-        int a = rand()%n+1;
-        int b = a;
-        while(b == a){
-            b = rand()%n+1;
-        }
-        int s = rand()%2;
-        int t = rand()%2;
-        if(a > b){
-            swap(a,b);
-        }
-        graph[a].PB(MP(b,MP(s,t)));
-        graph[b].PB(MP(a,MP(s,t)));
-    }
+    // graph.assign(n+1, vector<pair<int,PII>>());
+    // for(int i = 0; i<m; i++){
+    //     int a = rand()%n+1;
+    //     int b = a;
+    //     while(b == a){
+    //         b = rand()%n+1;
+    //     }
+    //     int s = rand()%2;
+    //     int t = rand()%2;
+    //     if(a > b){
+    //         swap(a,b);
+    //     }
+    //     graph[a].PB(MP(b,MP(s,t)));
+    //     graph[b].PB(MP(a,MP(s,t)));
+    // }
 
     //check for loops
-    // int l = rand()%4+1;
-    // n = 1;
-    // m = 0;
-    // for(int i = 0; i<l; i++){
-    //     int start = n;
-    //     int v = n;
-    //     int len = rand()%3+1;
-    //     for(int j = 0; j<len; j++){
-    //         int con = rand()%2;
-    //         if(con || n == 1){
-    //             n++;
-    //             graph[v].PB(MP(n,MP(0,1)));
-    //             graph[n].PB(MP(v,MP(0,1)));
-    //             v = n;
-    //             m++;
-    //         }else{
-    //             int temp = v;
-    //             while(temp == v){
-    //                 temp = rand()%n+1;
-    //             }
-    //             graph[v].PB(MP(temp,MP(1,0)));
-    //             graph[temp].PB(MP(v,MP(1,0)));
-    //             v = temp;
-    //             m++;
-    //         }
-    //     }
-    //     graph[v].PB(MP(start,MP(1,0)));
-    //     graph[start].PB(MP(v,MP(1,0)));
-    //     m++;
-    // }
+    int l = rand()%4+1;
+    n = 1;
+    m = 0;
+    graph.assign(2, vector<pair<int,PII>>());
+    for(int i = 0; i<l; i++){
+        int start = n;
+        int v = n;
+        int len = rand()%3+3;
+        for(int j = 0; j<len; j++){
+            int con = rand()%2;
+            if(con || n == 1){
+                n++;
+                graph.PB(vector<pair<int,PII>>());
+                graph[v].PB(MP(n,MP(0,1)));
+                graph[n].PB(MP(v,MP(0,1)));
+                v = n;
+                m++;
+            }else{
+                int temp = v;
+                while(temp == v){
+                    temp = rand()%n+1;
+                }
+                graph[v].PB(MP(temp,MP(1,0)));
+                graph[temp].PB(MP(v,MP(1,0)));
+                v = temp;
+                m++;
+            }
+        }
+        graph[v].PB(MP(start,MP(1,0)));
+        graph[start].PB(MP(v,MP(1,0)));
+        m++;
+    }
 }
 
 void printData(){
@@ -235,6 +238,7 @@ vector<vector<int>> solve(){
                             if(V == i){
                                 temp.PB(V);
                                 vis[V] = false;
+                                reverse(temp.begin(), temp.end());
                                 V = cur;
                                 end = i;
                             }else{
@@ -268,8 +272,8 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
-    for(int test = 1; test<=1; test++){
+    int op = 0;
+    for(int test = 1; test<=10'000; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
