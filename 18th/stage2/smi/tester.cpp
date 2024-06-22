@@ -56,14 +56,14 @@ void getRandom(){
     // }
 
     //check for loops
-    int l = rand()%4+1;
+    int l = rand()%3+1;
     n = 1;
     m = 0;
     graph.assign(2, vector<pair<int,PII>>());
     for(int i = 0; i<l; i++){
         int start = n;
         int v = n;
-        int len = rand()%3+3;
+        int len = rand()%2+3;
         for(int j = 0; j<len; j++){
             int con = rand()%2;
             if(con || n == 1){

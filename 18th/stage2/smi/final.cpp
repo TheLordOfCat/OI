@@ -33,7 +33,7 @@ vector<vector<int>> solve(){
     vector<vector<int>> ans;
     //create a new graph
     vector<bool> used(n+1, false);
-    vector<vector<pair<PII,bool>>> graph0(n+1, vector<pair<PII,bool>>());
+    vector<vector<pair<PII,bool>>> graph0(n+1, vector<pair<PII,bool>>()); //next verticie, index, ifvisited
     for(int i = 1; i<=n; i++){
         if(!used[i]){
             stack<int> S;
@@ -65,55 +65,53 @@ vector<vector<int>> solve(){
     }
 
     //find loops
-    vector<bool> vis(n+1, false);
-    vector<int> pre(n+1, -1);
-
     for(int i = 1; i<=n; i++){
-        stack<int> S;
-        S.push(i);
-        while(!S.empty()){
-            int v = S.top();
-            S.pop();
-            vis[v] = true;
+        for(int t = 0; t<graph0[i].size()/2; t++){
+            vector<PII> pre(n+1, MP(-1,-1));
+            stack<int> S;
+            S.push(i);
+            while(!S.empty()){
+                int v = S.top();
+                S.pop();
 
-            for(int j = 0; j<graph0[v].size(); j++){
-                int cur = graph0[v][j].first.first;
-                int rev = graph0[v][j].first.second;
-                int b = graph0[v][j].second;
-                if(!b){
-                    graph0[v][j].second = true;
-                    graph0[cur][rev].second = true;
+                for(int j = 0; j<graph0[v].size(); j++){
+                    int cur = graph0[v][j].first.first;
+                    int rev = graph0[v][j].first.second;
+                    int b = graph0[v][j].second;
+                    if(cur != pre[v].first && pre[v].first == -1){
+                        pre[v].first = v;
+                        pre[v].second = j;
+                        S.push(pre[v].first);
+                    }
+                    //loop found
+                    if(cur == i){
+                        graph0[v][cur].second = true;
+                        graph0[cur][rev].second = true;
 
-                    if(vis[cur]){
-                        //found loop
+                        vector<int> temp;
                         int V = v;
                         int end = cur;
-                        
-                        vector<int> temp;
-                        while(V != end){
-                            if(V == i){
-                                temp.PB(V);
-                                vis[V] = false;
-                                reverse(temp.begin(), temp.end());
-                                V = cur;
-                                end = i;
-                            }else{
-                                temp.PB(V);
-                                vis[V] = false;
-                                V = pre[V];
-                            }
-                        }
-                        if(vis[cur]){
-                            temp.PB(cur);
-                            vis[cur] = false;
-                        }
+                        while(V != cur){
+                            temp.PB(V);
+                            V = pre[V].first;
 
-                        reverse(temp.begin(), temp.end());
+                            //marking the used edge
+                            int r1 = pre[V].second;
+                            int next = graph0[V][r1].first.first;
+                            int r2 = graph0[V][r1].first.second;
+                            graph0[V][r1].second = true;
+                            graph0[next][r2].second = true;
+                        }
+                        temp.PB(V);
+
+                        //marking the used edge
+                        int r1 = pre[V].second;
+                        int next = graph0[V][r1].first.first;
+                        int r2 = graph0[V][r1].first.second;
+                        graph0[V][r1].second = true;
+                        graph0[next][r2].second = true;
+                        
                         ans.PB(temp);
-                    }else{
-                        S.push(cur);
-                        vis[cur] = true;
-                        pre[cur] = v;
                     }
                 }
             }
