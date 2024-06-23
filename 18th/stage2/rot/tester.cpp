@@ -18,6 +18,7 @@ using ull = unsigned long long int;
 int n;
 vector<pair<int,vector<int>>> graph;
 vector<int> leaves;
+vector<int> leavesIndex;
 
 void getData(){
     cin>>n;
@@ -26,6 +27,7 @@ void getData(){
     stack<int> S;
     S.push(1);
     graph.assign(1, pair<int,vector<int>>());
+    leavesIndex.assign(n+1, -1);
     while(!S.empty()){
         int v = S.top();
         S.pop();
@@ -41,6 +43,7 @@ void getData(){
             last += 2;
         }else{
             leaves.PB(o);
+            leavesIndex[o] = leaves.size()-1;
         }
     }
 }
@@ -95,7 +98,60 @@ void printData(){
 }
 
 ll brute(){
+    vector<PII> range(graph.size()+1, MP(0,0));
+    
+    stack<pair<int,bool>> S;
+    S.push(MP(1,false));
+    
+    int lastLeaf = 1;
 
+    while(!S.empty()){
+        int v = S.top().first;
+        int b =  S.top().second;
+        S.pop();
+
+        if(graph[v].first == 0){
+            range[v] = MP(lastLeaf,lastLeaf);
+            lastLeaf++;
+            continue;
+        }
+        if(b){
+            range[v] = MP(range[graph[v].second[0]].first, range[graph[v].second[1]].second);
+            continue;
+        }
+
+        S.push(MP(v,true));
+        for(int i = 0; i<graph[v].second.size(); i++){
+            int cur = graph[v].second[i];
+            S.push(MP(cur,false));
+        }
+    }
+
+    ll ans = 0;
+
+    stack<int> T;
+    T.push(1);
+    while(!T.empty()){
+        int v = T.top();
+        T.pop();
+
+        PII left = range[graph[v].second[0]];
+        PII right = range[graph[v].second[1]];
+
+        ll totalInv = 0;
+        for(int i = left.first; i<= left.second; i++){
+            for(int j  = right.first; j<= right.second; j++){
+                if(leaves[i] > leaves[j]){
+                    totalInv++;
+                }
+            }
+        }
+
+        ll allCom = (left.second - left.first +1)* (right.second - right.first +1);
+        ans += min(allCom - totalInv, totalInv);
+    }
+
+    return ans;
 }
 
 ll solve(){
