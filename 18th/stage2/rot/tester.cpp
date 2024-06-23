@@ -98,6 +98,7 @@ void printData(){
 }
 
 ll brute(){
+    //geting ranges covered by each node
     vector<PII> range(graph.size()+1, MP(0,0));
     
     stack<pair<int,bool>> S;
@@ -127,6 +128,7 @@ ll brute(){
         }
     }
 
+    //travering through each node and finding inverions
     ll ans = 0;
 
     stack<int> T;
@@ -138,6 +140,7 @@ ll brute(){
         PII left = range[graph[v].second[0]];
         PII right = range[graph[v].second[1]];
 
+        //getting inversions
         ll totalInv = 0;
         for(int i = left.first; i<= left.second; i++){
             for(int j  = right.first; j<= right.second; j++){
@@ -147,6 +150,7 @@ ll brute(){
             }
         }
 
+        //checking for rotation
         ll allCom = (left.second - left.first +1)* (right.second - right.first +1);
         ans += min(allCom - totalInv, totalInv);
     }
@@ -155,8 +159,58 @@ ll brute(){
 }
 
 ll solve(){
+    //geting ranges covered by each node
+    vector<PII> range(graph.size()+1, MP(0,0));
+    
+    stack<pair<int,bool>> S;
+    S.push(MP(1,false));
+    
+    int lastLeaf = 1;
 
-}
+    while(!S.empty()){
+        int v = S.top().first;
+        int b =  S.top().second;
+        S.pop();
+
+        if(graph[v].first == 0){
+            range[v] = MP(lastLeaf,lastLeaf);
+            lastLeaf++;
+            continue;
+        }
+        if(b){
+            range[v] = MP(range[graph[v].second[0]].first, range[graph[v].second[1]].second);
+            continue;
+        }
+
+        S.push(MP(v,true));
+        for(int i = 0; i<graph[v].second.size(); i++){
+            int cur = graph[v].second[i];
+            S.push(MP(cur,false));
+        }
+    }
+
+    //calculate inverions through dp for 1
+    vector<int> leftInv(n+1, 0);
+    if(leaves[0] > 1){
+        leftInv[0] = 1;
+    }else{
+        leftInv[0] = 0;
+    }
+    for(int i = 1; i<n; i++){
+        if(leaves[i] > 1){
+            leftInv[i] = leftInv[i-1] +1;
+        }else{
+            leftInv[i] = leftInv[i-1];
+        }
+    }
+
+    //iterate throuhg each leaf and udapate the tree
+    vector<int> inv(graph.size()+1, 0);
+    for(int i = 1; i<=n; i++){
+        
+    }
+
+}   
 
 
 int main()
