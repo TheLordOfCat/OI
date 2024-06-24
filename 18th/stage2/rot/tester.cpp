@@ -16,6 +16,8 @@ using ull = unsigned long long int;
 #define PB push_back
 
 int n;
+vector<int> input;
+
 vector<pair<int,vector<int>>> graph;
 vector<int> leaves;
 vector<int> leavesIndex;
@@ -23,33 +25,17 @@ vector<int> leavesIndex;
 void getData(){
     cin>>n;
 
-    int last = 1;
-    stack<int> S;
-    S.push(1);
-    graph.assign(1, pair<int,vector<int>>());
-    leavesIndex.assign(n+1, -1);
-    while(!S.empty()){
-        int v = S.top();
-        S.pop();
-        
+    for(int i = 0; i<n; i++){
         int o;
         cin>>o;
-        graph[v].first = o;
-        if(o == 0){
-            S.push(last+1);
-            graph[v].second.PB(last+1);
-            S.push(last+2);
-            graph[v].second.PB(last+2);
-            last += 2;
-        }else{
-            leaves.PB(o);
-            leavesIndex[o] = leaves.size()-1;
-        }
+        input.PB(o);
     }
 }
 
 void getRandom(){
     srand(time(0));
+
+    input.clear();
 
     n = rand()%10+1;
 
@@ -67,15 +53,12 @@ void getRandom(){
                 l = rand()%n+1;
             }
             used[l] = true;
-            leaves.PB(l);
-            graph[v].first = l;
+            input.PB(l);
         }else{
-            graph[v].first = 0;
             S.push(last+1);
-            graph[v].second.PB(last+1);
             S.push(last+2);
-            graph[v].second.PB(last+2);
             last += 2;
+            input.PB(0);
         }
     }
 }
@@ -98,6 +81,35 @@ void printData(){
 }
 
 ll brute(){
+    //creating graph
+    int last = 1;
+    stack<int> S;
+    S.push(1);
+    graph.assign(1, pair<int,vector<int>>());
+    leavesIndex.assign(n+1, -1);
+
+    int ind = 0;
+
+    while(!S.empty()){
+        int v = S.top();
+        S.pop();
+        
+        int o = input[ind];
+        ind++;
+
+        graph[v].first = o;
+        if(o == 0){
+            S.push(last+1);
+            graph[v].second.PB(last+1);
+            S.push(last+2);
+            graph[v].second.PB(last+2);
+            last += 2;
+        }else{
+            leaves.PB(o);
+            leavesIndex[o] = leaves.size()-1;
+        }
+    }
+
     //geting ranges covered by each node
     vector<PII> range(graph.size()+1, MP(0,0));
     
@@ -158,57 +170,51 @@ ll brute(){
     return ans;
 }
 
-ll solve(){
-    //geting ranges covered by each node
-    vector<PII> range(graph.size()+1, MP(0,0));
-    
-    stack<pair<int,bool>> S;
-    S.push(MP(1,false));
-    
-    int lastLeaf = 1;
+struct node{
+    int count;
+    node *left;
+    node *right;
+    node(int count=1): count(count), left(NULL), right(NULL) {};
+};
 
-    while(!S.empty()){
-        int v = S.top().first;
-        int b =  S.top().second;
-        S.pop();
-
-        if(graph[v].first == 0){
-            range[v] = MP(lastLeaf,lastLeaf);
-            lastLeaf++;
-            continue;
-        }
-        if(b){
-            range[v] = MP(range[graph[v].second[0]].first, range[graph[v].second[1]].second);
-            continue;
-        }
-
-        S.push(MP(v,true));
-        for(int i = 0; i<graph[v].second.size(); i++){
-            int cur = graph[v].second[i];
-            S.push(MP(cur,false));
-        }
-    }
-
-    //calculate inverions through dp for 1
-    vector<int> leftInv(n+1, 0);
-    if(leaves[0] > 1){
-        leftInv[0] = 1;
+ll count(node *A){
+    if(A == NULL){
+        return 0;
     }else{
-        leftInv[0] = 0;
+        return A->count;
     }
-    for(int i = 1; i<n; i++){
-        if(leaves[i] > 1){
-            leftInv[i] = leftInv[i-1] +1;
-        }else{
-            leftInv[i] = leftInv[i-1];
-        }
-    }
+}
 
-    //iterate throuhg each leaf and udapate the tree
-    vector<int> inv(graph.size()+1, 0);
-    for(int i = 1; i<=n; i++){
-        
+ll inv1 = 0;
+ll inv2 = 0;
+
+node* merge(node* A, node* B){
+    if(A == NULL){
+        return B;
     }
+    if(B == NULL){
+        return A;
+    }
+    node* ans = new node(0);
+    ans-> count = count(A)  + count(B);
+    ans ->left = merge(A->left, B->left);
+    ans -> right = merge(A->right, B->right);
+
+    inv1 += count(A->left) * count(B->right);
+    inv2 += count(A->right) * count(B->left);
+
+    delete A;
+    delete B;
+
+    return ans;
+}
+
+node* createTree(){
+    
+}
+
+ll solve(){
+    
 
 }   
 
