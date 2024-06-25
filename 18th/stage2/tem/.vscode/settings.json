@@ -1,6 +1,8 @@
 {
     "files.associations": {
         "deque": "cpp",
-        "utility": "cpp"
+        "utility": "cpp",
+        "xiosbase": "cpp",
+        "iostream": "cpp"
     }
 }

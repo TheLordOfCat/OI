@@ -41,10 +41,10 @@ void getRandom(){
 
     int range = 10;
 
-    n = rand()%10+1;
+    n = rand()%1000+1;
     for(int i =0; i<n; i++){
-        int a = rand()%10+1;
-        int b=  rand()%10+1;
+        int a = rand()%1000+1;
+        int b=  rand()%1000+1;
         if(a > b){
             swap(a,b);
         }
@@ -53,8 +53,17 @@ void getRandom(){
     }
 }
 
+void printData(){
+    cout<<"DATA:\n";
+    cout<<n<<"\n";
+    for(int i =0; i<n; i++){
+        cout<<x[i]<<" "<<y[i]<<"\n";
+    }
+}
+
 int brute(){
     int ans = 0;
+    //iterating throuhg each measurement and finding the longest possible
     for(int i = 0; i<n; i++){
         int len = 1;
         int cur = x[i];
@@ -107,6 +116,9 @@ int curTemp(){
 }
 
 int solve(){
+    Q.clear();
+    QLen = 0;
+
     int ans = 0;
     add(x[0]);
 
@@ -119,7 +131,7 @@ int solve(){
         }
         add(x[i]);
     }
-
+    ans = max(ans,QLen);
     return ans;
 }
 
@@ -128,8 +140,9 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
-    for(int test = 1; test<=1; test++){
+    int op = 0;
+    for(int test = 1; test<=10'000; test++){
+        cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
         }else{
@@ -141,6 +154,7 @@ int main()
             cout<<"ERROR\n";
             cout<<"BRUTE: "<<ansB<<"\n";
             cout<<"SOLVE: "<<ansS<<"\n";
+            printData();
             return 0;
         } 
         cout<<"CORRECT\n";

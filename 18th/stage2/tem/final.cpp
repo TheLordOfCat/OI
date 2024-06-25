@@ -4,9 +4,6 @@
 #include <deque>
 #include <algorithm>
 
-#include <ctime>
-#include <cstdlib>
-
 using ll = long long int;
 using ull = unsigned long long int;
 
@@ -33,9 +30,11 @@ void getData(){
     }
 }
 
+//catapilar method
 deque<PII> Q;
 int QLen = 0;
 
+//adding
 void add(int v){
     QLen++;
     PII temp = MP(v,1);
@@ -50,6 +49,7 @@ void add(int v){
     Q.push_front(temp);
 }
 
+//removing
 void rem(){
     if(Q.back().second == 1){
         Q.pop_back();
@@ -59,6 +59,7 @@ void rem(){
     QLen--;
 }
 
+//getting cur min level
 int curTemp(){
     if(Q.size() == 0){
         return -INF;
@@ -70,16 +71,18 @@ int solve(){
     int ans = 0;
     add(x[0]);
 
+    //iterating throuhg each measurement
     for(int i = 1; i<n; i++){
         if(curTemp() > y[i]){
             ans = max(ans, QLen);
             while(curTemp() > y[i]){
+                //removing excesive
                 rem();
             }
         }
         add(x[i]);
     }
-
+    ans = max(ans,QLen);
     return ans;
 }
 
