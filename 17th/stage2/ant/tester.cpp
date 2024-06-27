@@ -39,11 +39,11 @@ void getRandom(){
     s.clear();
 
     //complete random
-    n = rand()%10+1;
-    for(int i =0 ;i<n; i++){
-        int temp = rand()%2;
-        s.PB(temp);
-    }
+    // n = rand()%10+1;
+    // for(int i =0 ;i<n; i++){
+    //     int temp = rand()%2;
+    //     s.PB(temp);
+    // }
 
     //couple antipalindroms
     n = 0;
@@ -65,6 +65,7 @@ void getRandom(){
             s.PB(temp[j]);
         }
     }
+    n = s.size();
 }
 
 void printData(){
@@ -142,8 +143,8 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1; 
-    for(int test = 1; test<=1; test++){
+    int op = 0; 
+    for(int test = 1; test<=10'000; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
