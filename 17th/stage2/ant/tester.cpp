@@ -1,6 +1,7 @@
 #include<iostream>
 #include <vector>
 #include <algorithm>
+#include <string>
 
 #include <ctime>
 #include <cstdlib>
@@ -21,10 +22,15 @@ vector<int> s;
 
 void getData(){
     cin>>n;
+
+    string temp;
+    cin>>temp;
     for(int i = 0; i<n; i++){
-        int temp;
-        cin>>temp;
-        s.PB(temp);
+        if(temp[i] == '0'){
+            s.PB(0);  
+        }else{
+            s.PB(1);
+        }
     }
 }
 
@@ -117,9 +123,11 @@ ull solve(){
     while(i<=S.size()-1){
         while(S[i-j] == negS[i+j+1]) j++;
         R[i] = j;
+        ans += j;
         int k = 1;
         while(R[i-k] != R[i] - k && k<=j){
             R[i+k] = min(R[i-k], R[i] - k);
+            ans += min(R[i-k], R[i] - k);
             k++;
         }
         j = max(j-k, 0);
