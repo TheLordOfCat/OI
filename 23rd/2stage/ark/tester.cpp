@@ -2,6 +2,7 @@
 #include <vector>
 #include <algorithm>
 #include <tuple>
+#include <map>
 
 #include <ctime>
 #include <cstdlib>
@@ -30,6 +31,18 @@ PII operator+(const pair<int, int>& lhs, const pair<int, int>& rhs) {
 PII operator+=( pair<int, int>& lhs, const pair<int, int>& rhs) {
     lhs.first += rhs.first;
     lhs.second += rhs.second;
+    return lhs;
+}
+
+PII operator*=( pair<int, int>& lhs, const pair<int, int>& rhs) {
+    lhs.first *= rhs.first;
+    lhs.second *= rhs.second;
+    return lhs;
+}
+
+PII operator*( pair<int, int>& lhs, const pair<int, int>& rhs) {
+    lhs.first *= rhs.first;
+    lhs.second *= rhs.second;
     return lhs;
 }
 
@@ -150,28 +163,187 @@ ull brute(){
     return ans;
 }
 
-PII reflect(int cord, int dir){
+map<tuple<PII,PII>, tuple<PII,PII, ull>> graphMap;
 
+tuple<PII,PII, ull> graph(PII cord, PII dir){
+    return graphMap[MT(cord,dir)];
 }
 
-void mergetPath(PII cord, PII dir){
-
+void mergePath(PII cord1, PII dir1, PII cord2, PII dir2){
+    int len = get<2>(graphMap[MT(cord1, dir1*(MP(-1,-1)))]) + get<2>(graphMap[MT(cord2, dir2*(MP(-1,-1)))]);
+    dir1 *= MP(-1,-1);
+    tuple t = graphMap[MT(cord1,dir1)];
+    auto it = graphMap.find(MT(cord1, dir1));
+    graphMap.erase(it);
+    graphMap.insert(MP(MT(cord1,dir1),MT(cord2,dir2, get<2>(t))));
+    
+    dir1 *= MP(-1,-1);
+    dir2 *= MP(-1,-1);
+    t = graphMap[MT(cord2,dir2)];
+    it = graphMap.find(MT(cord2, dir2));
+    graphMap.erase(it);
+    graphMap.insert(MP(MT(cord2,dir2),MT(cord1,dir1, get<2>(t))));
 }
 
-void mergeBlock(){
+void removeBlock(PII b){
+    PII top = MP(b.first, b.second+1);
+    PII bottom = MP(b.first, b.second-1);
+    PII left = MP(b.first-1, b.second);
+    PII right = MP(b.first, b.second+1);
 
+    tuple<PII,PII,ull> t1, t2;
+
+    //left - top
+    t1 = graph(left, MP(-1,-1));
+    t2 = graph(top, MP(1,1));
+    mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2));
+
+    //top - right
+    t1 = graph(top, MP(-1,1));
+    t2 = graph(right, MP(1,-1));
+    mergePath(get<0>(t1), get<1>(t1),  get<0>(t2), get<1>(t2));
+
+    //right - bottom
+    t1 = graph(right, MP(1,1));
+    t2 = graph(bottom, MP(-1,-1));
+    mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2));
+
+    //bottom - left
+    t1 = graph(bottom, MP(1,-1));
+    t2 = graph(left, MP(-1,1));
+    mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2));
 }
 
-void mergeWall(){
-
+bool rightOrineted(PII a, PII b){
+    return a.first - a.second < b.first - b.second;
 }
 
-void removeBlock(){
-
+bool leftOrineted(PII a, PII b){
+    return a.first + a.second < b.first + b.second;
 }
+
+void createGraph(){
+    vector<PII> intrestPoints;
+    for(int i = 0; i<n; i++){
+        intrestPoints.PB(MP(i,0));
+    }
+    for(int i = 0; i<m; i++){
+        intrestPoints.PB(MP(0,i));
+    }
+    for(int i = 0; i<n; i++){
+        intrestPoints.PB(MP(i,m));
+    }
+    for(int i = 0; i<m; i++){
+        intrestPoints.PB(MP(n,i));
+    }
+
+    stable_sort(intrestPoints.begin(), intrestPoints.end(), rightOrineted);
+
+    for(int i = 0; i<=intrestPoints.size(); i+=2){
+        ull len = intrestPoints[i+1].first - intrestPoints[i].first;
+        graphMap.insert(MP(MT(intrestPoints[i], MP(1,1)), MT(intrestPoints[i+1], MP(1,1), len)));
+        graphMap.insert(MP(MT(intrestPoints[i+1], MP(-1,-1)), MT(intrestPoints[i], MP(-1,-1), len)));
+    }
+    
+    stable_sort(intrestPoints.begin(), intrestPoints.end(), leftOrineted);
+
+    //posiible erorr of order
+    for(int i = 0; i<=intrestPoints.size(); i+=2){
+        ull len = intrestPoints[i+1].first - intrestPoints[i].first;
+        graphMap.insert(MP(MT(intrestPoints[i+1], MP(-1,1)), MT(intrestPoints[i], MP(-1,1), len)));
+        graphMap.insert(MP(MT(intrestPoints[i], MP(1,-1)), MT(intrestPoints[i+1], MP(1,-1), len)));
+    }
+}
+
+void compressGraph(){
+    vector<PII> intrestPoints;
+    for(int i = 0; i<n; i++){
+        tuple t1 = graph(MP(i,0), MP(-1,1));
+        tuple t2 = graph(MP(i,0), MP(1,1));
+        mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2));
+    }
+    for(int i = 0; i<m; i++){
+        tuple t1 = graph(MP(0,i), MP(1,-1));
+        tuple t2 = graph(MP(0,i), MP(1,1));
+        mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2));
+    }
+    for(int i = 0; i<n; i++){
+        tuple t1 = graph(MP(i,m), MP(-1,-1));
+        tuple t2 = graph(MP(i,m), MP(1,-1));
+        mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2));
+    }
+    for(int i = 0; i<m; i++){
+        tuple t1 = graph(MP(n,i), MP(-1,-1));
+        tuple t2 = graph(MP(n,i), MP(-1,1));
+        mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2));
+    }
+}
+
+ull traverseGraph(){
+    ull ans = 0;
+
+    PII cord = MP(startX, startY);
+    PII dir = MP(-1,1);
+
+    map<PII,bool> blocksMap;
+    for(int i = 0; i<k; i++){
+        blocksMap.insert(MP(centerBlock(blocks[i]), false));
+    }
+
+    int blocksLeft = k;
+    ull lastMove = 0;
+    while(blocksLeft > 0){
+        tuple t = graph(cord, dir);
+        ans += get<2>(t);
+
+        PII nextCord = get<0>(t);
+        PII nextDir = get<1>(t);
+
+        int w = isWall(nextCord);
+        if(w == 1){
+            nextDir.first *= -1;
+        }else if(w == 2){
+            nextDir.second *= -1;
+        }else{
+            auto it = blocksMap.find(MP(nextCord.first + nextDir.first, nextCord.second));
+            if(it != blocksMap.end()){
+                t = graph(nextCord, nextDir);
+                nextCord = get<0>(t);
+                nextDir = get<1>(t);
+                ans += get<2>(t);
+                lastMove = get<2>(t);
+
+                removeBlock(it->first);
+                blocksLeft--;
+            }else{
+                auto it = blocksMap.find(MP(nextCord.first + nextDir.first, nextCord.second));
+                if(it != blocksMap.end()){
+                    t = graph(nextCord, nextDir);
+                    nextCord = get<0>(t);
+                    nextDir = get<1>(t);
+                    ans += get<2>(t);
+                    lastMove = get<2>(t);
+
+                    removeBlock(it->first);
+                    blocksLeft--;
+                }
+            }
+        }
+
+        cord = nextCord;
+        dir = nextDir;
+    }
+    //decreasing by the exces move
+    ans -= lastMove;
+
+    return ans;
+} 
 
 ull solve(){
-
+    createGraph();
+    compressGraph();
+    ull ans = traverseGraph();
+    return ans;
 }
 
 int main() {
@@ -186,6 +358,7 @@ int main() {
             getRandom();
         }
 
+        //scaling the grid
         for(int i = 0; i<k; i++){
             blocks[i].first *= 2;
             blocks[i].second *= 2;
