@@ -28,22 +28,20 @@ PII operator+(const pair<int, int>& lhs, const pair<int, int>& rhs) {
     return MP(lhs.first + rhs.first, lhs.second + rhs.second);
 }
 
-PII operator+=( pair<int, int>& lhs, const pair<int, int>& rhs) {
+PII& operator+=( pair<int, int>& lhs, const pair<int, int>& rhs) {
     lhs.first += rhs.first;
     lhs.second += rhs.second;
     return lhs;
 }
 
-PII operator*=( pair<int, int>& lhs, const pair<int, int>& rhs) {
+PII& operator*=( pair<int, int>& lhs, const pair<int, int>& rhs) {
     lhs.first *= rhs.first;
     lhs.second *= rhs.second;
     return lhs;
 }
 
-PII operator*( pair<int, int>& lhs, const pair<int, int>& rhs) {
-    lhs.first *= rhs.first;
-    lhs.second *= rhs.second;
-    return lhs;
+PII operator*( const pair<int, int>& lhs, const pair<int, int>& rhs) {
+    return MP(lhs.first * rhs.first, lhs.second * rhs.second);
 }
 
 
@@ -172,17 +170,14 @@ tuple<PII,PII, ull> graph(PII cord, PII dir){
 void mergePath(PII cord1, PII dir1, PII cord2, PII dir2){
     int len = get<2>(graphMap[MT(cord1, dir1*(MP(-1,-1)))]) + get<2>(graphMap[MT(cord2, dir2*(MP(-1,-1)))]);
     dir1 *= MP(-1,-1);
-    tuple t = graphMap[MT(cord1,dir1)];
-    auto it = graphMap.find(MT(cord1, dir1));
-    graphMap.erase(it);
-    graphMap.insert(MP(MT(cord1,dir1),MT(cord2,dir2, get<2>(t))));
+    graphMap.erase(MT(cord1, dir1));
+    graphMap.insert(MP(MT(cord1,dir1),MT(cord2,dir2, len)));
     
     dir1 *= MP(-1,-1);
     dir2 *= MP(-1,-1);
-    t = graphMap[MT(cord2,dir2)];
-    it = graphMap.find(MT(cord2, dir2));
-    graphMap.erase(it);
-    graphMap.insert(MP(MT(cord2,dir2),MT(cord1,dir1, get<2>(t))));
+    graphMap.erase(MT(cord2, dir2));
+    graphMap.insert(MP(MT(cord2,dir2),MT(cord1,dir1, len)));
+    cout<<"("<<cord1.first<<" "<<cord1.second<<")"<<" <-> "<<"("<<cord2.first<<" "<<cord2.second<<")"<<"\n";
 }
 
 void removeBlock(PII b){
@@ -215,7 +210,7 @@ void removeBlock(PII b){
 }
 
 bool rightOrineted(PII a, PII b){
-    return a.first - a.second < b.first - b.second;
+    return a.first - a.second > b.first - b.second;
 }
 
 bool leftOrineted(PII a, PII b){
@@ -224,16 +219,23 @@ bool leftOrineted(PII a, PII b){
 
 void createGraph(){
     vector<PII> intrestPoints;
-    for(int i = 0; i<n; i++){
+    for(int i = 1; i<n; i += 2){
         intrestPoints.PB(MP(i,0));
     }
-    for(int i = 0; i<m; i++){
+    for(int i = 1; i<m; i += 2){
         intrestPoints.PB(MP(0,i));
     }
-    for(int i = 0; i<n; i++){
+    for(int i = 0; i<k; i++){
+        PII cen = centerBlock(blocks[i]);
+        intrestPoints.PB(MP(cen.first, cen.second - 1));
+        intrestPoints.PB(MP(cen.first + 1, cen.second));
+        intrestPoints.PB(MP(cen.first - 1, cen.second));
+        intrestPoints.PB(MP(cen.first, cen.second + 1));
+    }
+    for(int i = 1; i<n; i += 2){
         intrestPoints.PB(MP(i,m));
     }
-    for(int i = 0; i<m; i++){
+    for(int i = 1; i<m; i += 2){
         intrestPoints.PB(MP(n,i));
     }
 
@@ -243,38 +245,44 @@ void createGraph(){
         ull len = intrestPoints[i+1].first - intrestPoints[i].first;
         graphMap.insert(MP(MT(intrestPoints[i], MP(1,1)), MT(intrestPoints[i+1], MP(1,1), len)));
         graphMap.insert(MP(MT(intrestPoints[i+1], MP(-1,-1)), MT(intrestPoints[i], MP(-1,-1), len)));
+        // cout<<"("<<intrestPoints[i].first<<" "<<intrestPoints[i].second<<")"<<" <-> "<<"("<<intrestPoints[i+1].first<<" "<<intrestPoints[i+1].second<<")"<<"\n";
     }
     
     stable_sort(intrestPoints.begin(), intrestPoints.end(), leftOrineted);
 
-    //posiible erorr of order
     for(int i = 0; i<=intrestPoints.size(); i+=2){
-        ull len = intrestPoints[i+1].first - intrestPoints[i].first;
-        graphMap.insert(MP(MT(intrestPoints[i+1], MP(-1,1)), MT(intrestPoints[i], MP(-1,1), len)));
-        graphMap.insert(MP(MT(intrestPoints[i], MP(1,-1)), MT(intrestPoints[i+1], MP(1,-1), len)));
+        ull len = intrestPoints[i].first - intrestPoints[i+1].first;
+        graphMap.insert(MP(MT(intrestPoints[i], MP(-1,1)), MT(intrestPoints[i+1], MP(-1,1), len)));
+        graphMap.insert(MP(MT(intrestPoints[i+1], MP(1,-1)), MT(intrestPoints[i], MP(1,-1), len)));
+        // cout<<"("<<intrestPoints[i].first<<" "<<intrestPoints[i].second<<")"<<" <-> "<<"("<<intrestPoints[i+1].first<<" "<<intrestPoints[i+1].second<<")"<<"\n";
     }
 }
 
 void compressGraph(){
     vector<PII> intrestPoints;
-    for(int i = 0; i<n; i++){
+    for(int i = 1; i<n; i += 2){
+        if(i == startX) continue;
         tuple t1 = graph(MP(i,0), MP(-1,1));
         tuple t2 = graph(MP(i,0), MP(1,1));
+        cout<<"("<<i<<" "<<0<<"): ";
         mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2));
     }
-    for(int i = 0; i<m; i++){
+    for(int i = 1; i<m; i += 2){
         tuple t1 = graph(MP(0,i), MP(1,-1));
         tuple t2 = graph(MP(0,i), MP(1,1));
+        cout<<"("<<0<<" "<<i<<"): ";
         mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2));
     }
-    for(int i = 0; i<n; i++){
+    for(int i = 1; i<n; i += 2){
         tuple t1 = graph(MP(i,m), MP(-1,-1));
         tuple t2 = graph(MP(i,m), MP(1,-1));
+        cout<<"("<<i<<" "<<m<<"): ";
         mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2));
     }
-    for(int i = 0; i<m; i++){
+    for(int i = 1; i<m; i += 2){
         tuple t1 = graph(MP(n,i), MP(-1,-1));
         tuple t2 = graph(MP(n,i), MP(-1,1));
+        cout<<"("<<n<<" "<<i<<"): ";
         mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2));
     }
 }
@@ -340,10 +348,33 @@ ull traverseGraph(){
 } 
 
 ull solve(){
+    // cout<<"======================STANDARD: \n\n";
     createGraph();
+    // int ind = 1;
+    // for(auto itr = graphMap.begin(); itr != graphMap.end(); itr++){
+    //     cout<<"Nr. "<<ind<<"\n";
+    //     cout<<"KEY: ";
+    //     cout<<get<0>(itr->first).first<<" "<<get<0>(itr->first).second<<" "<<get<1>(itr->first).first<<" "<<get<1>(itr->first).second<<" "<<"\n";
+    //     cout<<"VALUE: ";
+    //     cout<<get<0>(itr->second).first<<" "<<get<0>(itr->second).second<<" "<<get<1>(itr->second).first<<" "<<get<1>(itr->second).second<<" "<<get<2>(itr->second)<<"\n";
+    //     cout<<"\n\n";
+    //     ind++;
+    // }
+    cout<<"=====================COMPRESSSED: \n\n";
     compressGraph();
+    // ind = 0;
+    // for(auto itr = graphMap.begin(); itr != graphMap.end(); itr++){
+    //     cout<<"Nr. "<<ind<<"\n";
+    //     cout<<"KEY: ";
+    //     cout<<get<0>(itr->first).first<<" "<<get<0>(itr->first).second<<" "<<get<1>(itr->first).first<<" "<<get<1>(itr->first).second<<" "<<"\n";
+    //     cout<<"VALUE: ";
+    //     cout<<get<0>(itr->second).first<<" "<<get<0>(itr->second).second<<" "<<get<1>(itr->second).first<<" "<<get<1>(itr->second).second<<" "<<get<2>(itr->second)<<"\n";
+    //     cout<<"\n\n";
+    //     ind++;
+    // }
     ull ans = traverseGraph();
     return ans;
+    // return 0;
 }
 
 int main() {
