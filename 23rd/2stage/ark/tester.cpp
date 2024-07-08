@@ -185,18 +185,19 @@ void mergePath(PII cord1, PII dir1, PII cord2, PII dir2){
     dir2 *= MP(-1,-1);
     graphMap.erase(MT(cord2, dir2));
     graphMap.insert(MP(MT(cord2,dir2),MT(cord1,dir1, len)));
-    // cout<<"("<<cord1.first<<" "<<cord1.second<<")"<<" <-> "<<"("<<cord2.first<<" "<<cord2.second<<")"<<"\n";
+    cout<<"("<<cord1.first<<" "<<cord1.second<<")"<<" <-> "<<"("<<cord2.first<<" "<<cord2.second<<")"<<"\n";
 }
 
 void removeBlock(PII b){
     PII top = MP(b.first, b.second+1);
     PII bottom = MP(b.first, b.second-1);
     PII left = MP(b.first-1, b.second);
-    PII right = MP(b.first, b.second+1);
+    PII right = MP(b.first+1, b.second);
 
     tuple<PII,PII,ull> t1, t2;
 
     //left - top
+    cout<<"LEFT: "<<left.first<<" "<<left.second<<" <=> "<<"TOP: "<<top.first<<" "<<top.second<<": ";
     t1 = graph(left, MP(-1,-1));
     t2 = graph(top, MP(1,1));
     if(get<0>(t1) == MP(0,0)) get<0>(t1) = left;
@@ -204,6 +205,7 @@ void removeBlock(PII b){
     mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2));
 
     //top - right
+    cout<<"TOP: "<<top.first<<" "<<top.second<<" <=> "<<"RIGHT: "<<right.first<<" "<<right.second<<": ";
     t1 = graph(top, MP(-1,1));
     t2 = graph(right, MP(1,-1));
     if(get<0>(t1) == MP(0,0)) get<0>(t1) = top;
@@ -211,6 +213,7 @@ void removeBlock(PII b){
     mergePath(get<0>(t1), get<1>(t1),  get<0>(t2), get<1>(t2));
 
     //right - bottom
+    cout<<"RIGHT: "<<right.first<<" "<<right.second<<" <=> "<<"BOTTOM: "<<bottom.first<<" "<<bottom.second<<": ";
     t1 = graph(right, MP(1,1));
     t2 = graph(bottom, MP(-1,-1));
     if(get<0>(t1) == MP(0,0)) get<0>(t1) = right;
@@ -218,6 +221,7 @@ void removeBlock(PII b){
     mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2));
 
     //bottom - left
+    cout<<"BOTTOM: "<<bottom.first<<" "<<bottom.second<<" <=> "<<"LEFT: "<<left.first<<" "<<left.second<<": ";
     t1 = graph(bottom, MP(1,-1));
     t2 = graph(left, MP(-1,1));
     if(get<0>(t1) == MP(0,0)) get<0>(t1) = bottom;
@@ -356,7 +360,7 @@ ull solve(){
     createGraph();
     // cout<<"=====================COMPRESSSED: \n\n";
     compressGraph();
-    // cout<<"=====================REMOVED BLOCKS: \n\n";
+    cout<<"=====================REMOVED BLOCKS: \n\n";
     ull ans = traverseGraph();
     return ans;
     // return 0;

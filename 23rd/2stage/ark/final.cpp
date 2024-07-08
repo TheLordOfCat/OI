@@ -106,7 +106,7 @@ void removeBlock(PII b){
     PII top = MP(b.first, b.second+1);
     PII bottom = MP(b.first, b.second-1);
     PII left = MP(b.first-1, b.second);
-    PII right = MP(b.first, b.second+1);
+    PII right = MP(b.first+1, b.second);
 
     tuple<PII,PII,ull> t1, t2;
 
