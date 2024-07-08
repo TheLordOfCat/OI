@@ -24,6 +24,13 @@ bool operator==(const pair<int, int>& lhs, const pair<int, int>& rhs) {
     return false;   
 }
 
+bool operator!=(const pair<int, int>& lhs, const pair<int, int>& rhs) {
+    if (lhs.first != rhs.first || lhs.second != rhs.second) {
+        return true;  
+    }
+    return false;   
+}
+
 PII operator+(const pair<int, int>& lhs, const pair<int, int>& rhs) {
     return MP(lhs.first + rhs.first, lhs.second + rhs.second);
 }
@@ -85,11 +92,12 @@ void getRandom(){
 
 void printData(){
     cout<<"DATA: \n";
-    cout<<n<<" "<<m<<" "<<k<<"\n";
+    cout<<n/2<<" "<<m/2<<" "<<k/2<<"\n";
     for(int i = 0; i<k; i++){
-        cout<<blocks[i].first<<" "<<blocks[i].second<<"\n";
+        cout<<blocks[i].first/2<<" "<<blocks[i].second/2<<"\n";
     }
 }
+
 
 //return center of a block in scaled grid
 PII centerBlock(PII cord){
@@ -177,7 +185,7 @@ void mergePath(PII cord1, PII dir1, PII cord2, PII dir2){
     dir2 *= MP(-1,-1);
     graphMap.erase(MT(cord2, dir2));
     graphMap.insert(MP(MT(cord2,dir2),MT(cord1,dir1, len)));
-    cout<<"("<<cord1.first<<" "<<cord1.second<<")"<<" <-> "<<"("<<cord2.first<<" "<<cord2.second<<")"<<"\n";
+    // cout<<"("<<cord1.first<<" "<<cord1.second<<")"<<" <-> "<<"("<<cord2.first<<" "<<cord2.second<<")"<<"\n";
 }
 
 void removeBlock(PII b){
@@ -191,21 +199,29 @@ void removeBlock(PII b){
     //left - top
     t1 = graph(left, MP(-1,-1));
     t2 = graph(top, MP(1,1));
+    if(get<0>(t1) == MP(0,0)) get<0>(t1) = left;
+    if(get<0>(t2) == MP(0,0)) get<0>(t2) = top;
     mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2));
 
     //top - right
     t1 = graph(top, MP(-1,1));
     t2 = graph(right, MP(1,-1));
+    if(get<0>(t1) == MP(0,0)) get<0>(t1) = top;
+    if(get<0>(t2) == MP(0,0)) get<0>(t2) = right;
     mergePath(get<0>(t1), get<1>(t1),  get<0>(t2), get<1>(t2));
 
     //right - bottom
     t1 = graph(right, MP(1,1));
     t2 = graph(bottom, MP(-1,-1));
+    if(get<0>(t1) == MP(0,0)) get<0>(t1) = right;
+    if(get<0>(t2) == MP(0,0)) get<0>(t2) = bottom;
     mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2));
 
     //bottom - left
     t1 = graph(bottom, MP(1,-1));
     t2 = graph(left, MP(-1,1));
+    if(get<0>(t1) == MP(0,0)) get<0>(t1) = bottom;
+    if(get<0>(t2) == MP(0,0)) get<0>(t2) = left;
     mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2));
 }
 
@@ -264,25 +280,25 @@ void compressGraph(){
         if(i == startX) continue;
         tuple t1 = graph(MP(i,0), MP(-1,1));
         tuple t2 = graph(MP(i,0), MP(1,1));
-        cout<<"("<<i<<" "<<0<<"): ";
+        // cout<<"("<<i<<" "<<0<<"): ";
         mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2));
     }
     for(int i = 1; i<m; i += 2){
         tuple t1 = graph(MP(0,i), MP(1,-1));
         tuple t2 = graph(MP(0,i), MP(1,1));
-        cout<<"("<<0<<" "<<i<<"): ";
+        // cout<<"("<<0<<" "<<i<<"): ";
         mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2));
     }
     for(int i = 1; i<n; i += 2){
         tuple t1 = graph(MP(i,m), MP(-1,-1));
         tuple t2 = graph(MP(i,m), MP(1,-1));
-        cout<<"("<<i<<" "<<m<<"): ";
+        // cout<<"("<<i<<" "<<m<<"): ";
         mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2));
     }
     for(int i = 1; i<m; i += 2){
         tuple t1 = graph(MP(n,i), MP(-1,-1));
         tuple t2 = graph(MP(n,i), MP(-1,1));
-        cout<<"("<<n<<" "<<i<<"): ";
+        // cout<<"("<<n<<" "<<i<<"): ";
         mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2));
     }
 }
@@ -299,7 +315,6 @@ ull traverseGraph(){
     }
 
     int blocksLeft = k;
-    ull lastMove = 0;
     while(blocksLeft > 0){
         tuple t = graph(cord, dir);
         ans += get<2>(t);
@@ -315,23 +330,14 @@ ull traverseGraph(){
         }else{
             auto it = blocksMap.find(MP(nextCord.first + nextDir.first, nextCord.second));
             if(it != blocksMap.end()){
-                t = graph(nextCord, nextDir);
-                nextCord = get<0>(t);
-                nextDir = get<1>(t);
-                ans += get<2>(t);
-                lastMove = get<2>(t);
+                nextDir.first *= -1;
 
                 removeBlock(it->first);
                 blocksLeft--;
             }else{
-                auto it = blocksMap.find(MP(nextCord.first + nextDir.first, nextCord.second));
+                it = blocksMap.find(MP(nextCord.first, nextCord.second + nextDir.second));
                 if(it != blocksMap.end()){
-                    t = graph(nextCord, nextDir);
-                    nextCord = get<0>(t);
-                    nextDir = get<1>(t);
-                    ans += get<2>(t);
-                    lastMove = get<2>(t);
-
+                    nextDir.second *= -1;
                     removeBlock(it->first);
                     blocksLeft--;
                 }
@@ -341,8 +347,6 @@ ull traverseGraph(){
         cord = nextCord;
         dir = nextDir;
     }
-    //decreasing by the exces move
-    ans -= lastMove;
 
     return ans;
 } 
@@ -350,28 +354,9 @@ ull traverseGraph(){
 ull solve(){
     // cout<<"======================STANDARD: \n\n";
     createGraph();
-    // int ind = 1;
-    // for(auto itr = graphMap.begin(); itr != graphMap.end(); itr++){
-    //     cout<<"Nr. "<<ind<<"\n";
-    //     cout<<"KEY: ";
-    //     cout<<get<0>(itr->first).first<<" "<<get<0>(itr->first).second<<" "<<get<1>(itr->first).first<<" "<<get<1>(itr->first).second<<" "<<"\n";
-    //     cout<<"VALUE: ";
-    //     cout<<get<0>(itr->second).first<<" "<<get<0>(itr->second).second<<" "<<get<1>(itr->second).first<<" "<<get<1>(itr->second).second<<" "<<get<2>(itr->second)<<"\n";
-    //     cout<<"\n\n";
-    //     ind++;
-    // }
-    cout<<"=====================COMPRESSSED: \n\n";
+    // cout<<"=====================COMPRESSSED: \n\n";
     compressGraph();
-    // ind = 0;
-    // for(auto itr = graphMap.begin(); itr != graphMap.end(); itr++){
-    //     cout<<"Nr. "<<ind<<"\n";
-    //     cout<<"KEY: ";
-    //     cout<<get<0>(itr->first).first<<" "<<get<0>(itr->first).second<<" "<<get<1>(itr->first).first<<" "<<get<1>(itr->first).second<<" "<<"\n";
-    //     cout<<"VALUE: ";
-    //     cout<<get<0>(itr->second).first<<" "<<get<0>(itr->second).second<<" "<<get<1>(itr->second).first<<" "<<get<1>(itr->second).second<<" "<<get<2>(itr->second)<<"\n";
-    //     cout<<"\n\n";
-    //     ind++;
-    // }
+    // cout<<"=====================REMOVED BLOCKS: \n\n";
     ull ans = traverseGraph();
     return ans;
     // return 0;
