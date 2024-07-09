@@ -8,6 +8,7 @@
         "xtree": "cpp",
         "xiosbase": "cpp",
         "tuple": "cpp",
-        "ostream": "cpp"
+        "ostream": "cpp",
+        "algorithm": "cpp"
     }
 }

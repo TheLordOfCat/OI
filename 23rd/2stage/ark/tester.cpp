@@ -100,7 +100,6 @@ void printData(){
     }
 }
 
-
 //return center of a block in scaled grid
 PII centerBlock(PII cord){
     return MP(cord.first - 1, cord.second-1);
@@ -117,7 +116,8 @@ int isWall(PII cord){
     return 0;
 }
 
-int isBlock(PII cord, PII dir){
+vector<int> isBlock(PII cord, PII dir){
+    vector<int> ans;
 
     for(int i = 0; i<k; i++){
         PII cen = centerBlock(blocks[i]);
@@ -129,12 +129,12 @@ int isBlock(PII cord, PII dir){
 
         for(int j = 0; j<temp.size(); j++){
             if(temp[j] == cord){
-                return i;
+                ans.PB(i);
             }
         }
     }
 
-    return -1;
+    return ans;
 }
 
 ull brute(){
@@ -154,7 +154,17 @@ ull brute(){
         }else if(w == 2){
             dir.second *= -1;
         }else{
-            int b = isBlock(cord, dir);
+            vector<int> temp = isBlock(cord, dir);
+            int b;
+            if(temp.size() == 0){
+                b = -1;
+            }else{
+                if(!vis[temp[0]]){
+                    b = temp[0];
+                }else{
+                    b = temp[1];
+                }
+            }
 
             if(b >= 0 && !vis[b]){
                 vis[b] = true;
@@ -187,7 +197,7 @@ void mergePath(PII cord1, PII dir1, PII cord2, PII dir2, int lon = 0){
     dir2 *= MP(-1,-1);
     graphMap.erase(MT(cord2, dir2));
     graphMap.insert(MP(MT(cord2,dir2),MT(cord1,dir1, len)));
-    cout<<"("<<cord1.first<<" "<<cord1.second<<")"<<" <-> "<<"("<<cord2.first<<" "<<cord2.second<<")"<<"\n";
+    // cout<<"("<<cord1.first<<" "<<cord1.second<<")"<<" <-> "<<"("<<cord2.first<<" "<<cord2.second<<")"<<"\n";
 }
 
 void removeBlock(PII b){
@@ -199,7 +209,7 @@ void removeBlock(PII b){
     tuple<PII,PII,ull> t1, t2;
 
     //left - top
-    cout<<"LEFT: "<<left.first<<" "<<left.second<<" <=> "<<"TOP: "<<top.first<<" "<<top.second<<": ";
+    // cout<<"LEFT: "<<left.first<<" "<<left.second<<" <=> "<<"TOP: "<<top.first<<" "<<top.second<<": ";
     t1 = graph(left, MP(-1,-1));
     t2 = graph(top, MP(1,1));
     if(get<0>(t1) == MP(0,0)) get<0>(t1) = left;
@@ -207,7 +217,7 @@ void removeBlock(PII b){
     mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2), 1);
 
     //top - right
-    cout<<"TOP: "<<top.first<<" "<<top.second<<" <=> "<<"RIGHT: "<<right.first<<" "<<right.second<<": ";
+    // cout<<"TOP: "<<top.first<<" "<<top.second<<" <=> "<<"RIGHT: "<<right.first<<" "<<right.second<<": ";
     t1 = graph(top, MP(-1,1));
     t2 = graph(right, MP(1,-1));
     if(get<0>(t1) == MP(0,0)) get<0>(t1) = top;
@@ -215,7 +225,7 @@ void removeBlock(PII b){
     mergePath(get<0>(t1), get<1>(t1),  get<0>(t2), get<1>(t2), 1);
 
     //right - bottom
-    cout<<"RIGHT: "<<right.first<<" "<<right.second<<" <=> "<<"BOTTOM: "<<bottom.first<<" "<<bottom.second<<": ";
+    // cout<<"RIGHT: "<<right.first<<" "<<right.second<<" <=> "<<"BOTTOM: "<<bottom.first<<" "<<bottom.second<<": ";
     t1 = graph(right, MP(1,1));
     t2 = graph(bottom, MP(-1,-1));
     if(get<0>(t1) == MP(0,0)) get<0>(t1) = right;
@@ -223,7 +233,7 @@ void removeBlock(PII b){
     mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2), 1);
 
     //bottom - left
-    cout<<"BOTTOM: "<<bottom.first<<" "<<bottom.second<<" <=> "<<"LEFT: "<<left.first<<" "<<left.second<<": ";
+    // cout<<"BOTTOM: "<<bottom.first<<" "<<bottom.second<<" <=> "<<"LEFT: "<<left.first<<" "<<left.second<<": ";
     t1 = graph(bottom, MP(1,-1));
     t2 = graph(left, MP(-1,1));
     if(get<0>(t1) == MP(0,0)) get<0>(t1) = bottom;
@@ -261,6 +271,7 @@ void createGraph(){
         intrestPoints.PB(MP(n,i));
     }
 
+    sort(intrestPoints.begin(), intrestPoints.end());
     stable_sort(intrestPoints.begin(), intrestPoints.end(), rightOrineted);
 
     for(int i = 0; i<=intrestPoints.size(); i+=2){
@@ -270,6 +281,7 @@ void createGraph(){
         // cout<<"("<<intrestPoints[i].first<<" "<<intrestPoints[i].second<<")"<<" <-> "<<"("<<intrestPoints[i+1].first<<" "<<intrestPoints[i+1].second<<")"<<"\n";
     }
     
+    sort(intrestPoints.begin(), intrestPoints.end(), greater<pair<int,int>>());
     stable_sort(intrestPoints.begin(), intrestPoints.end(), leftOrineted);
 
     for(int i = 0; i<=intrestPoints.size(); i+=2){
@@ -321,7 +333,11 @@ ull traverseGraph(){
     }
 
     int blocksLeft = k;
+    int temp = 0;
     while(blocksLeft > 0){
+        temp++;
+        if(temp > 15) break;
+
         tuple t = graph(cord, dir);
         ans += get<2>(t);
 
@@ -362,7 +378,7 @@ ull solve(){
     createGraph();
     // cout<<"=====================COMPRESSSED: \n\n";
     compressGraph();
-    cout<<"=====================REMOVED BLOCKS: \n\n";
+    // cout<<"=====================REMOVED BLOCKS: \n\n";
     ull ans = traverseGraph();
     return ans;
     // return 0;

@@ -169,6 +169,7 @@ void createGraph(){
         intrestPoints.PB(MP(n,i));
     }
 
+    sort(intrestPoints.begin(), intrestPoints.end());
     stable_sort(intrestPoints.begin(), intrestPoints.end(), rightOrineted);
 
     for(int i = 0; i<=intrestPoints.size(); i+=2){
@@ -178,6 +179,7 @@ void createGraph(){
         // cout<<"("<<intrestPoints[i].first<<" "<<intrestPoints[i].second<<")"<<" <-> "<<"("<<intrestPoints[i+1].first<<" "<<intrestPoints[i+1].second<<")"<<"\n";
     }
     
+    sort(intrestPoints.begin(), intrestPoints.end(), greater<pair<int,int>>());
     stable_sort(intrestPoints.begin(), intrestPoints.end(), leftOrineted);
 
     for(int i = 0; i<=intrestPoints.size(); i+=2){
