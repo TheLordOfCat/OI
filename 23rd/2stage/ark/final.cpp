@@ -89,8 +89,8 @@ tuple<PII,PII, ull> graph(PII cord, PII dir){
     return graphMap[MT(cord,dir)];
 }
 
-void mergePath(PII cord1, PII dir1, PII cord2, PII dir2){
-    int len = get<2>(graphMap[MT(cord1, dir1*(MP(-1,-1)))]) + get<2>(graphMap[MT(cord2, dir2*(MP(-1,-1)))]);
+void mergePath(PII cord1, PII dir1, PII cord2, PII dir2, int lon = 0){
+    int len = get<2>(graphMap[MT(cord1, dir1*(MP(-1,-1)))]) + get<2>(graphMap[MT(cord2, dir2*(MP(-1,-1)))]) + lon;
     dir1 *= MP(-1,-1);
     graphMap.erase(MT(cord1, dir1));
     graphMap.insert(MP(MT(cord1,dir1),MT(cord2,dir2, len)));
@@ -115,28 +115,28 @@ void removeBlock(PII b){
     t2 = graph(top, MP(1,1));
     if(get<0>(t1) == MP(0,0)) get<0>(t1) = left;
     if(get<0>(t2) == MP(0,0)) get<0>(t2) = top;
-    mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2));
+    mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2), 1);
 
     //top - right
     t1 = graph(top, MP(-1,1));
     t2 = graph(right, MP(1,-1));
     if(get<0>(t1) == MP(0,0)) get<0>(t1) = top;
     if(get<0>(t2) == MP(0,0)) get<0>(t2) = right;
-    mergePath(get<0>(t1), get<1>(t1),  get<0>(t2), get<1>(t2));
+    mergePath(get<0>(t1), get<1>(t1),  get<0>(t2), get<1>(t2), 1);
 
     //right - bottom
     t1 = graph(right, MP(1,1));
     t2 = graph(bottom, MP(-1,-1));
     if(get<0>(t1) == MP(0,0)) get<0>(t1) = right;
     if(get<0>(t2) == MP(0,0)) get<0>(t2) = bottom;
-    mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2));
+    mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2), 1);
 
     //bottom - left
     t1 = graph(bottom, MP(1,-1));
     t2 = graph(left, MP(-1,1));
     if(get<0>(t1) == MP(0,0)) get<0>(t1) = bottom;
     if(get<0>(t2) == MP(0,0)) get<0>(t2) = left;
-    mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2));
+    mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2), 1);
 }
 
 bool rightOrineted(PII a, PII b){
