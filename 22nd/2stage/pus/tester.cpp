@@ -2,6 +2,7 @@
 #include <vector>
 #include <tuple>
 #include <algorithm>
+#include <queue>
 
 #include <ctime>
 #include <cstdlib>
@@ -15,6 +16,8 @@ using namespace std;
 
 using ll = long long int;
 using ull = unsigned long long int;
+
+const int INF = 1'000'000'000;
 
 int n, s, m;
 vector<PII> well;
@@ -108,7 +111,57 @@ void printData(){
 }
 
 vector<int> brute(){
+    vector<int> input(n+1, 0);
+    vector<vector<int>> graph(n+1, vector<int>());
+    
+    vector<int> ans(n+1, INF);
+    for(int i = 0; i<s; i++){
+        ans[well[i].first] = well[i].second;
+    }
 
+    for(int i = 0; i<m; i++){
+        PII ran = get<0>(dep[i]);
+        int len = get<1>(dep[i]);
+        vector<int> sup = get<2>(dep[i]);
+        for(int j = 0; j<len; j++){
+            int ind = 0;
+            for(int o = ran.first; o<=ran.second; o++){
+                if(o != sup[ind]){
+                    graph[sup[j]].PB(o);
+                    input[o]++;
+                }else{
+                    ind++;
+                }
+            }
+        }
+    }
+
+    queue<PII> Q;
+    for(int i = 1; i<=n; i++){
+        if(input[i] == 0){
+            Q.push(MP(i,ans[i]));
+            break;
+        }
+    }
+
+    if(Q.empty()){
+        return vector<int>();
+    }
+
+    while(!Q.empty()){
+        PII v = Q.front();
+        Q.pop();
+        for(int i = 0; i<graph[v.first].size(); i++){
+            int cur = graph[v.first][i];
+            ans[cur] = min(ans[cur], v.second-1);
+            if(ans[cur] < 0){
+                return vector<int>();
+            }
+            Q.push(MP(cur,ans[cur]));
+        }
+    }
+
+    return ans;
 } 
 
 vector<int> solve(){

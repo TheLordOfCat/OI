@@ -4,6 +4,8 @@
         "utility": "cpp",
         "algorithm": "cpp",
         "iostream": "cpp",
-        "stack": "cpp"
+        "stack": "cpp",
+        "queue": "cpp",
+        "xiosbase": "cpp"
     }
 }
