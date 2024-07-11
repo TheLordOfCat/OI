@@ -148,12 +148,22 @@ vector<int> brute(){
         return vector<int>();
     }
 
+    vector<bool> isWell(n+1, false);
+    for(int i = 0; i<s; i++) isWell[well[i].first] = true;
+
     while(!Q.empty()){
         PII v = Q.front();
         Q.pop();
         for(int i = 0; i<graph[v.first].size(); i++){
             int cur = graph[v.first][i];
-            ans[cur] = min(ans[cur], v.second-1);
+            if(isWell[cur]){
+                if(ans[cur] >  v.second-1){
+                    return vector<int>();
+                }
+            }else{
+                ans[cur] = min(ans[cur], v.second-1);
+            }
+
             if(ans[cur] < 0){
                 return vector<int>();
             }
@@ -185,13 +195,13 @@ int main(){
             cout<<"NIE\n";
             cout<<"BRUTE: \n";
             cout<<ansB.size()<<"\n";
-            for(int i = 0; i<ansB.size(); i++){
+            for(int i = 1; i<ansB.size(); i++){
                 cout<<ansB[i]<<" ";
             }
             cout<<"\n";
             cout<<"SOLVE: \n";
             cout<<ansS.size()<<"\n";
-            for(int i = 0; i<ansS.size(); i++){
+            for(int i = 1; i<ansS.size(); i++){
                 cout<<ansS[i]<<" ";
             }
             cout<<"\n";
@@ -203,13 +213,13 @@ int main(){
                     cout<<"NIE\n";
                     cout<<"BRUTE: \n";
                     cout<<ansB.size()<<"\n";
-                    for(int i = 0; i<ansB.size(); i++){
+                    for(int i = 1; i<ansB.size(); i++){
                         cout<<ansB[i]<<" ";
                     }
                     cout<<"\n";
                     cout<<"SOLVE: \n";
                     cout<<ansS.size()<<"\n";
-                    for(int i = 0; i<ansS.size(); i++){
+                    for(int i = 1; i<ansS.size(); i++){
                         cout<<ansS[i]<<" ";
                     }
                     cout<<"\n";
