@@ -199,8 +199,9 @@ inline int parent(int v){
 }
 
 void connect(int l, int r, int ind){
+    if(r < l) return;
     int L = leaf(l);
-    int R = left(r);
+    int R = leaf(r);
 
     graph[ind].PB(MP(L,0));
     if(L != R) graph[ind].PB(MP(R,0));
@@ -220,14 +221,19 @@ void connect(int l, int r, int ind){
 }
 
 vector<int> solve(){
+    tree.clear();
+    graph.clear();
+    input.clear();
+
     //build tree
     while(1<<depth < n){
         R += 1<<depth;
         depth++;
     }
 
-    tree.assign(R + 1<<depth, 0);
-    input.assign(R + 1<<depth, 0);
+    tree.assign(R + 1 + (1<<depth), INF);
+    graph.assign(R + 1 + (1<<depth), vector<PII>());
+    input.assign(R + 1 + (1<<depth), 0);
     for(int i = 1; i<=R; i++){
         graph[i].PB(MP(left(i),0));
         input[left(i)]++;
@@ -240,16 +246,17 @@ vector<int> solve(){
         int len = get<1>(dep[i]);
         vector<int> vec = get<2>(dep[i]);
         int ind = 0;
-        tree.PB(0);
+        tree.PB(INF);
+        graph.PB(vector<PII>());
 
         connect(ran.first, vec[0]-1, tree.size()-1);
         for(int i = 0; i< len-1; i++){
-            graph[vec[i]].PB(MP(tree.size()-1, 1));
+            graph[leaf(vec[i])].PB(MP(tree.size()-1, 1));
             input[tree.size()-1]++;
             connect(vec[i]+1, vec[i+1]-1, tree.size()-1);
         }
         if(vec.size() > 1){
-            graph[vec.back()].PB(MP(tree.size()-1, 1));
+            graph[leaf(vec.back())].PB(MP(tree.size()-1, 1));
             input[tree.size()-1]++;
             connect(vec.back()+1, ran.second, tree.size()-1);
         }
@@ -291,7 +298,7 @@ vector<int> solve(){
     }
 
     vector<int> ans;
-    for(int i = 1; i<=n; i++){
+    for(int i = 0; i<=n; i++){
         ans.PB(tree[leaf(i)]);
     }
 
@@ -328,7 +335,7 @@ int main(){
             printData();
             return 0;
         }else{
-            for(int i = 0; i<n; i++){
+            for(int i = 1; i<n; i++){
                 if(ansB[i] != ansS[i]){
                     cout<<"NIE\n";
                     cout<<"BRUTE: \n";
