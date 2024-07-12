@@ -52,15 +52,15 @@ void getRandom(){
 
     n = rand()%10+1;
     s = rand()%n+1;
-    m = rand()%2+1;
+    m = rand()%4+1;
     vector<bool> vis(n+1, false);
     for(int i = 0; i<s; i++){
         int temp = rand()%n+1;
-        while(!vis[temp]){
+        while(vis[temp]){
             temp = rand()%n+1;
         }
         vis[temp] = true;
-        int depth = rand()%10+1;
+        int depth = rand()%10+2;
         well.PB(MP(temp, depth));
     }
 
@@ -81,12 +81,14 @@ void getRandom(){
         vector<int> sup;
         for(int j = 0; j<len; j++){
             int temp = rand()%dif;
-            while(!vis[temp]){
+            while(vis[temp]){
                 temp = rand()%dif;
             }
             vis[temp] = true;
             sup.PB(temp+ran.first);
         }
+
+        sort(sup.begin(), sup.end());
 
         dep.PB(MT(ran,len,sup));
     }
@@ -115,8 +117,10 @@ vector<int> brute(){
     vector<vector<int>> graph(n+1, vector<int>());
     
     vector<int> ans(n+1, INF);
+    vector<bool> isWell(n+1, false);
     for(int i = 0; i<s; i++){
         ans[well[i].first] = well[i].second;
+        isWell[well[i].first] = true;
     }
 
     for(int i = 0; i<m; i++){
@@ -140,16 +144,12 @@ vector<int> brute(){
     for(int i = 1; i<=n; i++){
         if(input[i] == 0){
             Q.push(MP(i,ans[i]));
-            break;
         }
     }
 
     if(Q.empty()){
         return vector<int>();
     }
-
-    vector<bool> isWell(n+1, false);
-    for(int i = 0; i<s; i++) isWell[well[i].first] = true;
 
     while(!Q.empty()){
         PII v = Q.front();
@@ -311,6 +311,11 @@ vector<int> solve(){
             }
         }
     }
+    for(int i = 1; i<=n; i++){
+        if(!vis[leaf(i)]){
+            return vector<int>();
+        }
+    }
 
     vector<int> ans;
     for(int i = 0; i<=n; i++){
@@ -325,7 +330,8 @@ int main(){
     cin.tie(NULL);
 
     int op = 1;
-    for(int test = 1; test<=1 ;test++){
+    for(int test = 1; test<=100 ;test++){
+        cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
         }else{
@@ -334,33 +340,29 @@ int main(){
         vector<int> ansB = brute();
         vector<int> ansS = solve();
         if(ansB.size() != ansS.size()){
-            cout<<"NIE\n";
+            cout<<"ERROR\n";
             cout<<"BRUTE: \n";
-            cout<<ansB.size()<<"\n";
             for(int i = 1; i<ansB.size(); i++){
                 cout<<ansB[i]<<" ";
             }
             cout<<"\n";
             cout<<"SOLVE: \n";
-            cout<<ansS.size()<<"\n";
             for(int i = 1; i<ansS.size(); i++){
                 cout<<ansS[i]<<" ";
             }
             cout<<"\n";
             printData();
             return 0;
-        }else{
+        }else if(ansB.size() != 0){
             for(int i = 1; i<n; i++){
                 if(ansB[i] != ansS[i]){
-                    cout<<"NIE\n";
+                    cout<<"ERROR\n";
                     cout<<"BRUTE: \n";
-                    cout<<ansB.size()<<"\n";
                     for(int i = 1; i<ansB.size(); i++){
                         cout<<ansB[i]<<" ";
                     }
                     cout<<"\n";
                     cout<<"SOLVE: \n";
-                    cout<<ansS.size()<<"\n";
                     for(int i = 1; i<ansS.size(); i++){
                         cout<<ansS[i]<<" ";
                     }
