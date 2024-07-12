@@ -170,7 +170,7 @@ vector<int> brute(){
                 ans[cur] = min(ans[cur], v.second-1);
             }
 
-            if(ans[cur] < 0){
+            if(ans[cur] <= 0){
                 return vector<int>();
             }
             Q.push(MP(cur,ans[cur]));
@@ -320,6 +320,9 @@ vector<int> solve(){
                 }else{
                     tree[cur.first] = min(tree[cur.first], tree[v]);
                 }
+            }
+            if(tree[cur.first] <= 0){
+                return vector<int>();
             }
         }
     }

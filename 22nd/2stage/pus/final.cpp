@@ -176,6 +176,9 @@ vector<int> solve(){
                     tree[cur.first] = min(tree[cur.first], tree[v]);
                 }
             }
+            if(tree[cur.first] <= 0){
+                return vector<int>();
+            }
         }
     }
     for(int i = 1; i<=n; i++){
