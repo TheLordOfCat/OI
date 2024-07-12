@@ -329,7 +329,7 @@ int main(){
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
+    int op = 0;
     for(int test = 1; test<=100 ;test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
