@@ -78,11 +78,11 @@ void connect(int l, int r, int ind){
     } 
 
     while(parent(L) != parent(R)){
-        if(L = left(parent(L))){
+        if(L == left(parent(L))){
             graph[ind].PB(MP(right(parent(L)),0));
             input[right(parent(L))]++;
         }
-        if(R = right(parent(R))){
+        if(R == right(parent(R))){
             graph[ind].PB(MP(left(parent(R)),0));
             input[left(parent(R))]++;
         }

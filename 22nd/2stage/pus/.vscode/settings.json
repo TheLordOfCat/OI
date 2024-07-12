@@ -6,6 +6,7 @@
         "iostream": "cpp",
         "stack": "cpp",
         "queue": "cpp",
-        "xiosbase": "cpp"
+        "xiosbase": "cpp",
+        "tuple": "cpp"
     }
 }

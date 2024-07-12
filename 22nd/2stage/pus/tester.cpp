@@ -116,6 +116,7 @@ vector<int> brute(){
     vector<int> input(n+1, 0);
     vector<vector<int>> graph(n+1, vector<int>());
     
+    //marking existing wells 
     vector<int> ans(n+1, INF);
     vector<bool> isWell(n+1, false);
     for(int i = 0; i<s; i++){
@@ -123,6 +124,7 @@ vector<int> brute(){
         isWell[well[i].first] = true;
     }
 
+    //creating graph
     for(int i = 0; i<m; i++){
         PII ran = get<0>(dep[i]);
         int len = get<1>(dep[i]);
@@ -146,16 +148,20 @@ vector<int> brute(){
             Q.push(MP(i,ans[i]));
         }
     }
-
+    
     if(Q.empty()){
         return vector<int>();
     }
 
+    vector<bool> vis(n+1, false);
+
     while(!Q.empty()){
         PII v = Q.front();
+        vis[v.first] = true;
         Q.pop();
         for(int i = 0; i<graph[v.first].size(); i++){
             int cur = graph[v.first][i];
+            input[cur]--;
             if(isWell[cur]){
                 if(ans[cur] >  v.second-1){
                     return vector<int>();
@@ -168,6 +174,12 @@ vector<int> brute(){
                 return vector<int>();
             }
             Q.push(MP(cur,ans[cur]));
+        }
+    }
+
+    for(int i = 1; i<=n; i++){
+        if(!vis[i]){
+            return vector<int>();
         }
     }
 
@@ -211,11 +223,11 @@ void connect(int l, int r, int ind){
     } 
 
     while(parent(L) != parent(R)){
-        if(L = left(parent(L))){
+        if(L == left(parent(L))){
             graph[ind].PB(MP(right(parent(L)),0));
             input[right(parent(L))]++;
         }
-        if(R = right(parent(R))){
+        if(R == right(parent(R))){
             graph[ind].PB(MP(left(parent(R)),0));
             input[left(parent(R))]++;
         }
@@ -273,7 +285,7 @@ vector<int> solve(){
 
     vector<bool> vis(tree.size(), false);
     queue<int> Q;
-    if(input[1] == 0)Q.push(1);
+    if(input[1] == 0) Q.push(1);
     while(!Q.empty()){
         int v = Q.front();
         Q.pop();
@@ -329,8 +341,8 @@ int main(){
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 0;
-    for(int test = 1; test<=100 ;test++){
+    int op = 1;
+    for(int test = 1; test<=1 ;test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
