@@ -204,7 +204,11 @@ void connect(int l, int r, int ind){
     int R = leaf(r);
 
     graph[ind].PB(MP(L,0));
-    if(L != R) graph[ind].PB(MP(R,0));
+    input[L]++;
+    if(L != R){
+        graph[ind].PB(MP(R,0));
+        input[R]++;
+    } 
 
     while(parent(L) != parent(R)){
         if(L = left(parent(L))){
@@ -248,6 +252,7 @@ vector<int> solve(){
         int ind = 0;
         tree.PB(INF);
         graph.PB(vector<PII>());
+        input.PB(0);
 
         connect(ran.first, vec[0]-1, tree.size()-1);
         for(int i = 0; i< len-1; i++){
@@ -255,16 +260,14 @@ vector<int> solve(){
             input[tree.size()-1]++;
             connect(vec[i]+1, vec[i+1]-1, tree.size()-1);
         }
-        if(vec.size() > 1){
-            graph[leaf(vec.back())].PB(MP(tree.size()-1, 1));
-            input[tree.size()-1]++;
-            connect(vec.back()+1, ran.second, tree.size()-1);
-        }
+        graph[leaf(vec.back())].PB(MP(tree.size()-1, 1));
+        input[tree.size()-1]++;
+        connect(vec.back()+1, ran.second, tree.size()-1);
     }
 
     vector<bool> isWell(n+1, false);
     for(int i = 0; i<s; i++){
-        tree[left(well[i].first)] = well[i].second;
+        tree[leaf(well[i].first)] = well[i].second;
         isWell[well[i].first] = true;
     }
 
@@ -288,10 +291,22 @@ vector<int> solve(){
                             return vector<int>();
                         }
                     }else{
-                        tree[cur.first] = min(cur.first, tree[v]-1);
+                        tree[cur.first] = min(tree[cur.first], tree[v]-1);
                     }
                 }else{
-                    tree[cur.first] = min(cur.first, tree[v]-1);
+                    tree[cur.first] = min(tree[cur.first], tree[v]-1);
+                }
+            }else{
+                if(cur.first > R && cur.first <= leaf(n)){
+                    if(isWell[cur.first-R]){
+                        if(tree[v] < tree[cur.first]){
+                            return vector<int>();
+                        }
+                    }else{
+                        tree[cur.first] = min(tree[cur.first], tree[v]);
+                    }
+                }else{
+                    tree[cur.first] = min(tree[cur.first], tree[v]);
                 }
             }
         }
@@ -355,6 +370,7 @@ int main(){
                 }
             }
         }
+        cout<<"CORRECT\n";
     }
 
     return 0;
