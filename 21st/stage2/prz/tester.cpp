@@ -91,7 +91,60 @@ void printData(){
 }
 
 vector<int> brute(){
+    vector<bool> vis;
+    for(int i = 1; i<=k; i++){
+        int left;
+        int right;
+        for(int j = 0; j<n; j++){
+            if(c[j] == i){
+                left = j;
+                break;
+            }
+        }
+        for(int j = n-1; j>=0; j--){
+            if(c[j] == i){
+                right = j;
+                break;
+            }
+        }
 
+        int ind = 0;
+        for(int j = left+1; j< n; j++){
+            if(c[j] == vecX[ind]){
+                ind++;
+                if(ind >= lenX-1){
+                    left = j+1;
+                    break;
+                }
+            }
+        }
+
+        ind = 0;
+        for(int j = right-1; j >=0 ; j--){
+            if(c[j] == vecY[ind]){
+                ind++;
+                if(ind >= lenY-1){
+                    right = j+1;
+                    break;
+                }
+            }
+        }
+
+        for(int j = left; j<=right; j++){
+            if(c[j] == vecX.back()){
+                vis[j] = true;
+            }
+        }
+    }
+
+    vector<int> ans;
+    for(int i = 0; i<n; i++){
+        if(vis[i]){
+            ans.PB(i);
+        }
+    }
+
+    return ans;
 }
 
 vector<int> solve(){
