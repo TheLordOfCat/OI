@@ -1,4 +1,4 @@
-#include<iostream>
+#include <iostream>
 #include <vector>
 
 #include <ctime>
@@ -6,202 +6,104 @@
 
 using namespace std;
 
-#define PB push_back
 #define MP make_pair
 #define PII pair<int,int>
+#define PB push_back
+
+using ll = long long int;
+using ull = unsigned long long int;
 
 int n, k;
 vector<int> c;
-int m,l;
-vector<int> x;
-vector<int> y;
+int lenX, lenY;
+vector<int> vecX;
+vector<int> vecY;
 
 void getData(){
     cin>>n>>k;
-    for(int i =0 ;i<n; i++){
+    for(int i = 0; i<n; i++){
         int temp;
         cin>>temp;
         c.PB(temp);
     }
-    cin>>m>>l;
-    for(int i = 0; i<m; i++){
+    cin>>lenX>>lenY;
+    for(int i = 0; i<lenX; i++){
         int temp;
         cin>>temp;
-        x.PB(temp);
+        vecX.PB(temp);
     }
-    for(int i = 0 ; i<l; i++){
+    for(int i =0; i < lenY; i++){
         int temp;
         cin>>temp;
-        y.PB(temp);
+        vecY.PB(temp);
     }
 }
 
 void getRandom(){
-    srand(time(0));
     c.clear();
-    x.clear();
-    y.clear();
+    vecX.clear();
+    vecY.clear();
 
-    // n =rand()%20+3;
-    // k = rand()%n+1;
-    n = 10;
-    k = 3;
-    vector<bool> used(k+1, false);
-    int K = 0;
-    for(int i = 0; i<n; i++){
-        int temp = rand()%k+1;
-        if(k == K){
-            c.PB(temp);
+    srand(time(0));
+    
+    n = rand()%10+1;
+    k = 1;
+    for(int i =0; i<n; i++){
+        int op = rand()%10+1;
+        int temp;
+        if(op > 7){
+            k++;
+            temp = k;
         }else{
-            while(used[temp]){
-                temp = rand()%k+1;
-            }
-            used[temp] = true;
-            K++;
-            c.PB(temp);
-        }
-    }
-    // l = min(rand()%(n-1)+1,k-1);
-    // m = min(rand()%(n-1)+1,k-1);
-    m = 2;
-    l = 1;
-    used.clear();
-    int last = 1;
-    used.assign(k+1,false);
-    used[last] = true;
-    for(int i =0 ; i<m; i++){
-        int temp = rand()%k+1;
-        while(used[temp]){
             temp = rand()%k+1;
         }
-        used[temp] = true;
-        x.PB(temp);
+        c.PB(temp);
     }
-    x.PB(last);
-    m++;
-    used.clear();
-    used.assign(k+1,false);
-    used[last] = true;
-    for(int i =0 ; i<l; i++){
+
+    lenX = rand()%k+1;
+    lenY = rand()%k+1;
+    for(int i = 0; i<lenX; i++){
         int temp = rand()%k+1;
-        while(used[temp]){
-            temp = rand()%k+1;
-        }
-        used[temp] = true;
-        y.PB(temp);
+        vecX.PB(temp);
     }
-    y.PB(last);
-    l++;
+    for(int i = 0; i<lenY; i++){
+        int temp = rand()%k+1;
+        vecY.PB(temp);
+    }
 }
 
 void printData(){
+    cout<<"DATA: \n";
     cout<<n<<" "<<k<<"\n";
-    for(auto t:c){
-        cout<<t<<" ";
+    for(int i = 0; i<n; i++){
+        cout<<c[i]<<" ";
     }
     cout<<"\n";
-    cout<<m<<" "<<l<<"\n";
-    for(auto t:x){
-        cout<<t<<" ";
+    cout<<lenX<<" "<<lenY<<"\n";
+    for(int i = 0; i<lenX; i++){
+        cout<<vecX[i]<<" ";
     }
     cout<<"\n";
-    for(auto t:y){
-        cout<<t<<" ";
+    for(int i = 0; i<lenY; i++){
+        cout<<vecY[i]<<" ";
     }
     cout<<"\n";
 }
 
 vector<int> brute(){
-    vector<int> ans;
-    for(int i = 0; i<n; i++){
-        bool ok = true;
-        if(c[i] != x.back()){
-            ok = false;
-        }
-        int ind = i;
-        if(ok){
-            for(int j = m-1; j>=0; j--){
-                if(c[ind] != x[j]){
-                    j++;
-                    ind--;
-                }
-                if(ind == 0){
-                    ok = false;
-                    break;
-                }
-            }
-        }
-        int left = ind;
 
-        ind = i;
-        if(ok){
-            for(int j = l-1; j>=0; j--){
-                if(c[ind] != y[j]){
-                    j++;
-                    ind++;
-                }
-                if(ind == n-1){
-                    ok = false;
-                    break;
-                }
-            }
-        }
-        int right = ind;
-        bool sameHouse = false;
-        for(int i  = 0; i<n/2; i++){
-            if(i >= left ) break;
-            if(n-i-1 <= right ) break;
-            if(c[i] == c[n-i-1]){
-                sameHouse = true;
-                break;
-            }
-        }
-
-        if(ok && sameHouse){
-            ans.PB(i+1);
-        }
-    }
-    return ans;
 }
 
 vector<int> solve(){
-    int left = 1;
-    for(int i = 0; i<m-1; i++){
-        if(c[left] != x[i]){
-            left++;
-            i--;
-        }
-        if(left >= n){
-            break;
-        }
-    }
-    int right = n-2;
-    for(int i = 0; i<l-1; i++){
-        if(c[right] != y[i]){
-            right--;
-            i--;
-        }
-        if(right < 0){
-            break;
-        }
-    }
-    vector<int> ans;
-    for(int i = left; i<=right; i++){
-        if(c[i] == x[m-1]){
-            ans.PB(i+1);
-        }
-    }
-    return ans;
+
 }
 
-int main()
-{
+int main(){
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 0;
-    for(int test = 1; test<=100'000; test++){
-        cout<<"TEST nr."<<test<<" = ";
+    int op = 1;
+    for(int test = 1; test<=1; test++){
         if(op == 1){
             getData();
         }else{
@@ -210,44 +112,42 @@ int main()
         vector<int> ansB = brute();
         vector<int> ansS = solve();
         if(ansB.size() != ansS.size()){
-            cout<<"ERROR\n";
-            cout<<"BRUTE: ";
+            cout<<"ERORR\n";
+            cout<<"BRUTE:\n";
             cout<<ansB.size()<<"\n";
-            for(int i = 0; i<ansB.size(); i++){
-                cout<<ansB[i]<<" ";
+            for(int j =0; j<ansB.size(); j++){
+                cout<<ansB[j]<<" ";
             }
             cout<<"\n";
-            cout<<"SOLVE: ";
+            cout<<"SOLVE:\n";
             cout<<ansS.size()<<"\n";
-            for(int i = 0; i<ansS.size(); i++){
-                cout<<ansS[i]<<" ";
+            for(int j =0; j<ansS.size(); j++){
+                cout<<ansS[j]<<" ";
             }
             cout<<"\n";
             printData();
             return 0;
-        }else{
-            for(int i =0 ;i<ansB.size(); i++){
-                if(ansB[i] != ansS[i]){
-                    cout<<"ERROR\n";
-                    cout<<"BRUTE: ";
-                    cout<<ansB.size()<<"\n";
-                    for(int i = 0; i<ansB.size(); i++){
-                        cout<<ansB[i]<<" ";
-                    }
-                    cout<<"\n";
-                    cout<<"SOLVE: ";
-                    cout<<ansS.size()<<"\n";
-                    for(int i = 0; i<ansS.size(); i++){
-                        cout<<ansS[i]<<" ";
-                    }
-                    cout<<"\n";
-                    printData();
-                    return 0;
+        }
+        for(int i = 0; i<ansB.size(); i++){
+            if(ansB[i] != ansS[i]){
+                cout<<"ERORR\n";
+                cout<<"BRUTE:\n";
+                cout<<ansB.size()<<"\n";
+                for(int j =0; j<ansB.size(); j++){
+                    cout<<ansB[j]<<" ";
                 }
+                cout<<"\n";
+                cout<<"SOLVE:\n";
+                cout<<ansS.size()<<"\n";
+                for(int j =0; j<ansS.size(); j++){
+                    cout<<ansS[j]<<" ";
+                }
+                cout<<"\n";
+                printData();
+                return 0;
             }
         }
         cout<<"CORRECT\n";
     }
-
     return 0;
 }

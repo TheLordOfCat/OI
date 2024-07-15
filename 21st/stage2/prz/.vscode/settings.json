@@ -8,6 +8,9 @@
         "type_traits": "cpp",
         "utility": "cpp",
         "xlocnum": "cpp",
-        "xutility": "cpp"
+        "xutility": "cpp",
+        "iostream": "cpp",
+        "initializer_list": "cpp",
+        "xstring": "cpp"
     }
 }
