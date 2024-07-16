@@ -181,7 +181,7 @@ vector<int> solve(){
 
     bool ok = true;
     for(int i = 0; i<k; i++){
-        int ind = 0;
+        int ind = lastLeft[i].first;
         for(int j = 0; j<chain.size(); j++){
             while(chain[j] <= ind){
                 chain[j] = next[chain[j]];
@@ -197,10 +197,10 @@ vector<int> solve(){
             }
         }
         if(ok){
-            colorPairs[lastLeft[i].second].first = chain.back();
+            colorPairs[lastLeft[i].second].first = chain.back()+1;
         }else{
             for(int j = i; j<k; j++){
-                colorPairs[lastLeft[i].second].first = MAXN+1;
+                colorPairs[lastLeft[j].second].first = MAXN+1;
             }
             break;
         }
@@ -217,7 +217,7 @@ vector<int> solve(){
     chain.clear();
     chain.assign(lenY-1, 0);
 
-    for(int i = 0; i<lenX-1; i++){
+    for(int i = 0; i<lenY-1; i++){
         chain[i] = lastRight[vecY[i]].first;
     }
 
@@ -226,7 +226,7 @@ vector<int> solve(){
 
     ok = true;
     for(int i = 0; i<k; i++){
-        int ind = n-1;
+        int ind = lastRight[i].first;
         for(int j = 0; j<chain.size(); j++){
             while(chain[j] >= ind){
                 chain[j] = next[chain[j]];
@@ -245,7 +245,7 @@ vector<int> solve(){
             colorPairs[lastRight[i].second].second = chain.back();
         }else{
             for(int j = i; j<k; j++){
-                colorPairs[lastRight[i].second].second = -1;
+                colorPairs[lastRight[j].second].second = -1;
             }
             break;
         }
@@ -279,7 +279,7 @@ int main(){
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
+    int op = 0;
     for(int test = 1; test<=1; test++){
         if(op == 1){
             getData();

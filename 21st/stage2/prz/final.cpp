@@ -68,12 +68,13 @@ vector<int> solve(){
         chain[i] = lastLeft[vecX[i]].first;
     }
 
-    lastLeft.erase(lastLeft.begin());
-    sort(lastLeft.begin(), lastLeft.end(), customSortLeft);
+    // lastLeft.erase(lastLeft.begin());
+    // sort(lastLeft.begin(), lastLeft.end(), customSortLeft);
 
+    /*
     bool ok = true;
     for(int i = 0; i<k; i++){
-        int ind = 0;
+        int ind = lastLeft[i].first;
         for(int j = 0; j<chain.size(); j++){
             while(chain[j] <= ind){
                 chain[j] = next[chain[j]];
@@ -89,12 +90,54 @@ vector<int> solve(){
             }
         }
         if(ok){
-            colorPairs[lastLeft[i].second].first = chain.back();
+            if(chain.size() == 0){
+                colorPairs[lastLeft[i].second].first = lastLeft[i].first+1;
+            }else{
+                colorPairs[lastLeft[i].second].first = chain.back()+1;
+            }
         }else{
             for(int j = i; j<k; j++){
-                colorPairs[lastLeft[i].second].first = MAXN+1;
+                colorPairs[lastLeft[j].second].first = MAXN+1;
             }
             break;
+        }
+    }
+    */
+
+    vector<bool> vis(k+1, false);
+    bool ok = true;
+    for(int i = 0; i<n; i++){
+        if(!vis[c[i]]){
+            vis[c[i]] = true;
+            int ind = i;
+            for(int j = 0; j<chain.size(); j++){
+                while(chain[j] <= ind){
+                    chain[j] = next[chain[j]];
+                    if(chain[j] > n){
+                        ok = false;
+                        break;
+                    }
+                }
+                if(!ok){
+                    break;
+                }else{
+                    ind = chain[j];
+                }
+            }
+            if(ok){
+                if(chain.size() == 0){
+                    colorPairs[c[i]].first = lastLeft[c[i]].first+1;
+                }else{
+                    colorPairs[c[i]].first = chain.back()+1;
+                }
+            }else{
+                for(int j = 1; j<=k; j++){
+                    if(!vis[j]){
+                        colorPairs[j].first = MAXN+1;
+                    }
+                }
+                break;
+            }
         }
     }
 
@@ -109,16 +152,17 @@ vector<int> solve(){
     chain.clear();
     chain.assign(lenY-1, 0);
 
-    for(int i = 0; i<lenX-1; i++){
+    for(int i = 0; i<lenY-1; i++){
         chain[i] = lastRight[vecY[i]].first;
     }
 
     lastRight.erase(lastRight.begin());
     sort(lastRight.begin(), lastRight.end(), customSortRight);
 
+    /*
     ok = true;
     for(int i = 0; i<k; i++){
-        int ind = n-1;
+        int ind = lastRight[i].first;
         for(int j = 0; j<chain.size(); j++){
             while(chain[j] >= ind){
                 chain[j] = next[chain[j]];
@@ -134,19 +178,61 @@ vector<int> solve(){
             }
         }
         if(ok){
-            colorPairs[lastRight[i].second].second = chain.back();
+            if(chain.size() == 0){
+                colorPairs[lastLeft[i].second].second = n-1;
+            }else{
+                colorPairs[lastRight[i].second].second = chain.back();
+            }
         }else{
             for(int j = i; j<k; j++){
-                colorPairs[lastRight[i].second].second = -1;
+                colorPairs[lastRight[j].second].second = -1;
             }
             break;
         }
     }     
+    */
 
+    ok = true;
+    for(int i = 0; i<=k; i++) vis[i] = false;
+    for(int i = 0; i<n; i++){
+        if(!vis[c[i]]){
+            vis[c[i]] = true;
+            int ind = i;
+            for(int j = 0; j<chain.size(); j++){
+                while(chain[j] >= ind){
+                    chain[j] = next[chain[j]];
+                    if(chain[j] > n){
+                        ok = false;
+                        break;
+                    }
+                }
+                if(!ok){
+                    break;
+                }else{
+                    ind = chain[j];
+                }
+            }
+            if(ok){
+                if(chain.size() == 0){
+                    colorPairs[c[i]].first = lastRight[c[i]].first;
+                }else{
+                    colorPairs[c[i]].first = chain.back();
+                }
+            }else{
+                for(int j = 1; j<=k; j++){
+                    if(!vis[j]){
+                        colorPairs[j].first = -1;
+                    }
+                }
+                break;
+            }
+        }
+    }
+    
     //plotting the segments
     vector<int> seg(n+1, 0);
     for(int i = 1; i<=k; i++){
-        if(!(colorPairs[i].first > n || colorPairs[i].second < 0)){
+        if(!(colorPairs[i].first > n || colorPairs[i].second < 0 || colorPairs[i].first > colorPairs[i].second)){
             seg[colorPairs[i].first]++;
             seg[colorPairs[i].second]--;
         }
