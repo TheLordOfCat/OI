@@ -171,16 +171,17 @@ vector<int> solve(){
         lastLeft[c[i]].first = i;
     }
 
-    vector<int> seg(n+1, 0);
     vector<int> chain(lenX-1, 0);
     for(int i = 0; i<lenX-1; i++){
         chain[i] = lastLeft[vecX[i]].first;
     }
+
+    lastLeft.erase(lastLeft.begin());
     sort(lastLeft.begin(), lastLeft.end(), customSortLeft);
 
+    bool ok = true;
     for(int i = 0; i<k; i++){
         int ind = 0;
-        bool ok = true;
         for(int j = 0; j<chain.size(); j++){
             while(chain[j] <= ind){
                 chain[j] = next[chain[j]];
@@ -207,7 +208,7 @@ vector<int> solve(){
 
     //right
     vector<PII> lastRight(k+1, MP(-1,-1));
-    for(int i = 1; i<=n; i++) lastRight[i].second = i;
+    for(int i = 1; i<=k; i++) lastRight[i].second = i;
     for(int i = 0; i<n; i++){
         next[i] = lastRight[c[i]].first;
         lastRight[c[i]].first = i;
@@ -219,11 +220,13 @@ vector<int> solve(){
     for(int i = 0; i<lenX-1; i++){
         chain[i] = lastRight[vecY[i]].first;
     }
+
+    lastRight.erase(lastRight.begin());
     sort(lastRight.begin(), lastRight.end(), customSortRight);
 
+    ok = true;
     for(int i = 0; i<k; i++){
-        int ind = 0;
-        bool ok = true;
+        int ind = n-1;
         for(int j = 0; j<chain.size(); j++){
             while(chain[j] >= ind){
                 chain[j] = next[chain[j]];
@@ -239,16 +242,17 @@ vector<int> solve(){
             }
         }
         if(ok){
-            colorPairs[lastLeft[i].second].second = chain.back();
+            colorPairs[lastRight[i].second].second = chain.back();
         }else{
             for(int j = i; j<k; j++){
-                colorPairs[lastLeft[i].second].second = -1;
+                colorPairs[lastRight[i].second].second = -1;
             }
             break;
         }
     }     
 
     //plotting the segments
+    vector<int> seg(n+1, 0);
     for(int i = 1; i<=k; i++){
         if(!(colorPairs[i].first > n || colorPairs[i].second < 0)){
             seg[colorPairs[i].first]++;
