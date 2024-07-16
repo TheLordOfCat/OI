@@ -108,7 +108,6 @@ vector<int> solve(){
     bool ok = true;
     for(int i = 0; i<n; i++){
         if(!vis[c[i]]){
-            vis[c[i]] = true;
             int ind = i;
             for(int j = 0; j<chain.size(); j++){
                 while(chain[j] <= ind){
@@ -134,10 +133,12 @@ vector<int> solve(){
                 for(int j = 1; j<=k; j++){
                     if(!vis[j]){
                         colorPairs[j].first = MAXN+1;
+                        vis[j] = true;
                     }
                 }
                 break;
             }
+            vis[c[i]] = true;
         }
     }
 
@@ -166,7 +167,7 @@ vector<int> solve(){
         for(int j = 0; j<chain.size(); j++){
             while(chain[j] >= ind){
                 chain[j] = next[chain[j]];
-                if(chain[j] > n){
+                if(chain[j] < 0){
                     ok = false;
                     break;
                 }
@@ -194,14 +195,13 @@ vector<int> solve(){
 
     ok = true;
     for(int i = 0; i<=k; i++) vis[i] = false;
-    for(int i = 0; i<n; i++){
+    for(int i = n-1; i>=0; i--){
         if(!vis[c[i]]){
-            vis[c[i]] = true;
             int ind = i;
             for(int j = 0; j<chain.size(); j++){
                 while(chain[j] >= ind){
                     chain[j] = next[chain[j]];
-                    if(chain[j] > n){
+                    if(chain[j] < 0){
                         ok = false;
                         break;
                     }
@@ -214,18 +214,20 @@ vector<int> solve(){
             }
             if(ok){
                 if(chain.size() == 0){
-                    colorPairs[c[i]].first = lastRight[c[i]].first;
+                    colorPairs[c[i]].second = lastRight[c[i]].second;
                 }else{
-                    colorPairs[c[i]].first = chain.back();
+                    colorPairs[c[i]].second = chain.back();
                 }
             }else{
                 for(int j = 1; j<=k; j++){
                     if(!vis[j]){
-                        colorPairs[j].first = -1;
+                        colorPairs[j].second = -1;
+                        vis[j] = true;
                     }
                 }
                 break;
             }
+            vis[c[i]] = true;
         }
     }
     
