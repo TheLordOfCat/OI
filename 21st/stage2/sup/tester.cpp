@@ -26,7 +26,7 @@ void getData(){
         cin>>temp;
         k.PB(temp);
     }
-    for(int i =0; i<n; i++){
+    for(int i =0; i<n-1; i++){
         int temp;
         cin>>temp;
         a.PB(temp);
@@ -65,29 +65,30 @@ void printData(){
 
 struct Compare {
     bool operator()(const std::pair<int, int>& p1, const std::pair<int, int>& p2) {
-        return p1.second > p2.second;
+        return p1.second < p2.second;
     }
 };
 
 vector<int> brute(){
     //build the tree
     vector<vector<int>> graph(n+1, vector<int>());
-    for(int i = 0; i<n; i++){
-        graph[a[i]].PB(i+1);
+    for(int i = 0; i<n-1; i++){
+        graph[a[i]].PB(i+2);
     }
 
     //getting the depths
     vector<int> depth(n+1, 0);
     stack<pair<int,bool>> S;
+    S.push(MP(1,false));
     while(!S.empty()){
         int v = S.top().first;
         bool b = S.top().second;
-        S.top();
+        S.pop();
         if(b){
             int temp = 0;
             for(int i = 0; i<graph[v].size(); i++){
                 int cur = graph[v][i];
-                temp = max(temp, depth[cur]);
+                temp = max(temp, depth[cur] + 1);
             }
             depth[v] = temp;
             continue;
