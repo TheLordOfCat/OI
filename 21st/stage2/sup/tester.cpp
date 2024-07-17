@@ -1,5 +1,7 @@
 #include <iostream>
 #include <vector>
+#include <queue>
+#include <stack>
 
 #include <cstdlib>
 #include <ctime>
@@ -61,8 +63,70 @@ void printData(){
     cout<<"\n";
 }
 
+struct Compare {
+    bool operator()(const std::pair<int, int>& p1, const std::pair<int, int>& p2) {
+        return p1.second > p2.second;
+    }
+};
+
 vector<int> brute(){
-    return vector<int>();
+    //build the tree
+    vector<vector<int>> graph(n+1, vector<int>());
+    for(int i = 0; i<n; i++){
+        graph[a[i]].PB(i+1);
+    }
+
+    //getting the depths
+    vector<int> depth(n+1, 0);
+    stack<pair<int,bool>> S;
+    while(!S.empty()){
+        int v = S.top().first;
+        bool b = S.top().second;
+        S.top();
+        if(b){
+            int temp = 0;
+            for(int i = 0; i<graph[v].size(); i++){
+                int cur = graph[v][i];
+                temp = max(temp, depth[cur]);
+            }
+            depth[v] = temp;
+            continue;
+        }
+
+        S.push(MP(v,true));
+        for(int i = 0; i<graph[v].size(); i++){
+            int cur = graph[v][i];
+            S.push(MP(cur, false));
+        }
+    }
+
+    //iterate through k
+    vector<int> ans;
+    for(int i = 0; i<q; i++){
+        priority_queue<PII, vector<PII>, Compare> Q;
+        Q.push(MP(1,depth[1]));
+        int turns = 0;
+        while(Q.size() > 0){
+            turns++;
+            vector<int> used;
+            for(int j = 0; j<k[i]; j++){
+                used.PB(Q.top().first);
+                Q.pop();
+                if(Q.size() <= 0){
+                    break;
+                }
+            }
+            for(int j = 0; j<used.size(); j++){
+                for(int o = 0; o<graph[used[j]].size(); o++){
+                    int cur = graph[used[j]][o];
+                    Q.push(MP(cur, depth[cur]));
+                }
+            }
+        }
+        ans.PB(turns);
+    }    
+
+    return ans;
 }
 
 vector<int> solve(){
