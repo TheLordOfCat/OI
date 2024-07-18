@@ -133,9 +133,26 @@ vector<int> brute(){
 vector<int> solve(){
     vector<int> opsTurns(n+1, 0);
 
-    vector<PII> blocks(n+1, MP(0,0));
-    for(int i = 0; i<n; i++){
-        blocks.PB(MP(a[i], 1));
+    vector<vector<int>> graph(n+1, vector<int>());
+    for(int i = 0; i<n-1; i++){
+        graph[a[i]].PB(i+2);
+    }
+
+    vector<PII> blocks;
+    stack<PII> S;
+    S.push(MP(1,0));
+    while(!S.empty()){
+        int v = S.top().first;
+        int d = S.top().second;
+        S.pop();
+        if((int)blocks.size() - 1 < d){
+            blocks.PB(MP(0,1));
+        }
+        blocks[d].first++;
+        for(int i = 0; i<graph[v].size(); i++){
+            int cur = graph[v][i];
+            S.push(MP(cur, d+1));
+        }
     }
 
     for(int op = n; op >0; op--){
