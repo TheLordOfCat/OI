@@ -177,7 +177,17 @@ vector<int> solve(){
             }else{
                 //too little blocks
                 int excess = (op - blocks[i].first) * blocks[i].second;
-                if(excess >= delta){
+                if(delta == 0){
+                    if(nextBlocks.size() > 0){
+                        if(nextBlocks.back().first == blocks[i].first){
+                            nextBlocks.back().second += blocks[i].second;
+                        }else{
+                            nextBlocks.PB(MP(blocks[i].first, blocks[i].second));
+                        }
+                    }else{
+                        nextBlocks.PB(MP(blocks[i].first, blocks[i].second));
+                    }
+                }else if(excess >= delta){
                     vector<PII> parts;
 
                     //part 1
@@ -187,23 +197,25 @@ vector<int> solve(){
                     // part 2
                     if(delta > 0) parts.PB(MP(delta, 1));
                     //part 3
-                    if(delta > 0){
-                        parts.PB(MP(blocks[i].first, blocks[i].second - 1 - num));
-                    }else{
-                        parts.PB(MP(blocks[i].first, blocks[i].second - num));
+                    int b = 0;
+                    for(int j =0 ;j <parts.size(); j++) b += parts[j].second;
+                    if(b < blocks[i].second){
+                        parts.PB(MP(blocks[i].first, blocks[i].second - b));
                     }
 
-                    if(nextBlocks.size() > 0){
-                        if(nextBlocks[nextBlocks.size()-1].first == parts[0].first){
-                            nextBlocks[nextBlocks.size()-1].second += parts[0].second;
+                    if(parts[0].second > 0){
+                        if(nextBlocks.size() > 0){
+                            if(nextBlocks[nextBlocks.size()-1].first == parts[0].first){
+                                nextBlocks[nextBlocks.size()-1].second += parts[0].second;
+                            }else{
+                                nextBlocks.PB(MP(op, parts[0].second));
+                            }
                         }else{
                             nextBlocks.PB(MP(op, parts[0].second));
                         }
-                    }else{
-                        nextBlocks.PB(MP(op, parts[0].second));
                     }
 
-                    for(int i = 1; i<parts.size(); i++){
+                    for(int j = 1; j<parts.size(); j++){
                         nextBlocks.PB(MP(parts[i].first, parts[i].second));
                     }
 
@@ -222,6 +234,7 @@ vector<int> solve(){
                     delta -= excess;
                 }
             }
+            if(delta < 0) delta = 0;
             len += blocks[i].second;
         }
 
