@@ -1,5 +1,6 @@
 #include<iostream>
 #include <vector>
+#include <algorithm>
 
 #include <ctime>
 #include <cstdlib>
@@ -10,6 +11,8 @@ using namespace std;
 #define PII pair<int,int>
 #define PB push_back
 
+const int INF = 2'000'000'000;
+
 int n;
 vector<PII> cards;
 int m;
@@ -17,14 +20,12 @@ vector<PII> change;
 
 void getData(){
     cin>>n;
-    cards.PB(MP(-1,-1));
     for(int i = 0; i<n; i++){
         int a, b;
         cin>>a>>b;
         cards.PB(MP(a,b));
     }    
     cin>>m;
-    change.PB(MP(-1,-1));
     for(int i =0; i<m; i++){
         int a, b;
         cin>>a>>b;
@@ -36,8 +37,6 @@ void getRandom(){
     srand(time(0));
     cards.clear();
     change.clear();
-    cards.PB(MP(-1,-1));
-    change.PB(MP(-1,-1));
 
     n = 4;
     // rand()%10+1;
@@ -76,16 +75,16 @@ vector<int> brute(){
     vector<int> ans;
     vector<PII> car = cards;
 
-    for(int i = 1; i<=m; i++){
+    for(int i = 0; i<m; i++){
         //change
-        PII temp = cards[change[i].first];
-        car[change[i].first] = car[change[i].second];
-        car[change[i].second] = temp;
+        PII temp = cards[change[i].first-1];
+        car[change[i].first-1] = car[change[i].second-1];
+        car[change[i].second-1] = temp;
 
         //verifying
-        int cur = min(car[1].first, car[1].second);
+        int cur = min(car[0].first, car[0].second);
         bool ok = true;
-        for(int j = 2; j<=n; j++){
+        for(int j = 1; j<n; j++){
             if(cur <= min(car[j].first, car[j].second)){
                 cur = min(car[j].first, car[j].second);
             }else if(cur <= max(car[j].first, car[j].second)){
@@ -102,131 +101,119 @@ vector<int> brute(){
 }
 
 vector<vector<vector<int>>> tree;
-int R;
-int totalDepth;
+vector<pair<vector<int>,vector<int>>> range;
+int R = 1;
+int depth = 1;
 
-vector<PII> cardsSolve;
-
-int parent(int v){
-    return v/2;
-}
-
-int left(int v){
+inline int left(int v){
     return 2*v;
 }
 
-int right(int v){
+inline int right(int v){
     return 2*v+1;
 }
 
-int leaf(int v){
-    return v+R;
+inline int parent(int v){
+    return v/2;
 }
 
-int leftLeaf(int v, int depth){
-    int l = v * 1<<(totalDepth - depth);
-    return l;
+inline int leaf(int v){
+    return v+R+1;
 }
 
-int rightLeaf(int v, int depth){
-    int r = leftLeaf(v, depth);
-    if(totalDepth != depth) r += 1<<(totalDepth - depth) -1;
-    return r;
-}
-
-void merge(int v, int depth){
-    vector<vector<int>> l = tree[left(v)];
-    vector<vector<int>> r = tree[right(v)];
-
-    vector<vector<int>> c;
-    for(int i = 0; i<=n; i++){
-        vector<int> temp;
-        temp.PB(cardsSolve[i].first);
-        temp.PB(cardsSolve[i].second);
-        c.PB(temp);
+void update(int ind){
+    if(ind > R){
+        return;
     }
 
-    vector<vector<int>> mid(2, vector<int>(2,0));
-    for(int i = 0; i<=1; i++){
-        for(int j = 0; j<=1; j++){
+    range[ind].first = range[left(ind)].first;
+    range[ind].second = range[right(ind)].second;
+    
+    for(int i = 0; i<2; i++){
+        for(int j = 0; j<2; j++){
 
-            for(int o = 0; o<=1; o++){
-                for(int w = 0; w<=1; w++){
-
-                    if(l[i][o] && r[w][j]){
-                        int leftOne;
-                        int rightOne;
-                        if(depth == totalDepth-1){
-                            leftOne = c[left(v)-R][i];
-                            rightOne = c[right(v)-R][j];
-                        }else{
-                            leftOne = c[rightLeaf(left(v), depth+1)-R][o];
-                            rightOne = c[leftLeaf(right(v), depth+1)-R][w];
-                        }
-                        if(leftOne <= rightOne){
-                            mid[i][j] = 1;
+            int l = left(ind);
+            int r = right(ind);
+            int ok = 0;
+            
+            for(int o = 0; o<2; o++){
+                for(int t = 0; t<2; t++){
+                    
+                    if(tree[l][i][o] == 1 && tree[r][t][j] == 1){
+                        if(range[l].second[o] <= range[r].first[t]){
+                            ok = 1;
                         }
                     }
+
                 }
             }
+
+            tree[ind][i][j] = ok;
         }
     }
-
-    tree[v] = mid;
 }
 
-void update(int v){
+void edit(int v){
     int V = parent(leaf(v));
-    int depth = totalDepth-1;
     while(V >= 1){
-        merge(V, depth);
+        update(V);
         V = parent(V);
-        depth--;
     }
+}
+
+void replace(int a, int b){
+    swap(range[a-1],range[b-1]);
+    
+    edit(a);
+    edit(b);
 }
 
 vector<int> solve(){
-    cardsSolve = cards;
     tree.clear();
-    R = 1;
-    totalDepth = 1;
-    // getting the size
-    while(1<<totalDepth < n){
-        R += 1<<totalDepth;
-        totalDepth++;
-    }
-    totalDepth++;
+    range.clear();
 
-    tree.assign(4*n+1, vector<vector<int>>(2,vector<int>(2,1)));
-    int tempDepth = totalDepth-1;
-    int count = 1<<(tempDepth-1);
+    //initalizing the tree
+    while(1<<depth < n){
+        R += 1<<depth;
+        depth++;
+    }
+
+    for(int i =0; i<3*R; i++) tree.PB(vector<vector<int>>(2, vector<int>(2,0)));
+    for(int i =0; i<3*R; i++){
+        vector<int> t = {INF,INF};
+        range.PB(MP(t,t));
+    }
+    
+    for(int i = 0; i<n; i++){
+        vector<int> t1;
+        t1.PB(cards[i].first); t1.PB(cards[i].second);
+        range[leaf(i)] = MP(t1,t1);
+    }
+
+    for(int i = leaf(n); i>R; i--){
+        tree[i][0][0] = 1;
+        tree[i][0][1] = 1;
+        tree[i][1][0] = 1;
+        tree[i][1][1] = 1;
+    }
+
     for(int i = R; i>=1; i--){
-        if(count == 0){
-            tempDepth--;
-            count = 1<<(tempDepth-1);
-        }
-        count--;
-        merge(i, tempDepth);
-    }   
-
-    // procesing the changes
-    vector<int> ans;
-    for(int i = 1; i<=m; i++){
-        //swap
-        PII temp = cardsSolve[change[i].first];
-        cardsSolve[change[i].first] = cardsSolve[change[i].second];
-        cardsSolve[change[i].second] = temp;
-
-        //update the tree
-        update(change[i].first);
-        update(change[i].second);
-
-        if(tree[1][0][0] || tree[1][0][1] || tree[1][1][0]|| tree[1][1][1]){
-            ans.PB(1);
-        }else{
-            ans.PB(0);
-        }
+        update(i);
     }
+
+    //process requests
+    vector<int> ans;
+    for(int i = 0; i<m; i++){
+        replace(change[i].first, change[i].second);
+        int num = 0;
+        for(int i = 0; i<2; i++){
+            for(int j = 0; j<2; j++){
+                num = max(num, tree[1][i][j]);
+            }
+        }
+        ans.PB(num);
+    }
+
     return ans;
 }
 
