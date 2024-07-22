@@ -62,14 +62,16 @@ void getRandom(){
 
 void printData(){
     cout<<n<<"\n";
-    for(int  i =1; i<cards.size(); i++){
+    for(int  i =0; i<cards.size(); i++){
         cout<<cards[i].first<<" "<<cards[i].second<<"\n";
     }
     cout<<m<<"\n";
-    for(int i = 1; i<change.size(); i++){
+    for(int i = 0; i<change.size(); i++){
         cout<<change[i].first<<" "<<change[i].second<<"\n";
     }
 }
+
+//brute errors
 
 vector<int> brute(){
     vector<int> ans;
@@ -104,6 +106,7 @@ vector<vector<vector<int>>> tree;
 vector<pair<vector<int>,vector<int>>> range;
 int R = 1;
 int depth = 1;
+int totalSize;
 
 inline int left(int v){
     return 2*v;
@@ -181,6 +184,8 @@ void replace(int a, int b){
 vector<int> solve(){
     tree.clear();
     range.clear();
+    R = 1;
+    depth = 1;
 
     //initalizing the tree
     while(1<<depth < n){
@@ -188,8 +193,10 @@ vector<int> solve(){
         depth++;
     }
 
-    for(int i =0; i<3*R; i++) tree.PB(vector<vector<int>>(2, vector<int>(2,0)));
-    for(int i =0; i<3*R; i++){
+    totalSize = R + (1<<depth);
+
+    for(int i =0; i<=totalSize; i++) tree.PB(vector<vector<int>>(2, vector<int>(2,0)));
+    for(int i =0; i<=totalSize; i++){
         vector<int> t = {INF,INF};
         range.PB(MP(t,t));
     }
@@ -200,7 +207,7 @@ vector<int> solve(){
         range[leaf(i)] = MP(t1,t1);
     }
 
-    for(int i = leaf(n); i>=1; i--){
+    for(int i = totalSize; i>=1; i--){
         update(i);
     }
 
@@ -219,14 +226,13 @@ vector<int> solve(){
 
     return ans;
 }
-
 int main()
 {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
-    for(int test = 1; test<=1; test++){
+    int op = 0;
+    for(int test = 1; test<=1000; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();

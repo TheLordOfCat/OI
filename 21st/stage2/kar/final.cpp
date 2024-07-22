@@ -13,7 +13,7 @@ const int INF = 2'000'000'000;
 int n;
 vector<PII> cards;
 int m;
-vector<PII> change;
+// vector<PII> change;
 
 void getData(){
     cin>>n;
@@ -23,17 +23,13 @@ void getData(){
         cards.PB(MP(a,b));
     }    
     cin>>m;
-    for(int i =0; i<m; i++){
-        int a, b;
-        cin>>a>>b;
-        change.PB(MP(a,b));
-    }
 }
 
 vector<vector<vector<int>>> tree;
 vector<pair<vector<int>,vector<int>>> range;
 int R = 1;
 int depth = 1;
+int totalSize;
 
 inline int left(int v){
     return 2*v;
@@ -118,8 +114,10 @@ vector<int> solve(){
         depth++;
     }
 
-    for(int i =0; i<3*R; i++) tree.PB(vector<vector<int>>(2, vector<int>(2,0)));
-    for(int i =0; i<3*R; i++){
+    totalSize = R + (1<<depth);
+
+    for(int i =0; i<=totalSize; i++) tree.PB(vector<vector<int>>(2, vector<int>(2,0)));
+    for(int i =0; i<=totalSize; i++){
         vector<int> t = {INF,INF};
         range.PB(MP(t,t));
     }
@@ -130,21 +128,32 @@ vector<int> solve(){
         range[leaf(i)] = MP(t1,t1);
     }
 
-    for(int i = leaf(n); i>=1; i--){
+    for(int i = totalSize; i>=1; i--){
         update(i);
     }
 
     //process requests
     vector<int> ans;
-    for(int i = 0; i<m; i++){
-        replace(change[i].first, change[i].second);
-        int num = 0;
-        for(int i = 0; i<2; i++){
-            for(int j = 0; j<2; j++){
-                num = max(num, tree[1][i][j]);
+    for(int i =0; i<m; i++){
+        int a, b;
+        cin>>a>>b;
+        // change.PB(MP(a,b));
+        // for(int i = 0; i<m; i++){
+            // replace(change[i].first, change[i].second);
+            replace(a, b);
+            int num = 0;
+            for(int i = 0; i<2; i++){
+                for(int j = 0; j<2; j++){
+                    num = max(num, tree[1][i][j]);
+                }
             }
-        }
-        ans.PB(num);
+            if(num == 1){
+                cout<<"TAK\n";
+            }else{
+                cout<<"NIE\n";
+            }
+            // ans.PB(num);
+        // }
     }
 
     return ans;
@@ -158,9 +167,13 @@ int main()
     getData();
 
     vector<int> ansS = solve();
-    for(int i = 0; i<m; i++){
-        cout<<ansS[i]<<" ";
-    }
+    // for(int i = 0; i<m; i++){
+    //     if(ansS[i] == 1){
+    //         cout<<"TAK\n";
+    //     }else{
+    //         cout<<"NIE\n";
+    //     }
+    // }
 
     return 0;
 }
