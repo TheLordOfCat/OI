@@ -122,39 +122,49 @@ inline int leaf(int v){
 }
 
 void update(int ind){
-    if(ind > R){
-        return;
+    if(ind <= R){
+        range[ind].first = range[left(ind)].first;
+        range[ind].second = range[right(ind)].second;
     }
 
-    range[ind].first = range[left(ind)].first;
-    range[ind].second = range[right(ind)].second;
-    
     for(int i = 0; i<2; i++){
         for(int j = 0; j<2; j++){
 
-            int l = left(ind);
-            int r = right(ind);
-            int ok = 0;
-            
-            for(int o = 0; o<2; o++){
-                for(int t = 0; t<2; t++){
-                    
-                    if(tree[l][i][o] == 1 && tree[r][t][j] == 1){
-                        if(range[l].second[o] <= range[r].first[t]){
-                            ok = 1;
-                        }
-                    }
-
+            if(ind > R){
+                
+                if(range[ind].second[i] <= range[ind].first[j]){
+                    tree[ind][i][j] = 1;
+                }else{
+                    tree[ind][i][j] = 0;
                 }
-            }
 
-            tree[ind][i][j] = ok;
+            }else{
+
+                int l = left(ind);
+                int r = right(ind);
+                int ok = 0;
+                
+                for(int o = 0; o<2; o++){
+                    for(int t = 0; t<2; t++){
+                        
+                        if(tree[l][i][o] == 1 && tree[r][t][j] == 1){
+                            if(range[l].second[o] <= range[r].first[t]){
+                                ok = 1;
+                            }
+                        }
+
+                    }
+                }
+
+                tree[ind][i][j] = ok;
+
+            }
         }
     }
 }
 
 void edit(int v){
-    int V = parent(leaf(v));
+    int V = leaf(v);
     while(V >= 1){
         update(V);
         V = parent(V);
@@ -162,10 +172,10 @@ void edit(int v){
 }
 
 void replace(int a, int b){
-    swap(range[a-1],range[b-1]);
+    swap(range[leaf(a-1)],range[leaf(b-1)]);
     
-    edit(a);
-    edit(b);
+    edit(a-1);
+    edit(b-1);
 }
 
 vector<int> solve(){
@@ -190,14 +200,7 @@ vector<int> solve(){
         range[leaf(i)] = MP(t1,t1);
     }
 
-    for(int i = leaf(n); i>R; i--){
-        tree[i][0][0] = 1;
-        tree[i][0][1] = 1;
-        tree[i][1][0] = 1;
-        tree[i][1][1] = 1;
-    }
-
-    for(int i = R; i>=1; i--){
+    for(int i = leaf(n); i>=1; i--){
         update(i);
     }
 
