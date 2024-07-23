@@ -39,14 +39,14 @@ void getData(){
 void getRandom(){
     srand(time(0));
 
-    n = rand()%10+1;
+    n = rand()%10+2;
     for(int i =0; i<n; i++){
         int temp = rand()%10+1;
         d.PB(temp);
     }
-    q = rand()%(min(25,n))+1;
+    q = rand()%(25)+1;
     for(int i = 0; i<q; i++){
-        int temp = rand()%n+1;
+        int temp = rand()%(n-1)+1;
         k.PB(temp);
     }
 }
@@ -71,19 +71,19 @@ vector<int> brute(){
         int r = k[o];
         vector<int> dp(n+1, 0);
     
-        for(int i = n-1; i>=1; i--){
+        for(int i = 2; i<=n; i++){
             int val = INF;
-            for(int j = i+1; j<= n && j<=i+r; j++){
-                if(d[j] >= d[i]){
+            for(int j = i-1; j>= 1 && j>=i-r; j--){
+                if(d[j-1] > d[i-1]){
                     val = min(val,dp[j]);
                 }else{
-                    val = min(val, dp[j] + 1); 
+                    val = min(val, dp[j]+1); 
                 }
             }
             dp[i] = val;
         }
 
-        ans.PB(dp[1]);
+        ans.PB(dp[n]);
     }
 
     return ans;
@@ -171,8 +171,8 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
-    for(int test = 1; test<=1; test++){
+    int op = 0;
+    for(int test = 1; test<=10'000; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
@@ -194,6 +194,7 @@ int main()
                     cout<<ansS[j]<<" ";
                 }
                 cout<<"\n";
+                printData();
                 return 0;
             }
         }
