@@ -166,12 +166,19 @@ inline int leaf(int v){
 void updateRange(int a, int b, int val){
     int l = leaf(a);
     int r = leaf(b);
+    if(l > r) return;
+
+    tree[l] = max(tree[l], val);
+    if(l != r){
+        tree[r] = max(tree[r],val);
+    }
+
     while(parent(l) != parent(r)){
         if(l == left(leaf(l))){
-            tree[right(leaf(l))] = min(tree[right(leaf(l))], val);
+            tree[right(leaf(l))] = max(tree[right(leaf(l))], val);
         }
         if(r == right(leaf(r))){
-            tree[left(leaf(l))] = min(tree[left(leaf(l))], val);
+            tree[left(leaf(r))] = max(tree[left(leaf(r))], val);
         }
         l = parent(l);
         r = parent(r);
@@ -179,10 +186,10 @@ void updateRange(int a, int b, int val){
 }
 
 int query(int v){
-    int ans = INF;
+    int ans = -1;
     int V = leaf(v);
     while(V >= 1){
-        ans = min(ans, tree[V]);
+        ans = max(ans, tree[V]);
         V = parent(V);
     }
     return ans;
@@ -235,7 +242,7 @@ void travRight(vector<vector<int>>& graph){
     }
 
     maxLongestRight.assign(n, 0);
-    int best = longestRight[0];
+    int best = longestRight[n-1];
     for(int i = n-1; i >= 0; i--){
         best = max(best, longestRight[i]);
         maxLongestRight[i] = best;
@@ -262,23 +269,23 @@ PII solve(){
         R += 1<<depth;
         depth++;
     }
-    totalSize = R+ 1<<depth;
-    tree.assign(totalSize+1, INF);
+    totalSize = R+ (1<<depth);
+    tree.assign(totalSize+1, -1);
     
     //updating the tree
     for(int i =0; i<m; i++){
         int a = edges[i].first;
         int b = edges[i].second;
-        updateRange(a+1, b-1, longestLeft[toOrder[a]] + longestRight[toOrder[b]] + 1);
+        updateRange(toOrder[a]+1, toOrder[b]-1, longestLeft[toOrder[a]] + longestRight[toOrder[b]] + 1);
     }
 
     //getting the answer
     PII ans = MP(-1,INF);
 
     for(int i = 1; i<=n; i++){
-        int len = query(i);
-        len = max(len, maxLongestLeft[toOrder[i]]);
-        len = max(len, maxLongestRight[toOrder[i]]);
+        int len = query(toOrder[i]);
+        if(toOrder[i] > 0) len = max(len, maxLongestLeft[toOrder[i]-1]);
+        if(toOrder[i] <n-1) len = max(len, maxLongestRight[toOrder[i]+1]);
 
         if(len < ans.second){
             ans = MP(i, len);
@@ -303,7 +310,7 @@ int main()
         }
         PII ansB = brute();
         PII ansS = solve();
-        if(ansB.first != ansS.first || ansB.second != ansS.second){
+        if(ansB.second != ansS.second){
             cout<<"ERROR\n";
             cout<<"BRUTE: "<<ansB.first<<" "<<ansB.second<<"\n";
             cout<<"SOLVE: "<<ansS.first<<" "<<ansS.second<<"\n";
