@@ -41,7 +41,6 @@ void topoSort(vector<vector<int>>& graph){
     for(int i = 1; i<=n; i++){
         if(!vis[i]){
             S.push(MP(i,false));
-            vis[i] = true;
 
             while(!S.empty()){
                 int v= S.top().first;
@@ -53,11 +52,15 @@ void topoSort(vector<vector<int>>& graph){
                     continue;
                 }
 
+                if(vis[v]){
+                    continue;
+                }
+
+                vis[v] = true;
                 S.push(MP(v,true));
                 for(int j = 0; j<graph[v].size(); j++){
                     int cur = graph[v][j];
                     if(!vis[cur]){
-                        vis[cur] = true;
                         S.push(MP(cur, false));
                     }
                 }
@@ -103,11 +106,11 @@ void updateRange(int a, int b, int val){
     }
 
     while(parent(l) != parent(r)){
-        if(l == left(leaf(l))){
-            tree[right(leaf(l))] = max(tree[right(leaf(l))], val);
+        if(l == left(parent(l))){
+            tree[right(parent(l))] = max(tree[right(parent(l))], val);
         }
-        if(r == right(leaf(r))){
-            tree[left(leaf(r))] = max(tree[left(leaf(r))], val);
+        if(r == right(parent(r))){
+            tree[left(parent(r))] = max(tree[left(parent(r))], val);
         }
         l = parent(l);
         r = parent(r);

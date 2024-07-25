@@ -30,18 +30,20 @@ void getRandom(){
     edges.clear();
 
     srand(time(0));
-    n = rand()%10+2;
+    n = rand()%20+2;
     m = 0;
-    for(int i = 1; i<=n; i++){
-        int con = rand()%(n-i);
+    for(int i = 1; i<n; i++){
+        // int con = rand()%(n-i);
+        int con = rand()%2+1;
+        if(con > n-i) continue;
         vector<bool> vis(n+1, false);
         for(int j = 0; j<con; j++){
             int temp = rand()%n+1;
-            while(vis[temp] || temp <=n){
+            while(vis[temp] || temp <= i){
                 temp = rand()%n+1;
             }
             vis[temp] = true;
-            edges.PB(MP(n, temp));
+            edges.PB(MP(i, temp));
             m++;
         }
     }    
@@ -64,7 +66,7 @@ PII brute(){
     }
 
     for(int i = 1; i<=n; i++){
-        int bestLen = 0;
+        int bestLen = -1;
         for(int j = 1; j<=n; j++){
             if(j != i){
                 stack<PII> S;
@@ -81,7 +83,7 @@ PII brute(){
 
                     for(int o = 0; o<graph[v].size(); o++){
                         int cur = graph[v][o];
-                        if(cur != j){
+                        if(cur != i){
                             S.push(MP(cur, l+1));
                         }
                     }
@@ -112,7 +114,6 @@ void topoSort(vector<vector<int>>& graph){
     for(int i = 1; i<=n; i++){
         if(!vis[i]){
             S.push(MP(i,false));
-            vis[i] = true;
 
             while(!S.empty()){
                 int v= S.top().first;
@@ -124,11 +125,15 @@ void topoSort(vector<vector<int>>& graph){
                     continue;
                 }
 
+                if(vis[v]){
+                    continue;
+                }
+
+                vis[v] = true;
                 S.push(MP(v,true));
                 for(int j = 0; j<graph[v].size(); j++){
                     int cur = graph[v][j];
                     if(!vis[cur]){
-                        vis[cur] = true;
                         S.push(MP(cur, false));
                     }
                 }
@@ -174,11 +179,11 @@ void updateRange(int a, int b, int val){
     }
 
     while(parent(l) != parent(r)){
-        if(l == left(leaf(l))){
-            tree[right(leaf(l))] = max(tree[right(leaf(l))], val);
+        if(l == left(parent(l))){
+            tree[right(parent(l))] = max(tree[right(parent(l))], val);
         }
-        if(r == right(leaf(r))){
-            tree[left(leaf(r))] = max(tree[left(leaf(r))], val);
+        if(r == right(parent(r))){
+            tree[left(parent(r))] = max(tree[left(parent(r))], val);
         }
         l = parent(l);
         r = parent(r);
@@ -300,8 +305,8 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
-    for(int test = 1; test<=1; test++){
+    int op = 0;
+    for(int test = 1; test<=10'000; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
