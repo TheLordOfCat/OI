@@ -1,7 +1,11 @@
-#include<iostream>
+#include <iostream>
 #include <vector>
+#include <algorithm>
 #include <stack>
 #include <queue>
+
+#include <ctime>
+#include <cstdlib>
 
 using namespace std;
 
@@ -9,121 +13,109 @@ using namespace std;
 #define PII pair<int,int>
 #define PB push_back
 
-const int MAXN = 300'000;
+using ll = long long int;
+using ull = unsigned long long int;
 
 int n;
-vector<vector<int>> graph;
+vector<PII> edges;
 
 void getData(){
     cin>>n;
-    graph.assign(n+1, vector<int>());
     for(int i = 0; i<n-1; i++){
         int a, b;
         cin>>a>>b;
-        graph[a].PB(b);
-        graph[b].PB(a);
+        edges.PB(MP(a,b));
     }
 }
 
 void getRandom(){
+    edges.clear();
+
+    srand(time(0));
+
     n = rand()%10+1;
-    graph.clear();
-    graph.assign(n+1,vector<int>());
-    int ind = 2;
-    for(int i = 1; i<n; i++){
-        if(ind >n){
-            break;
-        }
-        int con = rand()%3+1;
+    int last = 2;
+    for(int i =0; i<n-1; i++){
+        int a, b;
+        int con = rand()%5+1;
+
         for(int j = 0; j<con; j++){
-            graph[i].PB(ind);
-            ind++;
+            if(edges.size() != n-1){
+                a = i+1;
+                b = last;
+                last++;
+                edges.PB(MP(a,b));
+            }else{
+                break;
+            }
         }
     }
 }
 
 void printData(){
+    cout<<"DATA: \n";
     cout<<n<<"\n";
-    stack<int> S;
-    vector<bool> vis(n+1, false);
-    for(int i =1 ;i<=n; i++){
-        if(!vis[i]){
-            S.push(i);
-            vis[i] = true;
-            while(!S.empty()){
-                int v=  S.top();
-                for(int j =0; j<graph[v].size(); j++){
-                    int cur = graph[v][j];
-                    cout<<i<<" "<<cur<<"\n";
-                    vis[cur] = true;
-                }
-            }
-        }
+    for(int i =0; i<n-1; i++){
+        cout<<edges[i].first<<" "<<edges[i].second<<"\n";
     }
 }
 
-int brute(){
-    vector<int> depth(n+1, 0);
-
-    stack<PII> S;
-    vector<bool>check(n+1, false);
-    S.push(MP(1,0));
-    check[1] = true;
-    while(!S.empty()){
-        int v = S.top().first;
-        int d = S.top().second;
-        S.pop();
-        depth[v] = d;
-        for(int i = 0; i<graph[v].size(); i++){
-            int cur = graph[v][i];
-            if(!check[cur]){
-                check[cur] = true;
-                S.push(MP(cur, d+1));
-            }
+struct qCompare{
+    bool operator()(const PII a, const PII b){
+        if(a.second == b.second){
+            return a.first < b.first;
         }
+        return a.second < b.second;
+    }
+};
+
+int brute(){
+    vector<vector<int>> graph(n+1, vector<int>());
+    for(int i =0; i<edges.size(); i++){
+        int a = edges[i].first;
+        int b = edges[i].second;
+        graph[a].PB(b);
+        graph[b].PB(a);
     }
 
     int ans = n;
-    for(int i = n-1; i> 0; i--){
+    for(int i = 1; i<=n; i++){
         bool ok = true;
 
-        int t = 1;
-        vector<int> turn(n+1, 0);
-        queue<int> Q;
-        vector<bool>vis(n+1, false);
-        vis[1] = true;
-        for(int j =0; j<graph[1].size(); j++){
-            int cur = graph[1][j];
-            Q.push(cur);
-            vis[cur] = true;
-        }
-        
+        priority_queue<PII, vector<PII>, qCompare> Q;
+        vector<bool> vis(n+1, false);
+        Q.push(MP(1, 1));
+        int turn = 1;
+        int count = 0;
         while(!Q.empty()){
-            for(int k = 0; k<i; k++){
-                if(Q.empty()){
-                    break;
-                }
-                int v = Q.front();
-                Q.pop();
-                turn[v] = t;
-                if(t > depth[v]){
-                    ok = false;
-                    break;
-                }
-                for(int j = 0; j<graph[v].size(); j++){
-                    int cur = graph[v][j];
-                    if(!vis[cur]){
-                        vis[cur] = true;
-                        Q.push(cur);
-                    }
+            int v = Q.top().first;
+            int l = Q.top().second;
+            Q.pop();
+
+            vis[v] = true;
+
+            count++;
+            if(turn > l){
+                ok = false;
+                break;
+            }
+
+            if(count == i){
+                turn++;
+                count = 0;
+            }
+
+            for(int j = 0; j<graph[v].size(); j++){
+                int cur=  graph[v][j];
+                if(!vis[cur]){
+                    Q.push(MP(cur,l+1));
                 }
             }
-            t++;
-        }
+
+        } 
 
         if(ok){
-            ans--;
-        }else{
+            ans = i;
             break;
         }
     }
@@ -132,87 +124,15 @@ int brute(){
 }
 
 int solve(){
-    vector<int> depth(n+1, 0);
 
-    stack<PII> S;
-    vector<bool>check(n+1, false);
-    S.push(MP(1,0));
-    check[1] = true;
-    while(!S.empty()){
-        int v = S.top().first;
-        int d = S.top().second;
-        S.pop();
-        depth[v] = d;
-        for(int i = 0; i<graph[v].size(); i++){
-            int cur = graph[v][i];
-            if(!check[cur]){
-                check[cur] = true;
-                S.push(MP(cur, d+1));
-            }
-        }
-    }
-
-
-    int left = 1, right = n-1; 
-    int ans = n;
-    while(left <= right){
-        int mid = left + (right - left)/2;
-        bool ok = true;
-        int i = mid;
-
-        int t = 1;
-        vector<int> turn(n+1, 0);
-        queue<int> Q;
-        vector<bool>vis(n+1, false);
-
-        vis[1] = true;
-        for(int j =0; j<graph[1].size(); j++){
-            int cur = graph[1][j];
-            Q.push(cur);
-            vis[cur] = true;
-        }
-
-        while(!Q.empty()){
-            for(int k = 0; k<i; k++){
-                if(Q.empty()){
-                    break;
-                }
-                int v = Q.front();
-                Q.pop();
-                turn[v] = t;
-                if(t > depth[v]){
-                    ok = false;
-                    break;
-                }
-                for(int j = 0; j<graph[v].size(); j++){
-                    int cur = graph[v][j];
-                    if(!vis[cur]){
-                        vis[cur] = true;
-                        Q.push(cur);
-                    }
-                }
-            }
-            t++;
-        }
-
-        if(ok){
-            ans = mid;
-            right = mid-1;
-        }else{
-            left = mid+1;
-        }
-    }
-
-    return ans;
 }
 
-int main()
-{
+int main(){
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
     int op = 1;
-    for(int test = 1;test<=1; test++){
+    for(int test = 1; test<=1; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
@@ -222,12 +142,13 @@ int main()
         int ansB = brute();
         int ansS = solve();
         if(ansB != ansS){
-            cout<<"ERROR\n";
+            cout<<"ERORR\n";
             cout<<"BRUTE: "<<ansB<<"\n";
             cout<<"SOLVE: "<<ansS<<"\n";
             return 0;
         }
         cout<<"CORRECT\n";
     }
+
     return 0;
 }
