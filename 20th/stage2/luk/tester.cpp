@@ -127,6 +127,7 @@ bool check(int k, vector<vector<int>>& graph){
     vector<int> dp(n+1, 0);
     vector<int> parent(n+1, -1);
 
+    parent[1] = 0;
     stack<pair<int,bool>> S;
     S.push(MP(1,false));
     while(!S.empty()){
@@ -138,9 +139,12 @@ bool check(int k, vector<vector<int>>& graph){
             int sum = 0;
             for(int j = 0; j<graph[v].size(); j++){
                 int cur = graph[v][j];
-                sum += dp[cur];
+                if(cur != parent[v]){
+                    sum += dp[cur] + 1;
+                }
             }
-            dp[v] = max(0,sum+1-k);
+            dp[v] = max(0,sum-k);
+
             continue;
         }
 
@@ -172,9 +176,9 @@ int solve(){
     }
 
     int ans = n;
-    int l =1;
+    int l = 0;
     int r = n;
-    while(l<r){
+    while(l<=r){
         int mid = (l+r)/2;
         if(check(mid, graph)){
             ans = mid;
