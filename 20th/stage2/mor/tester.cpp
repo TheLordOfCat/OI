@@ -23,7 +23,7 @@ vector<tuple<int,int,int>> requests;
 
 void getData(){
     cin>>n>>m>>k;
-    for(int i = 0; i<n; i++){
+    for(int i = 0; i<m; i++){
         int a, b;
         cin>>a>>b;
         edges.PB(MP(a,b));
@@ -73,7 +73,7 @@ void printData(){
 
 vector<int> brute(){
     vector<vector<int>> graph(n+1, vector<int>());
-    for(int i = 0; i<n; i++){
+    for(int i = 0; i<m; i++){
         int a = edges[i].first;
         int b = edges[i].second;
         graph[a].PB(b);
