@@ -1,5 +1,8 @@
 {
     "files.associations": {
-        "xiosbase": "cpp"
+        "xiosbase": "cpp",
+        "queue": "cpp",
+        "xlocale": "cpp",
+        "utility": "cpp"
     }
 }
