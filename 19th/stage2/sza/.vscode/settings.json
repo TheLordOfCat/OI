@@ -2,6 +2,9 @@
     "files.associations": {
         "xiosbase": "cpp",
         "xlocale": "cpp",
-        "xutility": "cpp"
+        "xutility": "cpp",
+        "algorithm": "cpp",
+        "utility": "cpp",
+        "vector": "cpp"
     }
 }

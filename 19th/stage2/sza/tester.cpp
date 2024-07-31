@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <tuple>
+#include <algorithm>
 
 #include <ctime>
 #include <cstdlib>
@@ -15,6 +16,7 @@ using namespace std;
 using ll = long long int;
 using ull = unsigned long long int;
 
+const int MAXK = 100'000;
 const int INF = 2'000'000'000;
 
 int n;
@@ -128,8 +130,49 @@ vector<int> brute(){
     return ans;
 }
 
+bool compare(const pair<int,PII>& a, const pair<int,PII>& b){
+    if(a.first < b.first){
+        return true;
+    }else{
+        if(a.second.first == 1){
+            return false;
+        }
+    }
+}
+
 vector<int> solve(){
-    return vector<int>();
+    vector<int> ans;
+
+    vector<pair<int,PII>> order;
+    for(int i = 0; i<n; i++){
+        order.PB(MP(get<0>(items[i]), MP(0, i)));
+    }
+    for(int i = 0; i<p; i++){
+        order.PB(MP(get<0>(items[i]), MP(1, i)));
+    }
+
+    sort(order.begin(), order.end(), compare);
+
+    vector<int> mostTime(MAXK, 0);
+
+    for(int i = 0; i<order.size(); i++){
+        int ind = order[i].second.second;
+        if(order[i].second.first == 0){
+            int c = get<0>(items[ind]), a = get<1>(items[ind]), b = get<2>(items[ind]);
+            for(int j = MAXK; j>=c; j--){
+                mostTime[j] = max(mostTime[j], min(mostTime[j-c],a+b));
+            }
+        }else{
+            int m = get<0>(stealPlans[ind]), k = get<1>(stealPlans[ind]), s = get<2>(stealPlans[ind]);
+            if(mostTime[k] > m+s){
+                ans.PB(1);
+            }else{
+                ans.PB(0);
+            }
+        }
+    }
+
+    return ans;
 }
 
 int main()
