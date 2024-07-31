@@ -81,18 +81,19 @@ vector<int> brute(){
         vector<tuple<int,int,int>> curItems;
         for(int j = 0; j<n; j++){
             int c = get<0>(items[j]), a = get<1>(items[j]), b = get<2>(items[j]);
-            if(m <= a && a < s){
+            if(a <= m && b > m+s){
                 curItems.PB(items[j]);
             }
         }
 
         //traverse throuhg items
         int ok = 0;
-        for(int j = 0; j<curItems.size(); j++){
+        int setSize = (1<<curItems.size());
+        for(int j = 0; j<setSize; j++){
             vector<tuple<int,int,int>> chosen;
-            for(int j = 0; j<curItems.size(); j++){
-                if(i && 1<<j){
-                    chosen.PB(items[j]);
+            for(int o = 0; o<curItems.size(); o++){
+                if(j & (1<<o)){
+                    chosen.PB(curItems[o]);
                 }
             }
 
@@ -101,7 +102,7 @@ vector<int> brute(){
             //check for sum
             int sum = 0;
             for(int j = 0; j<chosen.size(); j++){
-                sum += get<1>(chosen[j]);
+                sum += get<0>(chosen[j]);
             }
             if(sum != k){
                 continue;
@@ -111,8 +112,8 @@ vector<int> brute(){
             int left = 0;
             int right = INF;
             for(int j = 0; j<chosen.size(); j++){
-                left = max(left, get<0>(chosen[j]));
-                right = min(right, get<0>(chosen[j]) + get<2>(chosen[j]));
+                left = max(left, get<1>(chosen[j]));
+                right = min(right, get<2>(chosen[j]));
             }
             if(right <= left){
                 continue;
@@ -128,7 +129,7 @@ vector<int> brute(){
 }
 
 vector<int> solve(){
-
+    return vector<int>();
 }
 
 int main()
