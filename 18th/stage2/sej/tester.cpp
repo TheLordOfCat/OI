@@ -46,11 +46,58 @@ void printData(){
 }
 
 int brute(){
+    vector<bool> banned(n, false);
+    for(int i = 1; i<n; i++){
+        for(int j= 0; j<k-1; j++){
+            if(m[j]%i == 0){
+                banned[j] = true;
+            }
+        }
+    }
 
+    vector<bool> ok(n, false);
+    int ind = 24;
+    while(!ok[ind]){
+        ok[ind] = true;
+        ind += m.back(); 
+    }
+
+    int ans = 0;
+    for(int i = 0; i<n; i++){
+        if(ok[i] && !banned[i]){
+            ans++;
+        }
+    }
+    return ans;
 }
 
 int solve(){
+    vector<bool> banned(n, false);
+    for(int i = 0; i<k-1; i++){
+        for(int j = 1; j*j<= m[i]; j++){
+            if(m[i]%j == 0){
+                banned[j] = true;
+            }
+            if(m[i]/j != j){
+                banned[j] = true;
+            }
+        }
+    }
 
+    vector<bool> ok(n, false);
+    int ind = 24;
+    while(!ok[ind]){
+        ok[ind] = true;
+        ind += m.back(); 
+    }
+
+    int ans = 0;
+    for(int i = 0; i<n; i++){
+        if(ok[i] && !banned[i]){
+            ans++;
+        }
+    }
+    return ans;
 }
 
 int main()
