@@ -5,6 +5,7 @@
         "xutility": "cpp",
         "algorithm": "cpp",
         "utility": "cpp",
-        "vector": "cpp"
+        "vector": "cpp",
+        "xstring": "cpp"
     }
 }
