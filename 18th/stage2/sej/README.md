@@ -3,4 +3,4 @@
 Szkopuł: https://oi.edu.pl/pl/archive/oi/18/sej <br />
 Solution: http://oi.edu.pl/static/attachment/20120215/oi18.pdf#page=97 <br />
 Time Complexity: <br />
-Points:  <br />
+Points: 0 <br />

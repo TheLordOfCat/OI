@@ -50,16 +50,18 @@ int brute(){
     for(int i = 1; i<n; i++){
         for(int j= 0; j<k-1; j++){
             if(m[j]%i == 0){
-                banned[j] = true;
+                banned[i] = true;
             }
         }
     }
 
     vector<bool> ok(n, false);
-    int ind = 24;
+    
+    int ind = m.back();
     while(!ok[ind]){
         ok[ind] = true;
         ind += m.back(); 
+        ind %= n;
     }
 
     int ans = 0;
