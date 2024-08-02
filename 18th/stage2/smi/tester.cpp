@@ -76,10 +76,9 @@ bool verify(vector<vector<int>> cycles){
 
     //traverse cycles
     for(int i = 0; i<cycles.size(); i++){
-        cycles.PB(cycles.front());
-        for(int j = 0; j<cycles[i].size()-1; j++){
+        for(int j = 0; j<cycles[i].size(); j++){
             int a = cycles[i][j];
-            int b = cycles[i][j+1];
+            int b = cycles[i][(j+1)%cycles[i].size()];
             for(int o = 0; o<graph[a].size(); o++){
                 int cur = graph[a][o].first;
                 if(cur == b){
@@ -110,9 +109,10 @@ bool verify(vector<vector<int>> cycles){
 }
 
 vector<vector<int>> solve(){
+    //create graph
     vector<vector<pair<PII,bool>>> graph(n+1, vector<pair<PII,bool>>());
     for(int i = 0; i<m; i++){
-        int a = get<0>(edges[i]), b = get<0>(edges[i]), s = get<0>(edges[i]), t = get<0>(edges[i]);  
+        int a = get<0>(edges[i]), b = get<1>(edges[i]), s = get<2>(edges[i]), t = get<3>(edges[i]);  
         if(s != t){
             graph[a].PB(MP(MP(b, graph[b].size()),false));
             graph[b].PB(MP(MP(a, graph[a].size()-1),false));
@@ -126,6 +126,7 @@ vector<vector<int>> solve(){
 
     vector<vector<int>> ans;
 
+    //make euler circuts
     stack<int> S;
     vector<bool> vis(n+1, false);
     
@@ -142,7 +143,11 @@ vector<vector<int>> solve(){
                 }else{
                     for(int j = 0; j<graph[v].size(); j++){
                         if(!graph[v][j].second){
+                            degree[v]--;
+                            degree[graph[v][j].first.first]--;
+                            
                             S.push(graph[v][j].first.first);
+
                             graph[v][j].second = true;
                             graph[graph[v][j].first.first][graph[v][j].first.second].second = true;
                             break;
@@ -162,8 +167,8 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 0;
-    for(int test = 1; test<=10'000; test++){
+    int op = 1;
+    for(int test = 1; test<=1; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
@@ -174,7 +179,7 @@ int main()
         if(!verify(ansS)){
             cout<<"ERORR\n";
             cout<<"SOLVE: \n";
-            cout<<ansS.size()<<"\n";
+            cout<<ansS.size()-1<<"\n";
             for(int i = 0; i<ansS.size(); i++){
                 for(int j = 0; j <ansS[i].size(); j++){
                     int cur = ansS[i][j];
