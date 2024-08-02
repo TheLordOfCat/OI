@@ -1,4 +1,4 @@
-#include<iostream>
+#include <iostream>
 #include <vector>
 #include <stack>
 #include <algorithm>
@@ -64,11 +64,97 @@ void printData(){
 }
 
 bool verify(vector<vector<int>> cycles){
+    //make graph
+    vector<vector<pair<int,bool>>> graph(n+1, vector<pair<int,bool>>());
+    for(int i = 0; i<m; i++){
+        int a = get<0>(edges[i]), b = get<0>(edges[i]), s = get<0>(edges[i]), t = get<0>(edges[i]);  
+        if(s != t){
+            graph[a].PB(MP(b,false));
+            graph[b].PB(MP(a,false));
+        }
+    }
 
+    //traverse cycles
+    for(int i = 0; i<cycles.size(); i++){
+        cycles.PB(cycles.front());
+        for(int j = 0; j<cycles[i].size()-1; j++){
+            int a = cycles[i][j];
+            int b = cycles[i][j+1];
+            for(int o = 0; o<graph[a].size(); o++){
+                int cur = graph[a][o].first;
+                if(cur == b){
+                    graph[a][o].second = true;
+                    break;
+                }
+            }
+            for(int o = 0; o<graph[b].size(); o++){
+                int cur = graph[b][o].first;
+                if(cur == a){
+                    graph[b][o].second = true;
+                    break;
+                }
+            }
+
+        }
+    }
+
+    //verify
+    for(int i = 1; i<=n; i++){
+        for(int j = 0; j<graph[i].size(); j++){
+            if(!graph[i][j].second){
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 vector<vector<int>> solve(){
-   
+    vector<vector<pair<PII,bool>>> graph(n+1, vector<pair<PII,bool>>());
+    for(int i = 0; i<m; i++){
+        int a = get<0>(edges[i]), b = get<0>(edges[i]), s = get<0>(edges[i]), t = get<0>(edges[i]);  
+        if(s != t){
+            graph[a].PB(MP(MP(b, graph[b].size()),false));
+            graph[b].PB(MP(MP(a, graph[a].size()-1),false));
+        }
+    }
+
+    vector<int> degree(n+1, 0);
+    for(int i = 1; i<=n; i++){
+        degree[i] = graph[i].size(); 
+    }
+
+    vector<vector<int>> ans;
+
+    stack<int> S;
+    vector<bool> vis(n+1, false);
+    
+    for(int i = 1; i<=n; i++){
+        if(!vis[i]){
+            vector<int> cycle;
+            S.push(i);
+            while(!S.empty()){
+                int v = S.top();
+                if(degree[v] == 0){
+                    cycle.PB(v);
+                    vis[v] = true;
+                    S.pop();
+                }else{
+                    for(int j = 0; j<graph[v].size(); j++){
+                        if(!graph[v][j].second){
+                            S.push(graph[v][j].first.first);
+                            graph[v][j].second = true;
+                            graph[graph[v][j].first.first][graph[v][j].first.second].second = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            ans.PB(cycle);
+        }
+    }
+
+    return ans;
 }
 
 int main()
