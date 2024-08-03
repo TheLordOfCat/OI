@@ -54,6 +54,7 @@ vector<vector<int>> solve(){
     //find euler circuts
     stack<int> S;
     vector<bool> vis(n+1, false);
+    vector<int> last(n+1, 0);
     
     for(int i = 1; i<=n; i++){
         if(!vis[i]){
@@ -66,7 +67,7 @@ vector<vector<int>> solve(){
                     vis[v] = true;
                     S.pop();
                 }else{
-                    for(int j = 0; j<graph[v].size(); j++){
+                    for(int j = last[v]; j<graph[v].size(); j++){
                         if(!graph[v][j].second){
                             degree[v]--;
                             degree[graph[v][j].first.first]--;
@@ -75,6 +76,8 @@ vector<vector<int>> solve(){
 
                             graph[v][j].second = true;
                             graph[graph[v][j].first.first][graph[v][j].first.second].second = true;
+
+                            last[v] = j+1;
                             break;
                         }
                     }
