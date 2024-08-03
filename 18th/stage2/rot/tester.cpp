@@ -36,9 +36,11 @@ void getData(){
         if(temp == 0){
             graph.PB(vector<int>());
             S.push(graph.size()-1);
+            graph[v].PB(graph.size()-1);
             
             graph.PB(vector<int>());
             S.push(graph.size()-1);
+            graph[v].PB(graph.size()-1);
 
             val.PB(-1);
             val.PB(-1);
@@ -68,10 +70,12 @@ void getRandom(){
             graph.PB(vector<int>());
             val.PB(-1);
             S.push(graph.size()-1);
+            graph[v].PB(graph.size()-1);
 
             graph.PB(vector<int>());
             val.PB(-1);
             S.push(graph.size()-1);
+            graph[v].PB(graph.size()-1);
         }else{
             n++;
             val[v] = n;
@@ -135,7 +139,7 @@ ll brute(){
 }
 
 ll solve(){
-
+    return 1;
 }   
 
 int main()
