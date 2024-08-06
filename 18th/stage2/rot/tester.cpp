@@ -138,7 +138,38 @@ ll brute(){
     return merged.first;
 }
 
+int totalDepth = 1;
+
+
+
+treeNode* build(){
+
+}
+
+struct treeNode{
+    treeNode* left;
+    treeNode* right;
+
+    ll count = 0;
+};
+
 ll solve(){
+    
+    while(1<<totalDepth < n){
+        totalDepth++;
+    }
+
+    stack<pair<int,bool>> S;
+    S.push(MP(1,false));
+
+    while(!S.empty()){
+        int v = S.top().first;
+        bool b = S.top().second;
+        S.pop();
+
+        if()
+    }
+    
     return 1;
 }   
 
