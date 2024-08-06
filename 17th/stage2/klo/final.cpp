@@ -45,7 +45,7 @@ vector<int> solve(){
             w.PB(x[i]-lim);
         }
 
-        vector<int> a;
+        vector<ll> a;
         a.PB(0);
         for(int i = 0; i<n; i++){
             a.PB(a[i]+w[i]);

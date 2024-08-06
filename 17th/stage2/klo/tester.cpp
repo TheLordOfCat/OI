@@ -41,6 +41,7 @@ void getRandom(){
     srand(time(0));
 
     n = rand()%10+1;
+    m = rand()%10+1;
     for(int i =0 ; i<n; i++){
         int temp = rand()%10+1;
         x.PB(temp);
@@ -105,7 +106,7 @@ vector<int> solve(){
             w.PB(x[i]-lim);
         }
 
-        vector<int> a;
+        vector<ll> a;
         a.PB(0);
         for(int i = 0; i<n; i++){
             a.PB(a[i]+w[i]);
@@ -148,8 +149,8 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
-    for(int test = 1; test<=1; test++){
+    int op = 0;
+    for(int test = 1; test<=100'000; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();        
