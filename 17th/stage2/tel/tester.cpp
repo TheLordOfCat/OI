@@ -40,7 +40,7 @@ void getRandom(){
     vector<int> sectors;
 
     for(int i =0; i<4; i++){
-        int con = rand()%3+1;
+        int con = rand()%2+1;
         n += con;
         sectors.PB(con);
     }
@@ -99,14 +99,20 @@ void printData(){
 
 ull brute(){
     ull ans = 0;
-    ull totalTel = 1<<(n*n/2);
+    vector<PII> edg;
+    for(int i = 1; i<=n; i++){
+        for(int j = i+1; j<=n; j++){
+            edg.PB(MP(i,j));
+        }
+    }
+    ull totalTel = 1<<edg.size();
     for(int i = 0; i<totalTel; i++){
         ull con = 0;
         vector<vector<int>> graph(n+1, vector<int>());
         for(int j = 0; j< totalTel; j++){
             if(i & (1<<j)){
-                int r1 = i/n;
-                int r2 = i - r1*n;
+                int r1 = edg[j].first;
+                int r2 = edg[j].second;
                 if(r1 != r2){
                     graph[r1].PB(r2);
                     graph[r2].PB(r1);
@@ -131,6 +137,7 @@ ull brute(){
         while(!Q.empty()){
             int v = Q.front().first;
             int l = Q.front().second;
+            Q.pop();
 
             if(v == 2){
                 if(l < 5){
