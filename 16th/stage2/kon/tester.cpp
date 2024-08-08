@@ -3,12 +3,15 @@
 
 using namespace std;
 
+using ll = long long int;
+using ull = unsigned long long int;
+
 #define MP make_pair
 #define PII pair<int,int>
 #define PB push_back
 
 int n, k;
-vector<vector<int>> pasen;
+vector<vector<int>> passen;
 
 void getData(){
     cin>>n>>k;
@@ -19,12 +22,12 @@ void getData(){
             cin>>temp;
             vec.PB(temp);
         }
-        pasen.PB(vec);
+        passen.PB(vec);
     }
 }
 
 void getRandom(){
-    pasen.clear();
+    passen.clear();
 
     srand(time(0));
 
@@ -35,19 +38,60 @@ void getRandom(){
             int temp = rand()%10+1;
             vec.PB(temp);
         }
-        pasen.PB(vec);
+        passen.PB(vec);
     }
 }
 
 void printData(){
-
+    cout<<"DATA: \n";
+    cout<<n<<" "<<k<<"\n";
+    for(int i = 0; i<passen.size(); i++){
+        for(int j = 0; j<passen[i].size(); j++){
+            cout<<passen[i][j]<<" ";
+        }
+        cout<<"\n";
+    }
 }
 
-vector<int> brute(){
+pair<int,vector<int>> brute(){
+    int ansSum = 0;
+    vector<int> ans;
 
+    ll totalStations = 1<<n;
+    for(int i = 0; i<totalStations; i++){
+        vector<int> stations;
+        for(int j = 0; j<n; j++){
+            if(i & (1<<j)){
+                stations.PB(j+1);
+            }
+        }
+
+        if(stations.size() != k){
+            continue;
+        }
+
+        int tempSum = 0;
+        vector<vector<bool>> vis(n+1, vector<bool>(n+1, false));
+
+        for(int j = k-1; j>=0; j--){
+            for(int o = k-1-j; o < passen[j].size(); o++){
+                if(!vis[j][o]){
+                    vis[j][o] = true;
+                    tempSum += passen[j][o];
+                }
+            }
+        }
+
+        if(tempSum > ansSum){
+            ansSum = tempSum;
+            ans = stations;
+        }
+    }
+
+    return MP(ansSum, ans);
 }
 
-vector<int> solve(){
+pair<int,vector<int>> solve(){
 
 }
 
@@ -63,28 +107,24 @@ int main()
         }else{
             getRandom();
         }
-        vector<int> ansB = brute();
-        vector<int> ansS = solve();
+        pair<int,vector<int>> ansB = brute();
+        pair<int,vector<int>> ansS = solve();
 
-        //comparison type 1
-        for(int i = 0; i<k; i++){
-            if(ansB[i] != ansS[i]){
-                cout<<"ERROR\n";
-                cout<<"BRUTE: ";
-                for(int j = 0; j<ansB.size(); j++){
-                    cout<<ansB[j]<<" ";
-                }
-                cout<<"\n";
-                cout<<"SOLVE: ";
-                for(int j = 0; j<ansS.size(); j++){
-                    cout<<ansS[j]<<" ";
-                }
-                cout<<"\n";
-                return 0;
+        if(ansB.first != ansS.first){
+            cout<<"ERROR\n";
+            cout<<"BRUTE: "<<ansB.first<<"\n";
+            for(int j = 0; j<ansB.second.size(); j++){
+                cout<<ansB.second[j]<<" ";
             }
+            cout<<"\n";
+            cout<<"SOLVE: "<<ansS.first<<"\n";
+            for(int j = 0; j<ansS.second.size(); j++){
+                cout<<ansS.second[j]<<" ";
+            }
+            cout<<"\n";
+            return 0;
         }
 
-        //comparison type 2
     }
 
     return 0;
