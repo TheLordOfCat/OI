@@ -68,7 +68,7 @@ ull solve(){
     vector<int> t1 = BFS(1, graph);
     vector<int> t2 = BFS(2, graph);
 
-    for(int i = 1; i<=n; i++){
+    for(int i = 3; i<=n; i++){
         if(t1[i] == 1){
             s1++;
         }else if(t1[i] == 2){

@@ -106,10 +106,10 @@ ull brute(){
         }
     }
     ull totalTel = 1<<edg.size();
-    for(int i = 0; i<totalTel; i++){
+    for(ull i = 0; i<totalTel; i++){
         ull con = 0;
         vector<vector<int>> graph(n+1, vector<int>());
-        for(int j = 0; j< totalTel; j++){
+        for(ull j = 0; j< edg.size(); j++){
             if(i & (1<<j)){
                 int r1 = edg[j].first;
                 int r2 = edg[j].second;
@@ -164,17 +164,18 @@ ull brute(){
     return ans;
 }
 
-vector<int> BFS(int v, vector<vector<int>>& graph){
+vector<int> BFS(int start, vector<vector<int>>& graph){
     vector<int> ans(n+1, INF);
 
     queue<PII> Q;
-    Q.push(MP(1,0));
+    Q.push(MP(start,0));
     bool ok = true;
     vector<bool> vis(n+1, false);
 
     while(!Q.empty()){
         int v = Q.front().first;
         int l = Q.front().second;
+        Q.pop();
 
         ans[v] = l;
 
@@ -218,7 +219,7 @@ ull solve(){
 
     ull excess = n-2-s1-s2-s3-s4;
 
-    ull ans = n*(n-1)/2 - m - (n-1-s1) - s1*(1+s3+s4) - s2*(1+s3) - s4 - excess*(1+min(s1,s3));
+    ull ans = n*(n-1)/2 - m - (n-1-s1) - s1*(1+s3+s4) - s2*(1+s4) - s3 - excess*(1+min(s1,s4));
 
     return ans;
 }
