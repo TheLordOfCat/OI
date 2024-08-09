@@ -96,7 +96,54 @@ pair<int,vector<int>> brute(){
 }
 
 pair<int,vector<int>> solve(){
+    //creating sum table
+    vector<vector<int>> pas(n, vector<int>(n, 0));
+    for(int i = 0; i<n; i++){
+        for(int j =0; j<n; j++){
+            pas[i+1][j+1] = passen[i][n-1-j];
+        }
+    }
+    vector<vector<int>> S(n, vector<int>(n, 0));
 
+    for(int i = 1; i<n; i++){
+        for(int j = 1; j<n; j++){
+            S[i][j] = pas[i][j] + S[i-1][j] + S[i][j-1] - S[i-1][j-1];
+        }
+    }
+
+    //dynamic programming the answer
+    vector<vector<int>> dp(n+1, vector<int>(k+1, 0));
+    vector<vector<int>> pre(n+1, vector<int>(k+1, 0));
+
+    for(int i = 1; i<=n; i++){
+        for(int j = 1; j<=k; j++){
+
+            for(int o = i; o>=1; o--){
+                int sum = S[i][i]-S[o][i];
+                if(dp[i][j] < dp[o][j-1] + sum){
+                    pre[i][j] = o;
+                    dp[i][j] = dp[o][j-1] + sum;
+                }
+            }
+
+        }
+    }
+
+    int best = k;
+    for(int i = k+1; i<=n; i++){
+        if(dp[i][k] > dp[best][k]){
+            best = i;
+        }
+    }
+
+    vector<int> ans;
+    int ind = best;
+    while(ind != 0){
+        ans.PB(ind);
+        ind = pre[ind][k];
+    }
+
+    return MP(dp[best][k], ans);
 }
 
 int main()
