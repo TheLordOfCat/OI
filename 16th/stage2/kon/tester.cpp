@@ -58,7 +58,7 @@ pair<int,vector<int>> brute(){
     vector<int> ans;
 
     ll totalStations = 1<<n;
-    for(int i = 0; i<totalStations; i++){
+    for(ll i = 0; i<totalStations; i++){
         vector<int> stations;
         for(int j = 0; j<n; j++){
             if(i & (1<<j)){
@@ -74,10 +74,14 @@ pair<int,vector<int>> brute(){
         vector<vector<bool>> vis(n+1, vector<bool>(n+1, false));
 
         for(int j = k-1; j>=0; j--){
-            for(int o = k-1-j; o < passen[j].size(); o++){
-                if(!vis[j][o]){
-                    vis[j][o] = true;
-                    tempSum += passen[j][o];
+            int cur = stations[j];
+
+            for(int l = cur-1; l>=0; l--){
+                for(int o = cur-1-l; o < passen[l].size(); o++){
+                    if(!vis[l][o]){
+                        vis[l][o] = true;
+                        tempSum += passen[l][o];
+                    }
                 }
             }
         }
