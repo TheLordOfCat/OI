@@ -1,5 +1,9 @@
 #include <iostream>
 #include <vector>
+#include <algorithm>
+
+#include <ctime>
+#include <cstdlib>
 
 using namespace std;
 
@@ -99,8 +103,8 @@ pair<int,vector<int>> solve(){
     //creating sum table
     vector<vector<int>> pas(n, vector<int>(n, 0));
     for(int i = 0; i<n; i++){
-        for(int j =0; j<n; j++){
-            pas[i+1][j+1] = passen[i][n-1-j];
+        for(int j =0; j<n-i-1; j++){
+            pas[i+1][n-i-1-j] = passen[i][j];
         }
     }
     vector<vector<int>> S(n, vector<int>(n, 0));
@@ -115,11 +119,11 @@ pair<int,vector<int>> solve(){
     vector<vector<int>> dp(n+1, vector<int>(k+1, 0));
     vector<vector<int>> pre(n+1, vector<int>(k+1, 0));
 
-    for(int i = 1; i<=n; i++){
+    for(int i = 1; i<n; i++){
         for(int j = 1; j<=k; j++){
 
-            for(int o = i; o>=1; o--){
-                int sum = S[i][i]-S[o][i];
+            for(int o = i; o>=0; o--){
+                int sum = S[i][n-i]-S[o][n-i];
                 if(dp[i][j] < dp[o][j-1] + sum){
                     pre[i][j] = o;
                     dp[i][j] = dp[o][j-1] + sum;
@@ -130,7 +134,7 @@ pair<int,vector<int>> solve(){
     }
 
     int best = k;
-    for(int i = k+1; i<=n; i++){
+    for(int i = k+1; i<n; i++){
         if(dp[i][k] > dp[best][k]){
             best = i;
         }
@@ -138,10 +142,13 @@ pair<int,vector<int>> solve(){
 
     vector<int> ans;
     int ind = best;
+    int t = k;
     while(ind != 0){
         ans.PB(ind);
-        ind = pre[ind][k];
+        ind = pre[ind][t];
+        t--;
     }
+    reverse(ans.begin(),ans.end());
 
     return MP(dp[best][k], ans);
 }
@@ -153,6 +160,7 @@ int main()
 
     int op = 1;
     for(int test = 1; test<=1 ;test++){
+        cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
         }else{
@@ -175,7 +183,7 @@ int main()
             cout<<"\n";
             return 0;
         }
-
+        cout<<"CORRECT\n";
     }
 
     return 0;
