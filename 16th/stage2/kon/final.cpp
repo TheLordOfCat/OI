@@ -53,7 +53,7 @@ pair<int,vector<int>> solve(){
     for(int i = 1; i<n; i++){
         for(int j = 1; j<=k; j++){
 
-            for(int o = i; o>=0; o--){
+            for(int o = i-1; o>=0; o--){
                 int sum = S[i][n-i]-S[o][n-i];
                 if(dp[i][j] < dp[o][j-1] + sum){
                     pre[i][j] = o;
@@ -74,7 +74,7 @@ pair<int,vector<int>> solve(){
     vector<int> ans;
     int ind = best;
     int t = k;
-    while(ind != 0){
+    while(ind != 0 && t != 0){
         ans.PB(ind);
         ind = pre[ind][t];
         t--;

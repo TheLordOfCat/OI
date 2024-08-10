@@ -35,7 +35,7 @@ void getRandom(){
 
     srand(time(0));
 
-    n = rand()%10+1;
+    n = rand()%20+1;
     for(int i =1; i<n; i++){
         vector<int> vec;
         for(int j =1; j <=n-i; j++){
@@ -122,7 +122,7 @@ pair<int,vector<int>> solve(){
     for(int i = 1; i<n; i++){
         for(int j = 1; j<=k; j++){
 
-            for(int o = i; o>=0; o--){
+            for(int o = i-1; o>=0; o--){
                 int sum = S[i][n-i]-S[o][n-i];
                 if(dp[i][j] < dp[o][j-1] + sum){
                     pre[i][j] = o;
@@ -143,7 +143,7 @@ pair<int,vector<int>> solve(){
     vector<int> ans;
     int ind = best;
     int t = k;
-    while(ind != 0){
+    while(ind != 0 && t != 0){
         ans.PB(ind);
         ind = pre[ind][t];
         t--;
@@ -158,8 +158,8 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
-    for(int test = 1; test<=1 ;test++){
+    int op = 0;
+    for(int test = 1; test<=10'000 ;test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();

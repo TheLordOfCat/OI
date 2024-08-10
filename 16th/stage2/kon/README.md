@@ -3,4 +3,4 @@
 Szkopuł: https://oi.edu.pl/pl/archive/oi/16/kon <br />
 Solution: http://oi.edu.pl/static/attachment/20110704/oi16.pdf#page=97 <br />
 Time Complexity: O(n^2*k+n)<br />
-Points: 80 <br />
+Points: 100 <br />
