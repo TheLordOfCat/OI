@@ -179,7 +179,21 @@ vector<vector<char>> brute(){
 }
 
 vector<vector<char>> solve(){
+    //creating the graph
+    vector<vector<PIC>> graph(n+1, vector<PIC>());
+    vector<vector<PIC>> graphR(n+1, vector<PIC>());
+    for(int i = 0; i<m; i++){
+        int a = get<0>(edges[i]), b = get<1>(edges[i]), c = get<2>(edges[i]);
+        graph[a].PB(MP(b,c));
+        graphR[b].PB(MP(a,c));
+    }
 
+    //creating the graph ''
+    vector<vector<tuple<int,int,char>>> graphS(n+1, vector<tuple<int,int,char>>());
+    vector<vector<tuple<int,int,char>>> graphSR(n+1, vector<tuple<int,int,char>>());
+    for(int i = 0; i<m; i++){
+        
+    }   
 }
 
 int main()
