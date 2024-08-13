@@ -1,10 +1,104 @@
-#include<iostream>
+#include <iostream>
+#include <vector>
+
+#include <ctime>
+#include <cstdlib>
 
 using namespace std;
 
+using ll = long long int;
+using ull = unsigned long long int;
+
+#define PII pair<int,int>
+#define MP make_pair
+#define PB push_back
+
+int n,m,k,d;
+vector<PII> query;
+
+void getData(){
+    cin>>n>>m>>k>>d;
+    for(int i =0; i<m; i++){
+        int r, x;
+        cin>>r>>x;
+        query.PB(MP(r,x));
+    }
+}
+
+void getRandom(){
+    query.clear();
+    
+    srand(time(0));
+
+    n = rand()%8+1;
+    m = rand()%5+1;
+    k = rand()%10+1; 
+    d = rand()%d;
+
+    vector<int> t(n+1, 0);
+
+    for(int i = 0; i<m; i++){
+        int r = rand()%n+1;
+        if(rand()%4+1 == 1){    
+            int x = rand()%t[r]+1;
+            query.PB(MP(r,x*(-1)));
+        }else{
+            int x = rand()%10+1;
+            t[r] += x;
+            query.PB(MP(r,x));
+        }
+    }
+}
+
+void printData(){
+    cout<<"DATA: \n";
+    cout<<n<<" "<<m<<" "<<k<<" "<<d<<"\n";
+    for(int i = 0; i<m; i++){
+        cout<<query[i].first<<" "<<query[i].second<<"\n";
+    } 
+}
+
+vector<int> brute(){
+    
+}
+
+vector<int> solve(){
+
+}
+
 int main()
 {
-    std::cout<<"Hello World";
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int op = 1;
+    for(int test = 1; test<=1; test++){
+        cout<<"Test nr."<<test<<" = ";
+        if(op == 1){
+            getData();
+        }else{
+            getRandom();
+        }
+        vector<int> ansB = brute();
+        vector<int> ansS = solve();
+        for(int i = 0; i<m; i++){
+            if(ansB[i] != ansS[i]){
+                cout<<"ERROR\n";
+                cout<<"BRUTE: ";
+                for(int j =0 ;j<ansB.size(); j++){
+                    cout<<ansB[j]<<" ";
+                }
+                cout<<"\n";
+                cout<<"SOLVE: ";
+                for(int j =0 ;j<ansS.size(); j++){
+                    cout<<ansS[j]<<" ";
+                }
+                cout<<"\n";
+                return 0;
+            }
+        }
+        cout<<"CORRECT\n";
+    }
 
     return 0;
 }
