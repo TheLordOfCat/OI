@@ -59,7 +59,42 @@ void printData(){
 }
 
 vector<int> brute(){
+    vector<int> ans;
     
+    vector<int> t(n+1, 0);
+    for(int o = 0; o<m; o++){
+        int r = query[o].first;
+        int x = query[o].second;
+
+        t[r] += x;
+
+        bool ok = true;
+
+        vector<int> s(n+1, k);
+        for(int i = 1; i<=n; i++){
+            int g = t[i];
+            for(int j = i; j<=i+d && j<=n; j++){
+                int temp = min(g,s[j]);
+                g -= temp;
+                s[j] -= temp;
+                if(g == 0){
+                    break;
+                }
+            }
+            if(g > 0){
+                ok = false;
+                break;
+            }
+        }
+
+        if(ok){
+            ans.PB(1);
+        }else{
+            ans.PB(0);
+        }
+    }
+
+    return ans;
 }
 
 vector<int> solve(){
