@@ -33,16 +33,16 @@ void getRandom(){
     
     srand(time(0));
 
-    n = rand()%8+1;
+    n = rand()%16+1;
     m = rand()%5+1;
     k = rand()%10+1; 
-    d = rand()%d;
+    d = rand()%n;
 
     vector<int> t(n+1, 0);
 
     for(int i = 0; i<m; i++){
-        int r = rand()%n+1;
-        if(rand()%4+1 == 1){    
+        int r = rand()%(n-d)+1;
+        if(rand()%4+1 == 1 && t[r] != 0){    
             int x = rand()%t[r]+1;
             query.PB(MP(r,x*(-1)));
         }else{
@@ -114,7 +114,7 @@ struct ver{
 };
 
 vector<ver> tree;
-int R = 1;
+int R = 0;
 int depth = 0;
 
 int left(int v){
@@ -145,15 +145,18 @@ void update(int r, int x){
         ver L = tree[left(V)];
         ver R = tree[right(V)];
 
-        tree[V].sum += L.sum + R.sum;
+        tree[V].sum = L.sum + R.sum;
         tree[V].pref = max(L.pref, L.sum + R.pref);
-        tree[V].suf = max(L.sum + R.suf, R.suf);
+        tree[V].suf = max(L.suf + R.sum, R.suf);
         tree[V].psoms = max(max(L.psoms, R.psoms), L.suf + R.pref);
         V = parent(V);
     }
 }
 
 vector<int> solve(){
+    R = 0;
+    depth = 0;
+
     tree.clear();
     //initializing the tree
     while((1<<depth) < n){
@@ -163,7 +166,7 @@ vector<int> solve(){
     depth++;
     ll totalSize = (1<<depth) + R;
 
-    tree.assign(totalSize+1, ver(-INF,-INF,-INF,0));
+    tree.assign(totalSize+1, ver(-llINF,-llINF,-llINF,0));
 
     for(int i = totalSize; i>=1; i--){
         if(i > R){
@@ -195,8 +198,8 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
-    for(int test = 1; test<=1; test++){
+    int op = 0;
+    for(int test = 1; test<=100'000; test++){
         cout<<"Test nr."<<test<<" = ";
         if(op == 1){
             getData();
@@ -218,6 +221,7 @@ int main()
                     cout<<ansS[j]<<" ";
                 }
                 cout<<"\n";
+                printData();
                 return 0;
             }
         }

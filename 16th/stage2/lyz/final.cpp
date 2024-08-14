@@ -16,16 +16,16 @@ const ll llINF = 2'000'000'000'000'000'000;
 #define MP make_pair
 #define PB push_back
 
-int n,m,k,d;
-vector<PII> query;
+ll n,m,k,d;
+// vector<PII> query;
 
 void getData(){
     cin>>n>>m>>k>>d;
-    for(int i =0; i<m; i++){
-        int r, x;
-        cin>>r>>x;
-        query.PB(MP(r,x));
-    }
+    // for(int i =0; i<m; i++){
+    //     int r, x;
+    //     cin>>r>>x;
+    //     query.PB(MP(r,x));
+    // }
 }
 
 struct ver{
@@ -42,7 +42,7 @@ struct ver{
 };
 
 vector<ver> tree;
-int R = 1;
+int R = 0;
 int depth = 0;
 
 int left(int v){
@@ -73,9 +73,9 @@ void update(int r, int x){
         ver L = tree[left(V)];
         ver R = tree[right(V)];
 
-        tree[V].sum += L.sum + R.sum;
+        tree[V].sum = L.sum + R.sum;
         tree[V].pref = max(L.pref, L.sum + R.pref);
-        tree[V].suf = max(L.sum + R.suf, R.suf);
+        tree[V].suf = max(L.suf + R.sum, R.suf);
         tree[V].psoms = max(max(L.psoms, R.psoms), L.suf + R.pref);
         V = parent(V);
     }
@@ -88,10 +88,9 @@ vector<int> solve(){
         R += (1<<depth);
         depth++;
     }
-    depth++;
     ll totalSize = (1<<depth) + R;
 
-    tree.assign(totalSize+1, ver(-INF,-INF,-INF,0));
+    tree.assign(totalSize+1, ver(-llINF,-llINF,-llINF,0));
 
     for(int i = totalSize; i>=1; i--){
         if(i > R){
@@ -107,11 +106,16 @@ vector<int> solve(){
     //processing querys
     vector<int> ans;
     for(int i = 0; i<m; i++){
-        update(query[i].first, query[i].second);
+        // update(query[i].first, query[i].second);
+        int r, x;
+        cin>>r>>x;
+        update(r, x);
         if(tree[1].psoms <= d*k){
-            ans.PB(1);
+            // ans.PB(1);
+            cout<<"TAK\n";
         }else{
-            ans.PB(0);
+            // ans.PB(0);
+            cout<<"NIE\n";
         }
     }
 
@@ -123,17 +127,16 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-
     getData();
 
     vector<int> ansS = solve();
-    for(int j =0 ;j<ansS.size(); j++){
-        if(ansS[j] == 0){
-            cout<<"NIE\n";
-        }else{
-            cout<<"TAK\n";
-        }
-    }
+    // for(int j =0; j<ansS.size(); j++){
+    //     if(ansS[j] == 0){
+    //         cout<<"NIE\n";
+    //     }else{
+    //         cout<<"TAK\n";
+    //     }
+    // }
 
     return 0;
 }
