@@ -102,19 +102,19 @@ void printData(){
 
 struct compare{
     bool operator()(const PII a, const PII b){
-        return a.second > b.second;
+        return a.second < b.second;
     }
 };
 
 
 ll brute(){
     vector<int> dif(n+1, 0);
-    int sum = 0;
+    ll sum = 0;
     for(int i = 0; i<n; i++){
-        sum += y[i]-x[i];
-        dif[i] = y[i]-x[i];
+        sum += x[i]-y[i];
+        dif[i+1] = x[i]-y[i];
     }
-    if(sum == 0){
+    if(sum != 0){
         return -1;
     }
 
@@ -143,6 +143,7 @@ ll brute(){
         }
     }
 
+    //removign excess
     ll ans = 0;
     priority_queue<PII, vector<PII>, compare> Q; 
     
@@ -165,6 +166,9 @@ ll brute(){
                 if(dif[cur] > 0){
                     Q.push(MP(cur,depth[cur]));
                 }
+            }
+            if(dif[v.first] > 0){
+                Q.push(MP(v.first, v.second));
             }
         }
     }
