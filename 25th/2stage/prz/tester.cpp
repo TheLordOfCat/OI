@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <queue>
 
 #include <ctime>
 #include <cstdlib>
@@ -99,11 +100,89 @@ void printData(){
     }
 }
 
+struct compare{
+    bool operator()(const PII a, const PII b){
+        return a.second > b.second;
+    }
+};
+
+
 ll brute(){
+    vector<int> dif(n+1, 0);
+    int sum = 0;
+    for(int i = 0; i<n; i++){
+        sum += y[i]-x[i];
+        dif[i] = y[i]-x[i];
+    }
+    if(sum == 0){
+        return -1;
+    }
+
+    //creating graph
+    vector<vector<int>> graph(n+1, vector<int>());
+    for(int i =0 ; i<n-1; i++){
+        graph[edges[i].first].PB(edges[i].second);
+        graph[edges[i].second].PB(edges[i].first);
+    }
+
+    //getting depth
+    vector<int> depth(n+1, 0);
+    depth[1] = 1;
+    queue<PII> bfs;
+    bfs.push(MP(1,1));
+    while(!bfs.empty()){
+        PII v = bfs.front();
+        bfs.pop();
+
+        for(int i = 0; i<graph[v.first].size(); i++){
+            int cur = graph[v.first][i];
+            if(depth[cur] == 0){
+                depth[cur] = v.second+1;
+                bfs.push(MP(cur, v.second+1));
+            }
+        }
+    }
+
+    ll ans = 0;
+    priority_queue<PII, vector<PII>, compare> Q; 
     
+    for(int i = 1; i<=n; i++){
+        if(dif[i] > 0){
+            Q.push(MP(i,depth[i]));
+        }
+    }
+
+    while(!Q.empty()){
+        PII v = Q.top();
+        Q.pop();
+
+        if(dif[v.first] > 0){
+            ans++;
+            dif[v.first] -= graph[v.first].size();
+            for(int i = 0; i<graph[v.first].size(); i++){
+                int cur = graph[v.first][i];
+                dif[cur]++;
+                if(dif[cur] > 0){
+                    Q.push(MP(cur,depth[cur]));
+                }
+            }
+        }
+    }
+
+    return ans;
 }
 
 ll solve(){
+    vector<int> dif(n+1, 0);
+    int sum = 0;
+    for(int i = 0; i<n; i++){
+        sum += y[i]-x[i];
+        dif[i] = y[i]-x[i];
+    }
+    if(sum == 0){
+        return -1;
+    }
+
 
 }
 
