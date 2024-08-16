@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <queue>
+#include <stack>
 
 #include <ctime>
 #include <cstdlib>
@@ -13,6 +14,9 @@ using ull = unsigned long long int;
 #define PII pair<int,int>
 #define MP make_pair
 #define PB push_back
+
+const int INF = 1'000'000'000;
+const ll llINF = 9'000'000'000'000'000'000;
 
 int n;
 vector<int> x;
@@ -195,47 +199,83 @@ ll solve(){
 
     //size of subTrees, root = 1
     vector<pair<int,ll>> subTree(n+1, MP(0,0));
-    queue<pair<int, bool>> Q;
+    stack<pair<int, bool>> S;
 
     vector<bool> vis(n+1, false);
+    vis[1] = true;
 
-    Q.push(MP(1,false));
+    S.push(MP(1,false));
 
-    while(!Q.empty()){
-        int v = Q.front().first;
-        bool b = Q.front().second;
-        Q.pop();
+    while(!S.empty()){
+        int v = S.top().first;
+        bool b = S.top().second;
+        S.pop();
 
         if(b){
             int sumVer = 1;
-            ll sumVal = 0;
+            ll sumVal = dif[v];
             for(int i = 0; i<graph[v].size(); i++){
                 int cur = graph[v][i];
                 sumVer += subTree[cur].first;
                 sumVal += subTree[cur].second;
             }
             subTree[v] = MP(sumVer,sumVal);
+            continue;
         }
 
-        Q.push(MP(v,true));
+        S.push(MP(v,true));
         for(int i = 0; i<graph[v].size(); i++){
             int cur = graph[v][i];
             if(!vis[cur]){
                 vis[cur] = true;
-                Q.push(MP(cur,false));
+                S.push(MP(cur,false));
             }
         }
     }
 
-    //calcucalting answer
-    ll ans =  0;
+    //propagation
+    vector<ll> prop(n+1, 0);
 
-    for(int i = 1; i<n; i++){
+    for(int i = 1; i<=n; i++){
         if(subTree[i].second > 0){
-            ans += subTree[i].first;
-        }else{
-            ans += n-subTree[i].first;
+            prop[i] += subTree[i].second;
+        }else if(subTree[i].second < 0){
+            prop[i] += subTree[i].second;
+            prop[1] -= subTree[i].second;
         }
+    }
+
+    vector<ll> op(n+1, 0);
+
+    stack<PII> P;
+    vis.clear();
+    vis.assign(n+1, false);
+
+    P.push(MP(1, prop[1]));
+    vis[1] = true;
+
+    while(!P.empty()){
+        PII v = P.top();
+        P.pop();
+
+        op[v.first] = v.second;
+        for(int i = 0; i<graph[v.first].size(); i++){
+            int cur = graph[v.first][i];
+            if(!vis[cur]){
+                vis[cur] = true;
+                P.push(MP(cur,v.second + prop[cur]));
+            }
+        }
+    } 
+
+    //getting ans
+    ll minOp = llINF;
+    for(int i = 1; i<=n; i++){
+        minOp = min(minOp, op[i]);
+    }
+    ll ans =  0;
+    for(int i = 1; i<=n; i++){
+        ans += (op[i]-minOp);
     }
 
     return ans;
