@@ -106,7 +106,6 @@ struct compare{
     }
 };
 
-
 ll brute(){
     vector<int> dif(n+1, 0);
     ll sum = 0;
@@ -178,16 +177,68 @@ ll brute(){
 
 ll solve(){
     vector<int> dif(n+1, 0);
-    int sum = 0;
+    ll sum = 0;
     for(int i = 0; i<n; i++){
-        sum += y[i]-x[i];
-        dif[i] = y[i]-x[i];
+        sum += x[i]-y[i];
+        dif[i+1] = x[i]-y[i];
     }
-    if(sum == 0){
+    if(sum != 0){
         return -1;
     }
 
+    //creating graph
+    vector<vector<int>> graph(n+1, vector<int>());
+    for(int i =0 ; i<n-1; i++){
+        graph[edges[i].first].PB(edges[i].second);
+        graph[edges[i].second].PB(edges[i].first);
+    }
 
+    //size of subTrees, root = 1
+    vector<pair<int,ll>> subTree(n+1, MP(0,0));
+    queue<pair<int, bool>> Q;
+
+    vector<bool> vis(n+1, false);
+
+    Q.push(MP(1,false));
+
+    while(!Q.empty()){
+        int v = Q.front().first;
+        bool b = Q.front().second;
+        Q.pop();
+
+        if(b){
+            int sumVer = 1;
+            ll sumVal = 0;
+            for(int i = 0; i<graph[v].size(); i++){
+                int cur = graph[v][i];
+                sumVer += subTree[cur].first;
+                sumVal += subTree[cur].second;
+            }
+            subTree[v] = MP(sumVer,sumVal);
+        }
+
+        Q.push(MP(v,true));
+        for(int i = 0; i<graph[v].size(); i++){
+            int cur = graph[v][i];
+            if(!vis[cur]){
+                vis[cur] = true;
+                Q.push(MP(cur,false));
+            }
+        }
+    }
+
+    //calcucalting answer
+    ll ans =  0;
+
+    for(int i = 1; i<n; i++){
+        if(subTree[i].second > 0){
+            ans += subTree[i].first;
+        }else{
+            ans += n-subTree[i].first;
+        }
+    }
+
+    return ans;
 }
 
 int main()
