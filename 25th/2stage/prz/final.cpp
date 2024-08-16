@@ -1,3 +1,5 @@
+//solution differs slightly from the one in tester.cpp
+
 #include <iostream>
 #include <vector>
 #include <queue>
@@ -17,6 +19,7 @@ using ull = unsigned long long int;
 
 const int INF = 1'000'000'000;
 const ll llINF = 9'000'000'000'000'000'000;
+const ull ullINF = 18'000'000'000'000'000'000;
 
 int n;
 vector<int> x;
@@ -42,15 +45,18 @@ void getData(){
     }
 }
 
-ll solve(){
-    vector<int> dif(n+1, 0);
-    ull sum = 0;
+bool notEqual = false;
+
+ull solve(){
+    vector<ll> dif(n+1, 0);
+    ll sum = 0;
     for(int i = 0; i<n; i++){
         sum += x[i]-y[i];
         dif[i+1] = x[i]-y[i];
     }
     if(sum != 0){
-        return -1;
+        notEqual = true;
+        return 0;
     }
 
     //creating graph
@@ -61,8 +67,8 @@ ll solve(){
     }
 
     //size of subTrees, root = 1
-    vector<pair<int,ll>> subTree(n+1, MP(0,0));
-    stack<pair<int, bool>> S;
+    vector<pair<ll,ll>> subTree(n+1, MP(0,0));
+    stack<pair<ll, bool>> S;
 
     vector<bool> vis(n+1, false);
     vis[1] = true;
@@ -70,12 +76,12 @@ ll solve(){
     S.push(MP(1,false));
 
     while(!S.empty()){
-        int v = S.top().first;
+        ll v = S.top().first;
         bool b = S.top().second;
         S.pop();
 
         if(b){
-            int sumVer = 1;
+            ll sumVer = 1;
             ll sumVal = dif[v];
             for(int i = 0; i<graph[v].size(); i++){
                 int cur = graph[v][i];
@@ -108,9 +114,9 @@ ll solve(){
         }
     }
 
-    vector<ll> op(n+1, 0);
+    vector<ull> op(n+1, 0);
 
-    stack<PII> P;
+    stack<pair<ll,ull>> P;
     vis.clear();
     vis.assign(n+1, false);
 
@@ -118,7 +124,7 @@ ll solve(){
     vis[1] = true;
 
     while(!P.empty()){
-        PII v = P.top();
+        pair<ll,ull> v = P.top();
         P.pop();
 
         op[v.first] = v.second;
@@ -132,11 +138,12 @@ ll solve(){
     } 
 
     //getting ans
-    ll minOp = llINF;
+    ull minOp = ullINF;
     for(int i = 1; i<=n; i++){
         minOp = min(minOp, op[i]);
     }
-    ll ans =  0;
+
+    ull ans = 0;
     for(int i = 1; i<=n; i++){
         ans += (op[i]-minOp);
     }
@@ -152,8 +159,8 @@ int main()
 
     getData();
 
-    ll ansS = solve();
-    if(ansS == -1){
+    ull ansS = solve();
+    if(notEqual){
         cout<<"NIE\n";
     }else{
         cout<<"TAK\n";
