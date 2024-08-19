@@ -147,7 +147,7 @@ void createSCC(vector<vector<int>>& graphSCC, vector<vector<int>>& components, v
     visSCC.assign(n+1, false);
     vector<int> root(n+1, -1);
     for(int i = 0; i < order.size(); i++){
-        if(!visSCC[i]){
+        if(!visSCC[order[i]]){
             vector<int> comp;
             dfs(order[i],graphRev,comp);
             components.PB(comp);
@@ -200,11 +200,11 @@ vector<int> solve(){
                 S.pop();
 
                 if(b){
-                    int sum = 0;
+                    int sum = components[v].size();
                     for(int j = 0; j<graphSCC[v].size(); j++){
                         int cur = graphSCC[v][j];
                         if(cur != parent[v]){
-                            sum += dp[cur] + 1;
+                            sum += dp[cur];
                         }
                     }
                     dp[v] = sum;
@@ -228,7 +228,7 @@ vector<int> solve(){
 
     for(int i = 0; i<components.size(); i++){
         for(int j = 0; j<components[i].size(); j++){
-            ans[components[i][j]-1] = dp[i] + components[i].size()-1;
+            ans[components[i][j]-1] = dp[i]-1;
         }
     }
 
@@ -240,8 +240,8 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
-    for(int test = 1; test<= 1; test++){
+    int op = 0;
+    for(int test = 1; test<= 10'000; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
