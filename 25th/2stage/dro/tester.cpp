@@ -122,7 +122,7 @@ vector<bool> visSCC;
 
 void dfs(int v, vector<vector<int>>& graph, vector<int>& vec){
     visSCC[v] = true;
-    for(int j = 0; j <= graph[v].size(); j++){
+    for(int j = 0; j < graph[v].size(); j++){
         int cur = graph[v][j];
         if(!visSCC[cur]){
             dfs(cur, graph, vec);
@@ -149,14 +149,14 @@ void createSCC(vector<vector<int>>& graphSCC, vector<vector<int>>& components, v
     for(int i = 0; i < order.size(); i++){
         if(!visSCC[i]){
             vector<int> comp;
-            dfs(i,graphRev,comp);
+            dfs(order[i],graphRev,comp);
             components.PB(comp);
-            int r = comp.back();
-            for(int j = 0; j<comp.size()-1; j++){
-                root[comp[j]] = r;
+            for(int j = 0; j<comp.size(); j++){
+                root[comp[j]] = components.size()-1;
             }
         }
     }
+    graphSCC.assign(components.size(), vector<int>());
 
     for(int i = 1; i<=n; i++){
         for(int j = 0; j < graph[i].size(); j++){
@@ -216,7 +216,7 @@ vector<int> solve(){
                     int cur = graphSCC[v][j];
                     if(!vis[cur]){
                         vis[cur] = true;
-                        S.push(MP(v,false));
+                        S.push(MP(cur,false));
                     }
                 }
             }
@@ -228,7 +228,7 @@ vector<int> solve(){
 
     for(int i = 0; i<components.size(); i++){
         for(int j = 0; j<components[i].size(); j++){
-            dp[components[i][j]] = dp[i];
+            ans[components[i][j]-1] = dp[i] + components[i].size()-1;
         }
     }
 
@@ -267,6 +267,7 @@ int main()
                 return 0;
             }
         }
+        cout<<"CORRECT\n";
     }
 
     return 0;
