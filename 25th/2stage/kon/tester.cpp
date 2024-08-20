@@ -72,24 +72,20 @@ PII brute(){
     vector<PII> pas = passengers;
     sort(pas.begin(), pas.end());
 
-    for(int o = 1; o <= n; o++){
+    for(int o = 1; o <= m; o++){
 
-        vector<int> per;
-        for(int i = 1; i<=n; i++){
-            per.PB(i);
+        vector<bool> vis(m, false);
+        for(int i= 0; i<o; i++){
+            vis[m-i-1] = true;
         }
         
         //iterate through combinations
         do{
-            vector<bool> vis(n+1, false);
-            for(int i= 0; i<o; i++){
-                vis[per[i]] = true;
-            }
             //verifying
             int count = 0;
             for(int i = 0; i<pas.size(); i++){
-                for(int j = pas[i].first; j<=pas[i].second; j++){
-                    if(vis[j]){
+                for(int j = pas[i].first; j<pas[i].second; j++){
+                    if(vis[j-1]){
                         count++;
                         break;
                     }
@@ -100,7 +96,7 @@ PII brute(){
                 comb++;
             }
 
-        }while(next_permutation(per.begin(),per.end()));
+        }while(next_permutation(vis.begin(), vis.end()));
 
         if(comb > 0){
             minOp = o;
