@@ -21,6 +21,8 @@ const ull ullINF = 18'000'000'000'000'000'000;
 int n, m;
 vector<PII> passengers;
 
+const int MOD = 1'000'000'007;
+
 void getData(){
     passengers.clear();
 
@@ -58,19 +60,24 @@ void printData(){
     }
 }
 
-struct comparePas{
-    bool oparetor(const PII a, const PII b){
-        if(a.first == a.first){
-            return b.first < b.second;
-        }
-        return a.first < a.second;
+bool comparePasLeft(const PII a, const PII b){
+    if(a.first == b.first){
+        return a.second < b.second;
     }
-};
+    return a.first < b.first;
+}
+
+bool comparePasRight(const PII a, const PII b){
+    if(a.second == b.second){
+        return a.first < b.first;
+    }
+    return a.second < b.second;
+}
 
 PII brute(){
     ll minOp, comb = 0;
     vector<PII> pas = passengers;
-    sort(pas.begin(), pas.end());
+    sort(pas.begin(), pas.end(), comparePasLeft);
 
     for(int o = 1; o <= m; o++){
 
@@ -110,7 +117,77 @@ PII brute(){
 }
 
 PII solve(){
+    pair<int,ll> ans = MP(0,0);
+    vector<PII> pas = passengers;
+    sort(pas.begin(), pas.end(), comparePasLeft);
+    vector<vector<int>> groups;
+    vector<PII> boundary;
 
+    //iterating from left to right
+    int left = pas.front().first;
+    int right = pas.front().second;
+    vector<int> g;
+    for(int i = 0; i < pas.size(); i++){
+        PII cur = pas[i];
+        if(cur.first < right){
+            left = cur.first;
+            g.push_back(i);
+        }else{
+            groups.PB(g);
+            boundary.PB(MP(left,right));
+            g.clear();
+
+            g.push_back(i);
+            left = cur.first;
+            right = cur.second;
+        }
+    }
+
+    groups.PB(g);
+    boundary.PB(MP(left,right));
+    g.clear();
+
+    //updating ans
+    ans = MP(groups.size(), 1);
+    for(int i = 0; i<groups.size(); i++){
+        ans.second *= (boundary[i].second- boundary[i].first);
+        ans.second = ans.second%MOD;
+    }
+
+    groups.clear();
+    boundary.clear();
+
+    //iterating form right to left
+    left = pas.back().first;
+    right = pas.back().second;
+    g.clear();
+    for(int i = pas.size()-1; i >= 0; i++){
+        PII cur = pas[i];
+        if(cur.second < left){
+            right = cur.second;
+            g.push_back(i);
+        }else{
+            groups.PB(g);
+            boundary.PB(MP(left,right));
+            g.clear();
+
+            g.push_back(i);
+            left = cur.first;
+            right = cur.second;
+        }
+    }
+
+    groups.PB(g);
+    boundary.PB(MP(left,right));
+    g.clear();
+
+    //updating answer
+    for(int i = 0; i<boundary.size(); i++){
+        ans.second *= (boundary[i].second- boundary[i].first);
+        ans.second = ans.second%MOD;
+    }
+
+    return ans;
 }
 
 int main()
