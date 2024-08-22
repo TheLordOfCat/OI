@@ -68,10 +68,10 @@ bool comparePasLeft(const PII a, const PII b){
 }
 
 bool comparePasRed(const PII a, const PII b){
-    if(a.second == b.second){
-        return a.first < b.first;
+    if(a.first == b.first){
+        return a.second > b.second;
     }
-    return a.second > b.second;
+    return a.first < b.first;
 }
 
 PII brute(){
@@ -133,7 +133,7 @@ PII solve(){
         }
         if(rightBoundary.size() != 0 ){
             if(pas[i].second > rightBoundary.back().second){
-                redPas.PB(pas[i]);
+                redPas.PB(rightBoundary.back());
                 rightBoundary.pop_back();
             }
         }
@@ -155,7 +155,7 @@ PII solve(){
     for(int i = 0; i < pas.size(); i++){
         PII cur = pas[i];
         if(cur.first < right){
-            left = cur.first;
+            // left = cur.first;
             g.push_back(i);
         }else{
             groups.PB(g);
@@ -173,21 +173,21 @@ PII solve(){
     g.clear();
 
     //dp by groups
-    vector<int> dp(m+2, 0);
-    vector<int> sufDp(m+1, 0);
-    for(int i = boundary.back().first; i<= boundary.back().second; i++){
+    vector<ll> dp(m+2, 0);
+    vector<ll> sufDp(m+1, 0);
+    for(int i = boundary.back().first; i< boundary.back().second; i++){
         dp[i] = 1;
     }
-    for(int i = boundary.back().second-1; i>= boundary.back().first; i--){
-        sufDp[i] = dp[i]+sufDp[i+1];
+    sufDp[boundary.back().second-1] = dp[boundary.back().second-1];
+    for(int i = boundary.back().second-2; i>= boundary.back().first; i--){
+        sufDp[i] = (dp[i]+sufDp[i+1])%MOD;
     }
 
     for(int i = groups.size()-2; i>=0; i--){
-        vector<int> g = groups[i];
+        vector<int> gr = groups[i];
         vector<int> parts;
-        parts.PB(boundary[i].first);
-        for(int j =0 ; j<g.size(); j++){
-            parts.PB(pas[g[j]].first);
+        for(int j =0 ; j<gr.size(); j++){
+            parts.PB(pas[gr[j]].first);
         }
         parts.PB(boundary[i].second);
 
@@ -196,23 +196,20 @@ PII solve(){
             if(j >= parts[ind+1]){
                 ind++;
             }
-            if(ind < parts.size()-1){
-                dp[j] = sufDp[boundary[i+1].first] - sufDp[pas[g[ind]].second];
+            if(ind < gr.size()-1){
+                dp[j] = (sufDp[boundary[i+1].first] - sufDp[pas[gr[ind+1]].second])%MOD;
             }else{
-                dp[j] = sufDp[boundary[i+1].first] - sufDp[boundary[i+1].second];
+                dp[j] = (sufDp[boundary[i+1].first] - sufDp[boundary[i+1].second])%MOD;
             }
         }
-        for(int j = boundary[i].second-1; j>= boundary[i].first; j--){
-            sufDp[i] = dp[i]+sufDp[i+1];
+        sufDp[boundary[i].second-1] = dp[boundary[i].second-1];
+        for(int j = boundary[i].second-2; j>= boundary[i].first; j--){
+            sufDp[j] = (dp[j] + sufDp[j+1])%MOD;
         }  
     }
     
     //getting the ans
-    pair<int,ll> ans = MP(groups.size(),0);
-    for(int i = boundary.front().first; i<boundary.front().second; i++){
-        ans.second += dp[i];
-        ans.second = ans.second%MOD;
-    }
+    pair<int,ll> ans = MP(groups.size(), sufDp[pas.front().first]%MOD);
 
     return ans;
 }
