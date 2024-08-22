@@ -54,7 +54,7 @@ void getRandom(){
 
 void printData(){
     cout<<"DATA: \n";
-    cout<<n<<" "<<m<<"\n";
+    cout<<m<<" "<<n<<"\n";
     for(int i =0; i<passengers.size(); i++){
         cout<<passengers[i].first<<" "<<passengers[i].second<<"\n";
     }
@@ -67,11 +67,11 @@ bool comparePasLeft(const PII a, const PII b){
     return a.first < b.first;
 }
 
-bool comparePasRight(const PII a, const PII b){
+bool comparePasRed(const PII a, const PII b){
     if(a.second == b.second){
         return a.first < b.first;
     }
-    return a.second < b.second;
+    return a.second > b.second;
 }
 
 PII brute(){
@@ -117,13 +117,38 @@ PII brute(){
 }
 
 PII solve(){
-    pair<int,ll> ans = MP(0,0);
     vector<PII> pas = passengers;
-    sort(pas.begin(), pas.end(), comparePasLeft);
+    sort(pas.begin(), pas.end(), comparePasRed);
     vector<vector<int>> groups;
     vector<PII> boundary;
+    
+    //reduction
+    vector<PII> rightBoundary;
+    vector<PII> redPas;
+    for(int i = 0; i<pas.size(); i++){
+        if(rightBoundary.size() != 0 ){
+            if(pas[i].second <= rightBoundary.back().second){
+                rightBoundary.pop_back();
+            }
+        }
+        if(rightBoundary.size() != 0 ){
+            if(pas[i].second > rightBoundary.back().second){
+                redPas.PB(pas[i]);
+                rightBoundary.pop_back();
+            }
+        }
+        rightBoundary.PB(pas[i]);
+    }
+
+    if(rightBoundary.size() != 0 ){
+        redPas.PB(rightBoundary.back());
+        rightBoundary.pop_back();
+    }
+
+    pas = redPas;
 
     //iterating from left to right
+    sort(pas.begin(), pas.end(), comparePasLeft);
     int left = pas.front().first;
     int right = pas.front().second;
     vector<int> g;
@@ -147,43 +172,45 @@ PII solve(){
     boundary.PB(MP(left,right));
     g.clear();
 
-    //updating ans
-    ans = MP(groups.size(), 1);
-    for(int i = 0; i<groups.size(); i++){
-        ans.second *= (boundary[i].second- boundary[i].first);
-        ans.second = ans.second%MOD;
+    //dp by groups
+    vector<int> dp(m+2, 0);
+    vector<int> sufDp(m+1, 0);
+    for(int i = boundary.back().first; i<= boundary.back().second; i++){
+        dp[i] = 1;
+    }
+    for(int i = boundary.back().second-1; i>= boundary.back().first; i--){
+        sufDp[i] = dp[i]+sufDp[i+1];
     }
 
-    groups.clear();
-    boundary.clear();
-
-    //iterating form right to left
-    left = pas.back().first;
-    right = pas.back().second;
-    g.clear();
-    for(int i = pas.size()-1; i >= 0; i++){
-        PII cur = pas[i];
-        if(cur.second < left){
-            right = cur.second;
-            g.push_back(i);
-        }else{
-            groups.PB(g);
-            boundary.PB(MP(left,right));
-            g.clear();
-
-            g.push_back(i);
-            left = cur.first;
-            right = cur.second;
+    for(int i = groups.size()-2; i>=0; i--){
+        vector<int> g = groups[i];
+        vector<int> parts;
+        parts.PB(boundary[i].first);
+        for(int j =0 ; j<g.size(); j++){
+            parts.PB(pas[g[j]].first);
         }
+        parts.PB(boundary[i].second);
+
+        int ind = 0;
+        for(int j = parts.front(); j<parts.back(); j++){
+            if(j >= parts[ind+1]){
+                ind++;
+            }
+            if(ind < parts.size()-1){
+                dp[j] = sufDp[boundary[i+1].first] - sufDp[pas[g[ind]].second];
+            }else{
+                dp[j] = sufDp[boundary[i+1].first] - sufDp[boundary[i+1].second];
+            }
+        }
+        for(int j = boundary[i].second-1; j>= boundary[i].first; j--){
+            sufDp[i] = dp[i]+sufDp[i+1];
+        }  
     }
-
-    groups.PB(g);
-    boundary.PB(MP(left,right));
-    g.clear();
-
-    //updating answer
-    for(int i = 0; i<boundary.size(); i++){
-        ans.second *= (boundary[i].second- boundary[i].first);
+    
+    //getting the ans
+    pair<int,ll> ans = MP(groups.size(),0);
+    for(int i = boundary.front().first; i<boundary.front().second; i++){
+        ans.second += dp[i];
         ans.second = ans.second%MOD;
     }
 
