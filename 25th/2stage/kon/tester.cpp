@@ -38,8 +38,8 @@ void getRandom(){
     passengers.clear();
     srand(time(0));
 
-    m = rand()%15+1;
-    n = rand()%5+1;
+    m = rand()%15+10;
+    n = rand()%5+4;
 
     for(int i = 0; i<n; i++){
         int a = -1, b = -1;
@@ -127,20 +127,17 @@ PII solve(){
     vector<PII> redPas;
     for(int i = 0; i<pas.size(); i++){
         if(rightBoundary.size() != 0 ){
-            if(pas[i].second <= rightBoundary.back().second){
+            while(pas[i].second <= rightBoundary.back().second){
                 rightBoundary.pop_back();
-            }
-        }
-        if(rightBoundary.size() != 0 ){
-            if(pas[i].second > rightBoundary.back().second){
-                redPas.PB(rightBoundary.back());
-                rightBoundary.pop_back();
+                if(rightBoundary.size() == 0){
+                    break;
+                }
             }
         }
         rightBoundary.PB(pas[i]);
     }
 
-    if(rightBoundary.size() != 0 ){
+    while(rightBoundary.size() != 0 ){
         redPas.PB(rightBoundary.back());
         rightBoundary.pop_back();
     }
@@ -155,7 +152,7 @@ PII solve(){
     for(int i = 0; i < pas.size(); i++){
         PII cur = pas[i];
         if(cur.first < right){
-            // left = cur.first;
+            left = cur.first;
             g.push_back(i);
         }else{
             groups.PB(g);
@@ -179,7 +176,7 @@ PII solve(){
         dp[i] = 1;
     }
     sufDp[boundary.back().second-1] = dp[boundary.back().second-1];
-    for(int i = boundary.back().second-2; i>= boundary.back().first; i--){
+    for(int i = boundary.back().second-2; i >= pas[groups.back().front()].first; i--){
         sufDp[i] = (dp[i]+sufDp[i+1])%MOD;
     }
 
@@ -193,17 +190,17 @@ PII solve(){
 
         int ind = 0;
         for(int j = parts.front(); j<parts.back(); j++){
-            if(j >= parts[ind+1]){
+            while(j >= parts[ind+1]){
                 ind++;
             }
             if(ind < gr.size()-1){
                 dp[j] = (sufDp[boundary[i+1].first] - sufDp[pas[gr[ind+1]].second])%MOD;
             }else{
-                dp[j] = (sufDp[boundary[i+1].first] - sufDp[boundary[i+1].second])%MOD;
+                dp[j] = (sufDp[boundary[i+1].first])%MOD;
             }
         }
         sufDp[boundary[i].second-1] = dp[boundary[i].second-1];
-        for(int j = boundary[i].second-2; j>= boundary[i].first; j--){
+        for(int j = boundary[i].second-2; j>= pas[gr.front()].first; j--){
             sufDp[j] = (dp[j] + sufDp[j+1])%MOD;
         }  
     }
@@ -219,17 +216,18 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
+    int op = 0;
     int z = 1;
     // cin>>z;
     for(int o = 0; o<z; o++){
-        for(int test = 1; test<=1; test++){
+        for(int test = 1; test<=100'000; test++){
             cout<<"TEST nr."<<test<<" = ";
             if(op == 1){
                 getData();
             }else{
                 getRandom();
             }
+            // printData();
             PII ansB = brute();
             PII ansS = solve();
             if(ansB.first != ansS.first || ansB.second != ansS.second){
