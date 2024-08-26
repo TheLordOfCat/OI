@@ -232,10 +232,15 @@ int parent(int v){
 }
 
 void upateTree(int v, int tl, int tr, int l, int r, ll s, ll a){
+    if(l > r) return;
+
     int mid = (tl+tr)/2;
     if(tl == l && tr == r){
-        lazy[left(v)] += MP(s,a);
-        lazy[right(v)] += MP(s+(a*(mid)), a);
+        if(v < R){
+            lazy[left(v)] += MP(s,a);
+            lazy[right(v)] += MP(s+(a*(mid-l+1)), a);
+        }
+
         ll sum = 0;
         for(ll i = 0; i<(tr-tl+1); i++){
             if(s + a*i > 0){
@@ -245,12 +250,13 @@ void upateTree(int v, int tl, int tr, int l, int r, ll s, ll a){
         tree[v] += sum;
     }else{
         upateTree(left(v), tl, mid, l, min(r, mid), s, a);   
-        upateTree(right(v), mid+1, tr, max(l, mid+1), r, s + (mid-tl)*a, a);   
+        upateTree(right(v), mid+1, tr, max(l, mid+1), r, s + (mid-l+1)*a, a);   
         tree[v] = tree[left(v)] + tree[right(v)];
     }
 }
 
 ll query(int v, int tl, int tr, int l, int r){
+    if(l > r) return 0;
     int mid = (tl+tr)/2;
     if(lazy[v].first != 0 && lazy[v].second != 0){
         ll s = lazy[v].first;
@@ -258,21 +264,21 @@ ll query(int v, int tl, int tr, int l, int r){
 
         ll sum = 0;
         for(ll i = 0; i<(tr-tl+1); i++){
-            if(s + a*i > 0){
-                sum += s+ a*i;
-            }
+            sum += s+ a*i;
         }
         tree[v] += sum;
 
-        lazy[left(v)] += MP(s,a);
-        lazy[right(v)] += MP(s+(a*(mid)), a); 
+        if(v < R){
+            lazy[left(v)] += MP(s,a);
+            lazy[right(v)] += MP(s+(a*(mid)), a); 
+        }
     }
     lazy[v].first = 0; lazy[v].second = 0;
 
     if(tl == l && tr == r){
         return tree[v];
     }else{
-        return query(left(v), tl, mid, l,min(r, mid)) + query(left(v), mid+1, tr, max(l, mid+1), r);
+        return query(left(v), tl, mid, l, min(r, mid)) + query(right(v), mid+1, tr, max(l, mid+1), r);
     }
 }
 
@@ -299,21 +305,23 @@ vector<ll> solve(){
         char t = get<0>(promts[i]);
         int a = get<1>(promts[i]), b = get<2>(promts[i]), c = get<3>(promts[i]); 
         if(t == 'P'){
-            ll len = b/c + 1;
-            upateTree(1,R+1, totalSize, a-len, a, b-len*c, c);
-            upateTree(1,R+1, totalSize, a, a+len, b, c*(-1));
+            ll len = b/c - 1;
+            upateTree(1,R+1, totalSize, leaf(a)-len, leaf(a), b-len*c, c);
+            upateTree(1,R+1, totalSize, leaf(a), leaf(a)+len, b, c*(-1));
+
             poles[a] = MP(b,c);
         }
         if(t == 'U'){
             ll b = poles[a].first, c = poles[a].second; 
-            ll len = b/c + 1;
-            upateTree(1,R+1, totalSize, a-len, a, b-len*c, c);
-            upateTree(1,R+1, totalSize, a, a+len, b, c*(-1));
+            ll len = b/c - 1;
+            upateTree(1,R+1, totalSize, leaf(a)-len, leaf(a), (b-len*c)*(-1), c*(-1));
+            upateTree(1,R+1, totalSize, leaf(a), leaf(a)+len, b*(-1), c);
 
             poles[a] = MP(0,0);
         }
         if(t == 'Z'){
-            ll temp = query(1,R+1, totalSize, a, b);
+            ll temp = query(1,R+1, totalSize, leaf(a), leaf(b));
+            ans.PB(temp);
         }
     }
 
@@ -334,7 +342,7 @@ int main()
             getRandom();
         }
         vector<int> ansB = brute();
-        vector<int> ansS = solve();
+        vector<ll> ansS = solve();
         for(int j= 0 ; j<ansB.size(); j++){
             if(ansB[j] != ansS[j]){
                 cout<<"ERROR\n";
