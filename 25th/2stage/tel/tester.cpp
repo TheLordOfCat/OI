@@ -28,22 +28,22 @@ void getData(){
 
     cin>>n>>m;
     for(int i =0 ; i<m; i++){
-        char c;
-        cin>>c;
+        char t;
+        cin>>t;
         int a, b, c;
-        if(c == 'P'){
+        if(t == 'P'){
             cin>>a>>b>>c;
         }
-        if(c == 'U'){
+        if(t == 'U'){
             cin>>a;
             b = -1; c = -1;
         }
-        if(c == 'Z'){
+        if(t == 'Z'){
             cin>>a>>b;
             c = -1;
         }
 
-        promts.PB(MT(c,a,b,c));
+        promts.PB(MT(t,a,b,c));
     }
 }
 
@@ -57,12 +57,12 @@ void getRandom(){
     vector<bool> stations(n+1, false);
     int curStations = 0;
     for(int i = 0; i<m; i++){
-        char c; int a, b, c;
+        char t; int a, b, c;
         int temp = rand()%3+1;
 
         if(temp == 2){
             if(curStations > 0){
-                c = 'U';
+                t = 'U';
                 a = rand()%n+1;
                 while(!stations[a]){
                     stations[a] = false;
@@ -76,7 +76,7 @@ void getRandom(){
         }
 
         if(temp == 1){
-            c = 'P';
+            t = 'P';
             a = rand()%n+1;
             while(stations[a]){
                 a = rand()%n+1;
@@ -87,7 +87,7 @@ void getRandom(){
         }
 
         if(temp == 3){
-            c = 'Z';
+            t = 'Z';
             a = -1;
             b = -1;
             while(a != b){
@@ -100,7 +100,7 @@ void getRandom(){
             c = -1;
         }
 
-        promts.PB(MT(c,a,b,c));
+        promts.PB(MT(t,a,b,c));
     }
 }
 
@@ -108,9 +108,9 @@ void printData(){
     cout<<"DATA: \n";
     cout<<n<<" "<<m<<"\n";
     for(int i = 0; i<promts.size(); i++){
-        char c = get<0>(promts[i]);
+        char t = get<0>(promts[i]);
         int a = get<1>(promts[i]), b = get<2>(promts[i]), c = get<3>(promts[i]); 
-        cout<<c<<" "<<a<<" "<<b<<" "<<c<<"\n";
+        cout<<t<<" "<<a<<" "<<b<<" "<<c<<"\n";
     }
 }
 
@@ -120,10 +120,10 @@ vector<int> brute(){
     vector<int> signal(n+1, 0);
 
     for(int i = 0; i<m; i++){
-        char c = get<0>(promts[i]);
+        char t = get<0>(promts[i]);
         int a = get<1>(promts[i]), b = get<2>(promts[i]), c = get<3>(promts[i]); 
 
-        if(c == 'P'){
+        if(t == 'P'){
             poles[a] = MP(b,c);
             
             signal[a] = b;
@@ -131,7 +131,7 @@ vector<int> brute(){
             int temp = b-c;
             int ind = a+1;
             while(temp > 0){
-                signal[a] += temp;
+                signal[ind] += temp;
                 ind += 1;
                 temp -= c;
 
@@ -143,17 +143,17 @@ vector<int> brute(){
             temp = b-c;
             ind = a-1;
             while(temp > 0){
-                signal[a] += temp;
+                signal[ind] += temp;
                 ind -= 1;
                 temp -= c;
 
-                if(ind > 0){
+                if(ind <= 0){
                     break;
                 }
             }
         }
         
-        if(c == 'U'){
+        if(t == 'U'){
             b = poles[a].first;
             c = poles[a].second;
 
@@ -162,7 +162,7 @@ vector<int> brute(){
             int temp = b-c;
             int ind = a+1;
             while(temp > 0){
-                signal[a] -= temp;
+                signal[ind] -= temp;
                 ind += 1;
                 temp -= c;
                 if(ind > n){
@@ -173,11 +173,11 @@ vector<int> brute(){
             temp = b-c;
             ind = a-1;
             while(temp > 0){
-                signal[a] -= temp;
+                signal[ind] -= temp;
                 ind -= 1;
                 temp -= c;
 
-                if(ind > 0){
+                if(ind <= 0){
                     break;
                 }
             }
@@ -185,12 +185,12 @@ vector<int> brute(){
             poles[a] = MP(0,0);
         }
 
-        if(c == 'Z'){
+        if(t == 'Z'){
             int sum = 0;
             for(int i = a; i<=b; i++){
                 sum+= signal[i];
             }
-            ans.PB(sum / (a-b+1));
+            ans.PB(sum / (b-a+1));
         }
     }
 
