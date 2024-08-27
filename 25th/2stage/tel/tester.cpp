@@ -232,7 +232,7 @@ int parent(int v){
 }
 
 void upateTree(int v, int tl, int tr, int l, int r, ll s, ll a){
-    if(l > r) return;
+    if(l > r || tl > r || tr < l) return;
 
     int mid = (tl+tr)/2;
     if(tl == l && tr == r){
@@ -243,14 +243,16 @@ void upateTree(int v, int tl, int tr, int l, int r, ll s, ll a){
 
         ll sum = 0;
         for(ll i = 0; i<(tr-tl+1); i++){
-            if(s + a*i > 0){
-                sum += s+ a*i;
-            }
+            sum += s+ a*i;
         }
         tree[v] += sum;
     }else{
         upateTree(left(v), tl, mid, l, min(r, mid), s, a);   
-        upateTree(right(v), mid+1, tr, max(l, mid+1), r, s + (mid-l+1)*a, a);   
+        if(mid >= l){
+            upateTree(right(v), mid+1, tr, max(l, mid+1), r, s + (mid-l+1)*a, a);   
+        }else{
+            upateTree(right(v), mid+1, tr, max(l, mid+1), r, s, a);   
+        }
         tree[v] = tree[left(v)] + tree[right(v)];
     }
 }
@@ -305,23 +307,30 @@ vector<ll> solve(){
         char t = get<0>(promts[i]);
         int a = get<1>(promts[i]), b = get<2>(promts[i]), c = get<3>(promts[i]); 
         if(t == 'P'){
-            ll len = b/c - 1;
+            ll len = b/c;
+            if(b%c == 0){
+                len--;
+            }
+            
             upateTree(1,R+1, totalSize, leaf(a)-len, leaf(a), b-len*c, c);
-            upateTree(1,R+1, totalSize, leaf(a), leaf(a)+len, b, c*(-1));
+            upateTree(1,R+1, totalSize, leaf(a)+1, leaf(a)+len, b-c, c*(-1));
 
             poles[a] = MP(b,c);
         }
         if(t == 'U'){
-            ll b = poles[a].first, c = poles[a].second; 
-            ll len = b/c - 1;
+            b = poles[a].first, c = poles[a].second; 
+            ll len = b/c;
+            if(b%c == 0){
+                len--;
+            }
             upateTree(1,R+1, totalSize, leaf(a)-len, leaf(a), (b-len*c)*(-1), c*(-1));
-            upateTree(1,R+1, totalSize, leaf(a), leaf(a)+len, b*(-1), c);
+            upateTree(1,R+1, totalSize, leaf(a)+1, leaf(a)+len, b*(-1) + c, c);
 
             poles[a] = MP(0,0);
         }
         if(t == 'Z'){
             ll temp = query(1,R+1, totalSize, leaf(a), leaf(b));
-            ans.PB(temp);
+            ans.PB(temp/(b-a+1));
         }
     }
 
@@ -333,7 +342,7 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
+    int op = 0;
     for(int test = 1; test <= 1; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
