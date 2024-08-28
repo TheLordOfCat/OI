@@ -39,7 +39,7 @@ struct comparePII{
         if(a.second == b.second){
             return a.first > b.first;
         }
-        return a.second > b.second;
+        return a.second < b.second;
     }
 };
 
@@ -65,22 +65,35 @@ PIV solve(){
 
     int cur = 0;
     while(!Q.empty()){
-        PII a = Q.top();
+        PII v = Q.top();
         Q.pop();
-        if(cur + a.second == s-1){
-            PII b = Q.top();
-            Q.pop();
+        if(cur + v.first == s-1 && !(Q.size() == 0 && v.second == 1)){
+            if(Q.size() > 0){
+                PII b = Q.top();
+                Q.pop();
 
-            ans.second.PB(index[b.first].back());
-            index[b.first].pop_back();
-            b.second--;
-            if(b.second != 0) Q.push(b);
+                ans.second.PB(index[b.first].back());
+                index[b.first].pop_back();
+                b.second--;
+                cur += b.first;
+                if(b.second != 0) Q.push(b);
+            }else{
+                ans.first++;
+                
+                ans.second.PB(index[v.first].back());
+                index[v.first].pop_back();
+                v.second--;
+                cur += v.first + 1;
+            }
         }else{
-            ans.second.PB(index[a.first].back());
-            index[a.first].pop_back();
-            a.second--;
+            ans.second.PB(index[v.first].back());
+            index[v.first].pop_back();
+            v.second--;
+            cur += v.first;
         }
-        if(a.second != 0) Q.push(a);
+        if(v.second != 0) Q.push(v);
+    
+        cur = cur%s;
     }
 
     return ans;

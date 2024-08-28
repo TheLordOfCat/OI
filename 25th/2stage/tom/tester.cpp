@@ -42,7 +42,7 @@ void getRandom(){
     n = rand()%10+1;
     s = rand()%10+2;
     for(int i =0 ; i<n; i++){
-        int temp = rand()%20;
+        int temp = rand()%20+1;
         a.PB(temp);
     }
 }
@@ -78,7 +78,7 @@ PIV brute(){
             ans.first = skips;
             vector<int> temp;
             for(int i = 0; i<perm.size(); i++){
-                temp.PB(perm[i]);
+                temp.PB(perm[i]+1);
             }
             ans.second = temp;
         }
@@ -91,9 +91,9 @@ PIV brute(){
 struct comparePII{
     bool operator()(const PII a, const PII b){
         if(a.second == b.second){
-            return a.first > b.first;
+            return a.first < b.first;
         }
-        return a.second > b.second;
+        return a.second < b.second;
     }
 };
 
@@ -119,22 +119,35 @@ PIV solve(){
 
     int cur = 0;
     while(!Q.empty()){
-        PII a = Q.top();
+        PII v = Q.top();
         Q.pop();
-        if(cur + a.second == s-1){
-            PII b = Q.top();
-            Q.pop();
+        if(cur + v.first == s-1 && !(Q.size() == 0 && v.second == 1)){
+            if(Q.size() > 0){
+                PII b = Q.top();
+                Q.pop();
 
-            ans.second.PB(index[b.first].back());
-            index[b.first].pop_back();
-            b.second--;
-            if(b.second != 0) Q.push(b);
+                ans.second.PB(index[b.first].back());
+                index[b.first].pop_back();
+                b.second--;
+                cur += b.first;
+                if(b.second != 0) Q.push(b);
+            }else{
+                ans.first++;
+                
+                ans.second.PB(index[v.first].back());
+                index[v.first].pop_back();
+                v.second--;
+                cur += v.first + 1;
+            }
         }else{
-            ans.second.PB(index[a.first].back());
-            index[a.first].pop_back();
-            a.second--;
+            ans.second.PB(index[v.first].back());
+            index[v.first].pop_back();
+            v.second--;
+            cur += v.first;
         }
-        if(a.second != 0) Q.push(a);
+        if(v.second != 0) Q.push(v);
+    
+        cur = cur%s;
     }
 
     return ans;
@@ -146,7 +159,7 @@ int main()
     cin.tie(NULL);
 
     int op = 1;
-    for(int test = 1; test <= 1; test++){
+    for(int test = 1; test <= 10; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
@@ -169,6 +182,7 @@ int main()
                 cout<<ansS.second[i]<<" ";
             }
             cout<<"\n";
+            printData();
             return 0;
         }
         cout<<"CORRECT\n";
