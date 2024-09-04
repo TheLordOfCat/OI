@@ -65,7 +65,7 @@ PULLV brute(){
 
         vector<bool> used(n+1, false);
         used[s] = true;
-        
+
         ull sum = 0;
         vector<PII> turns;
         for(int j = 0; j<n-1; j++){
@@ -154,7 +154,198 @@ PULLV brute(){
 }
 
 PULLV solve(){
+    PULLV ans = MP(0,vector<int>());
+    ans.second.PB(s);
 
+    PII countSame = MP(0,0);
+    if(opsCost.front().first > opsCost.front().second){
+        countSame = MP(0,1);
+    }else{
+        countSame = MP(1,1);
+    }
+
+    int lastInd = 0;
+
+    //count first same
+    for(int i = 1; i<opsCost.size(); i++){
+        int type;
+        if(opsCost[i].first > opsCost[i].second){
+            type = 0;
+        }else{
+            type = 1;
+        }
+
+        if(type == countSame.first){
+            countSame.second++;
+        }else{
+            lastInd = i;
+            break;
+        }
+    }
+
+    int ind = s;
+    int leftInd = 1;
+    int rightInd = n;
+
+    vector<bool> used(n+1, false);
+    used[s] = true;
+
+    //correct for out of range
+    if(countSame.first == 0){
+        //left
+        int left;
+        if(s - leftInd > countSame.second){
+            PII dif = MP(INF,INF);
+            for(int i = 0; i<lastInd; i++){
+                int temp = opsCost[i].first - opsCost[i].second;
+                if(temp < 0){
+                    temp *= -1;    
+                }
+                if(temp < dif.first){
+                    dif = MP(temp, i);
+                }
+            }
+
+            vector<int> temp;
+            for(int i = 0; i<dif.second; i++){
+                if(!used[leftInd]){
+                    temp.PB(leftInd);
+                    used[leftInd] = true;
+                }else{
+                    i--;
+                }
+                leftInd++;
+            }
+
+            for(int  i = temp.size()-1; i>=0; i--){
+                ans.second.PB(temp[i]);
+            }
+
+            ans.second.PB(rightInd);
+            used[rightInd] = true;
+            rightInd--;
+        }
+        
+        vector<int> temp;
+        for(int i = 0; i<left; i++){
+            if(!used[leftInd]){
+                temp.PB(leftInd);
+                used[leftInd] = true;
+            }else{
+                i--;
+            }
+            leftInd++;
+        }
+
+        for(int  i = temp.size()-1; i>=0; i--){
+            ans.second.PB(temp[i]);
+        }
+
+    }else{
+        //right
+        int left;
+        if(rightInd - s > countSame.second){
+            PII dif = MP(INF,INF);
+            for(int i = 0; i<lastInd; i++){
+                int temp = opsCost[i].first - opsCost[i].second;
+                if(temp < 0){
+                    temp *= -1;    
+                }
+                if(temp < dif.first){
+                    dif = MP(temp, i);
+                }
+            }
+
+            vector<int> temp;
+            for(int i = 0; i<dif.second; i++){
+                if(!used[rightInd]){
+                    temp.PB(rightInd);
+                    used[rightInd] = true;
+                }else{
+                    i--;
+                }
+                rightInd++;
+            }
+
+            for(int  i = temp.size()-1; i>=0; i--){
+                ans.second.PB(temp[i]);
+            }
+
+            ans.second.PB(leftInd);
+            used[leftInd] = true;
+            leftInd++;
+        }
+
+        vector<int> temp;
+        for(int i = 0; i<left; i++){
+            if(!used[rightInd]){
+                temp.PB(rightInd);
+                used[rightInd] = true;
+            }else{
+                i--;
+            }
+            rightInd--;
+        }
+
+        for(int  i = temp.size()-1; i>=0; i--){
+            ans.second.PB(temp[i]);
+        }
+    }
+
+    //finish teleporting
+    for(int i = lastInd; i<=n; i++){
+        ans.first += min(opsCost[i].first, opsCost[i].second);
+
+        int type;
+        if(opsCost[i].first > opsCost[i].second){
+            type = 0;
+        }else{
+            type = 1;
+        }
+
+        if(type == countSame.first){
+            countSame.second++;
+        }else{
+            if(countSame.first == 0){
+                //left
+                vector<int> temp;
+                for(int j = 0; j<countSame.second; j++){
+                    if(!used[leftInd]){
+                        temp.PB(leftInd);
+                        used[leftInd] = true;
+                    }else{
+                        i--;
+                    }
+                    leftInd++;
+                }
+
+                for(int  i = temp.size()-1; i>=0; i--){
+                    ans.second.PB(temp[i]);
+                }
+            }else{
+                //right
+                vector<int> temp;
+                for(int j = 0; j<countSame.second; j++){
+                    if(!used[rightInd]){
+                        temp.PB(rightInd);
+                        used[rightInd] = true;
+                    }else{
+                        i--;
+                    }
+                    rightInd++;
+                }
+
+                for(int  i = temp.size()-1; i>=0; i--){
+                    ans.second.PB(temp[i]);
+                }  
+
+            }
+
+            countSame = MP(type, 1);
+        }
+    }
+
+    return ans;
 }
 
 int main()
