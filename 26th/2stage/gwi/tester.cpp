@@ -162,7 +162,7 @@ vector<int> rightOrien;
 vector<bool> used;
 
 
-int mark(int& ind, vector<bool>& used, vector<int> num){
+int mark(int& ind, vector<int> num){
     while(used[num[ind]]){
         ind++;
     }
@@ -176,17 +176,18 @@ void procesTile(PII countSame, PULLV& ans, int& lastInd){
     for(int j = 0; j<countSame.second; j++){
         if(countSame.first == 1){
             ans.first += opsCost[lastInd + j].second;
-            int temp = mark(rightInd, used, rightOrien);
+            int temp = mark(rightInd, rightOrien);
             vec.PB(temp);
         }else{
             ans.first += opsCost[lastInd + j].first;
-            int temp = mark(leftInd, used, leftOrien);
+            int temp = mark(leftInd, leftOrien);
             vec.PB(temp);
         }
     }
 
     for(int j = vec.size()-1; j>=0; j--){
         ans.second.PB(vec[j]);
+        lastInd++;
     }
 }
 
@@ -235,9 +236,8 @@ PULLV solve(){
     }
 
     //switch
-
+    PII dif = MP(0,INF);
     if(countSame.first == 0){
-        PII dif = MP(-1,INF);
         if(countSame.second > s- leftInd){
             for(int i = 0; i<countSame.second; i++){
                 if(opsCost[i].second < dif.second){
@@ -245,24 +245,19 @@ PULLV solve(){
                 }
             }
         }
-
-        procesTile(MP(countSame.first, dif.first-1), ans, lastInd);
-        procesTile(MP(dif.second, 1), ans, lastInd);
-        procesTile(MP(countSame.first, countSame.second - dif.first), ans, lastInd);
     }else{
         PII dif = MP(-1,INF);
-        if(countSame.second > n- s){
+        if(countSame.second > n - s){
             for(int i = 0; i<countSame.second; i++){
                 if(opsCost[i].first < dif.second){
                     dif = MP(i, opsCost[i].first);
                 }
             }
         }
-
-        procesTile(MP(countSame.first, dif.first-1), ans, lastInd);
-        procesTile(MP(dif.second, 1), ans, lastInd);
-        procesTile(MP(countSame.first, countSame.second - dif.first), ans, lastInd);
     }
+    procesTile(MP(countSame.first, dif.first-1), ans, lastInd);
+    procesTile(MP((countSame.first+1)%2, 1), ans, lastInd);
+    procesTile(MP(countSame.first, countSame.second - (dif.first+1)), ans, lastInd);
 
     //after switch
     if(opsCost[lastInd].first < opsCost[lastInd].second){

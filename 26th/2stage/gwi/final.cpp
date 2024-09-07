@@ -33,7 +33,15 @@ void getData(){
     }
 }
 
-int mark(int& ind, vector<bool>& used, vector<int> num){
+int leftInd = 0;
+int rightInd = 0;
+
+vector<int> leftOrien;
+vector<int> rightOrien;
+
+vector<bool> used;
+
+int mark(int& ind, vector<int> num){
     while(used[num[ind]]){
         ind++;
     }
@@ -42,26 +50,33 @@ int mark(int& ind, vector<bool>& used, vector<int> num){
     return num[ind];
 }
 
-void procesTile(int type, PULLV& ans, PII countSame, int& leftInd, int& rightInd, vector<bool>& used, vector<int>& leftOrien, vector<int>& rightOrien, int& lastInd){
+void procesTile(PII countSame, PULLV& ans, int& lastInd){
     vector<int> vec;
     for(int j = 0; j<countSame.second; j++){
         if(countSame.first == 1){
             ans.first += opsCost[lastInd + j].second;
-            int temp = mark(rightInd, used, rightOrien);
+            int temp = mark(rightInd, rightOrien);
             vec.PB(temp);
         }else{
             ans.first += opsCost[lastInd + j].first;
-            int temp = mark(leftInd, used, leftOrien);
+            int temp = mark(leftInd, leftOrien);
             vec.PB(temp);
         }
     }
 
     for(int j = vec.size()-1; j>=0; j--){
         ans.second.PB(vec[j]);
+        lastInd++;
     }
 }
 
 PULLV solve(){
+    used.clear();
+    leftInd = 0;
+    rightInd = 0;
+    leftOrien.clear();
+    rightOrien.clear();
+
     PULLV ans = MP(0,vector<int>());
     ans.second.PB(s);
 
@@ -71,8 +86,6 @@ PULLV solve(){
     }else{
         countSame = MP(1,1);
     }
-
-    int lastInd = 0;
 
     //before switch
     for(int i = 1; i<opsCost.size(); i++){
@@ -86,29 +99,24 @@ PULLV solve(){
         if(type == countSame.first){
             countSame.second++;
         }else{
-            lastInd = i;
             break;
         }
     }
 
     int ind = s;
-    int leftInd = 0;
-    int rightInd = 0;
+    int lastInd = 0;
 
-    vector<bool> used(n+1, false);
+    used.assign(n+1, false);
     used[s] = true;
 
-    vector<int> leftOrien;
-    vector<int> rightOrien;
     for(int i = 1; i<=n; i++){
         leftOrien.PB(i);
         rightOrien.PB(n-i+1);
     }
 
     //switch
-
+    PII dif = MP(0,INF);
     if(countSame.first == 0){
-        PII dif = MP(-1,INF);
         if(countSame.second > s- leftInd){
             for(int i = 0; i<countSame.second; i++){
                 if(opsCost[i].second < dif.second){
@@ -116,48 +124,19 @@ PULLV solve(){
                 }
             }
         }
-
-        for(int i = 0; i< dif.first; i++){
-            ans.first += opsCost[i].first;
-            int temp = mark(leftInd, used, leftOrien);
-            ans.second.PB(temp);
-        }
-        if(dif.first >= 0){
-            ans.first += dif.second;
-            int temp = mark(rightInd, used, rightOrien);
-            ans.second.PB(temp);
-        }
-        for(int i = max(dif.first+1, 0); i< countSame.second; i++){
-            ans.first += opsCost[i].first;
-            int temp = mark(leftInd, used, leftOrien);
-            ans.second.PB(temp);
-        }
     }else{
         PII dif = MP(-1,INF);
-        if(countSame.second > n- s){
+        if(countSame.second > n - s){
             for(int i = 0; i<countSame.second; i++){
                 if(opsCost[i].first < dif.second){
                     dif = MP(i, opsCost[i].first);
                 }
             }
         }
-
-        for(int i = 0; i< dif.first; i++){
-            ans.first += opsCost[i].second;
-            int temp = mark(rightInd, used, rightOrien);
-            ans.second.PB(temp);
-        }
-        if(dif.first >= 0){
-            ans.first += dif.second;
-            int temp = mark(leftInd, used, leftOrien);
-            ans.second.PB(temp);
-        }
-        for(int i = max(dif.first+1, 0); i< countSame.second; i++){
-            ans.first += opsCost[i].second;
-            int temp = mark(rightInd, used, rightOrien);
-            ans.second.PB(temp);
-        }
     }
+    procesTile(MP(countSame.first, dif.first-1), ans, lastInd);
+    if(dif.second != INF) procesTile(MP((countSame.first+1)%2, 1), ans, lastInd);
+    procesTile(MP(countSame.first, countSame.second - (dif.first+1)), ans, lastInd);
 
     //after switch
     if(opsCost[lastInd].first < opsCost[lastInd].second){
@@ -175,7 +154,8 @@ PULLV solve(){
         }
 
         if(type != countSame.first){
-            procesTile(type, ans, countSame, leftInd, rightInd, used, leftOrien, rightOrien, lastInd);
+            procesTile(countSame, ans, lastInd);
+
             countSame = MP(type, 0);
             lastInd = i;
         }
@@ -185,7 +165,7 @@ PULLV solve(){
         }
 
         if(i == opsCost.size()-1){
-            procesTile(type, ans, countSame, leftInd, rightInd, used, leftOrien, rightOrien, lastInd);
+            procesTile(countSame, ans, lastInd);
         }
     }
 
