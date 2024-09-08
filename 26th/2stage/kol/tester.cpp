@@ -4,6 +4,7 @@
 #include <stack>
 #include <queue>
 #include <tuple>
+#include <cmath>
 
 #include <cstdlib>
 #include <ctime>
@@ -163,8 +164,170 @@ vector<int> brute(){
     return ans;
 }
 
-vector<int> solve(){
+bool compareQuerys(tuple<int,int,int> a, tuple<int,int,int> b){
+    if(get<2>(a) == get<2>(b)){
+        if(get<0>(a) == get<0>(b)){
+            return get<1>(a) > get<1>(b);
+        }   
+        return get<0>(a) > get<0>(b); 
+    }
+    return get<2>(a) > get<2>(b);
+}
 
+vector<int> tin, tout;
+vector<vector<int>> up;
+
+void dfsLCA(int V, vector<vector<PII>>& graph){
+    tin.clear();
+    tout.clear();
+    up.clear();
+    tin.assign(n+1, 0);
+    tout.assign(n+1, 0);
+
+    int l = ceil(log2(n));
+    int timer = 0;
+    vector<bool> vis(n+1, false);
+    up.assign(n, vector<int>(l + 1, 0));
+
+    stack<pair<int,bool>> S;
+    S.push(MP(V,false));
+    vis[V] = true;
+
+    while(!S.empty()){
+        int v = S.top().first;
+        bool b = S.top().second;
+        S.pop();
+
+        tin[v] = timer;
+        timer++;
+
+        if(b){
+            tout[v] = timer;
+            timer++;
+            continue;
+        }
+
+        S.push(MP(v,true));
+
+        for(int i = 0; i<graph[v].size(); i++){
+            PII cur = graph[v][i];
+            if(!vis[cur.first]){
+                vis[cur.first] = true;
+                S.push(MP(cur.first,false));
+            }   
+        }
+        
+    }
+}
+
+bool isAncestor(int a, int b){
+    return tin[a] <= tin[b] && tout[a] >= tout[b];
+}
+
+int lca(int a, int b){
+    int l = ceil(log2(n));
+    if(isAncestor(a, b)){
+        return a;
+    }
+    if(isAncestor(b,a)){
+        return b;
+    }
+    for(int i = l; i >= 0; i--){
+        if(!isAncestor(up[a][i], b)){
+            a = up[a][i];
+        }
+    }
+    return up[a][0];
+}
+
+void preproces(vector<int> v, int c, vector<vector<PII>>& graph){
+    //prepare LCA
+    dfsLCA(v.front(), graph);
+
+    //compress the tree
+    vector<bool> pointIntrest(n+1, false);
+    for(int i = 0; i<v.size(); i++){
+        pointIntrest[v[i]] = true;
+    }
+
+    vector<int> order;
+    vector<bool> vis(n+1, false);
+    stack<int> S;
+    S.push(v.front());
+    vis[v.front()] = true;
+    order.PB(v.front());
+
+    while(!S.empty()){
+        int v =  S.top();
+        S.pop();
+
+        for(int i = 0; i<graph[v].size(); i++){
+            int cur = graph[v][i].first;
+            if(!vis[cur]){
+                vis[cur] = true;
+                S.push(cur);
+
+                if(pointIntrest[cur]){
+                    order.PB(cur);
+                }
+            }
+        }
+    }
+
+    for(int i = 0; i<order.size()-1; i++){
+        
+    }
+
+    //create mind
+
+
+}
+
+ll process(int a, int b, int c){
+
+}
+
+vector<ll> solve(){
+    vector<ll> ans;
+
+    //create graph
+    vector<vector<PII>> graph(n+1, vector<PII>());
+    for(int i = 0; i<edges.size(); i++){
+        int a = get<0>(edges[i]), b = get<1>(edges[i]), c = get<2>(edges[i]);
+        graph[a].PB(MP(b,c));
+        graph[b].PB(MP(a,c));
+    }
+
+    //sort
+    sort(querys.begin(),querys.end(), compareQuerys);
+
+    //proces querys
+    vector<int> v;
+    int last = 0;
+    for(int i = 0; i<q; i++){
+        int a = get<0>(querys[i]), b = get<1>(querys[i]), c = get<2>(querys[i]);
+        
+        if(i != q-1){
+            if(c != get<2>(querys[last])){
+                preproces(v, c, graph);
+                for(int j = last; j<last + v.size(); j++){
+                    ll temp = process(get<0>(querys[j]),get<1>(querys[j]),get<2>(querys[j]));
+                    ans.PB(temp);
+                }
+                last = i+1;
+            }else{
+                v.PB(a);
+                v.PB(b);
+            }
+        }
+    }
+    preproces(v, get<2>(querys[last]), graph);
+    for(int j = last; j<last + v.size(); j++){
+        ll temp = process(get<0>(querys[j]),get<1>(querys[j]),get<2>(querys[j]));
+        ans.PB(temp);
+    }
+
+    return ans;
 }
 
 int main(){
@@ -179,7 +342,7 @@ int main(){
             getRandom();
         }
         vector<int> ansB = brute();
-        vector<int> ansS = solve();
+        vector<ll> ansS = solve();
         for(int i = 0; i<ansS.size(); i++){
             if(ansB[i] != ansS[i]){
                 cout<<"ERROR\n";
