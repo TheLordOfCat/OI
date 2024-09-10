@@ -49,14 +49,14 @@ void getData(){
     }
 }
 
-bool compareQuerys(tuple<int,int,int> a, tuple<int,int,int> b){
-    if(get<2>(a) == get<2>(b)){
-        if(get<0>(a) == get<0>(b)){
-            return get<1>(a) > get<1>(b);
+bool compareQuerys(pair<int, tuple<int,int,int>> a, pair<int, tuple<int,int,int>> b){
+    if(get<2>(a.second) == get<2>(b.second)){
+        if(get<0>(a.second) == get<0>(b.second)){
+            return get<1>(a.second) > get<1>(b.second);
         }   
-        return get<0>(a) > get<0>(b); 
+        return get<0>(a.second) > get<0>(b.second); 
     }
-    return get<2>(a) < get<2>(b);
+    return get<2>(a.second) < get<2>(b.second);
 }
 
 vector<int> tin, tout;
@@ -64,6 +64,7 @@ vector<vector<int>> up;
 vector<vector<ll>> mind;
 
 vector<int> depth;
+vector<ll> depthSum;
 
 void dfsLCA(int V, vector<vector<PII>>& graph){
     tin.clear();
@@ -79,7 +80,7 @@ void dfsLCA(int V, vector<vector<PII>>& graph){
     stack<pair<int,bool>> S;
     S.push(MP(V,false));
     vis[V] = true;
-    up[V][V] = V;
+    up[V][0] = V;
 
     while(!S.empty()){
         int v = S.top().first;
@@ -159,14 +160,16 @@ vector<int> dfsOrder(int v, vector<vector<PII>> &graph, vector<bool>& pointIntre
     return order;
 }
 
-void dfsDepthLen(int v, vector<vector<PII>> &graph){
-    depth.assign(n+1, 0);
+void dfsDepthLen(int V, vector<vector<PII>> &graph){
+    depth.assign(n+1, INF);
+    depthSum.assign(n+1, llINF);
 
     vector<bool> vis(n+1, false);
     stack<int> S;
-    S.push(v);
-    vis[v] = true;
-    depth[v] = 0;
+    S.push(V);
+    vis[V] = true;
+    depth[V] = 0;
+    depthSum[V] = 0;
 
     while(!S.empty()){
         int v =  S.top();
@@ -179,6 +182,7 @@ void dfsDepthLen(int v, vector<vector<PII>> &graph){
                 S.push(cur);
 
                 depth[cur] = depth[v]+1;
+                depthSum[cur] = depthSum[v]+graph[v][i].second;
             }
         }
     }
@@ -238,8 +242,8 @@ vector<vector<PII>> preproces(vector<int> V, int c, vector<vector<PII>>& graph){
     for(int i = 0; i<order.size()-1; i++){
         int a = order[i], b = order[i+1];
         int l = lca(a, b);
-        compresGraph[l].PB(MP(b, depth[b] - depth[l]));
-        compresGraph[b].PB(MP(l, depth[b] - depth[l]));
+        compresGraph[l].PB(MP(b, depthSum[b] - depthSum[l]));
+        compresGraph[b].PB(MP(l, depthSum[b] - depthSum[l]));
     }
 
     //create mind
@@ -271,8 +275,12 @@ vector<vector<PII>> preproces(vector<int> V, int c, vector<vector<PII>>& graph){
     return compresGraph;
 }
 
-ll process(int a, int b, int c){
+ll process(int a, int b, int c, vector<vector<PII>>& graph){
     ll ans = llINF;
+
+    if(graph[a].size() == 0 || graph[b].size() == 0){
+        return -1;
+    }
 
     int A = a;
     int B = b;
@@ -284,6 +292,7 @@ ll process(int a, int b, int c){
             A = up[A][i];
         }
     }
+    ans = min(mind[A][0], ans);
 
     l = ceil(log2(depth[B])); 
     for(int i = l; i >= 0; i--){
@@ -292,13 +301,15 @@ ll process(int a, int b, int c){
             B = up[B][i];
         }
     }
+    ans = min(mind[B][0], ans);
 
-    ll path = (depth[a] - depth[l]) + (depth[b] - depth[l]);
+    l = lca(a,b);
+    ll path = (depthSum[a] - depthSum[l]) + (depthSum[b] - depthSum[l]);
     return ans + path;
 }
 
 vector<ll> solve(){
-    vector<ll> ans;
+    vector<ll> ans(q, -1);
 
     //create graph
     vector<vector<PII>> graph(n+1, vector<PII>());
@@ -308,35 +319,37 @@ vector<ll> solve(){
         graph[b].PB(MP(a,c));
     }
 
+    vector<pair<int, tuple<int,int,int>>> queryInd;
+    for(int i = 0; i<querys.size(); i++){
+        queryInd.PB(MP(i, querys[i]));
+    }
+
     //sort
-    sort(querys.begin(),querys.end(), compareQuerys);
+    sort(queryInd.begin(), queryInd.end(), compareQuerys);
 
     //proces querys
     vector<int> v;
     int last = 0;
     vector<vector<PII>> compresGraph;
     for(int i = 0; i<q; i++){
-        int a = get<0>(querys[i]), b = get<1>(querys[i]), c = get<2>(querys[i]);
+        int a = get<0>(queryInd[i].second), b = get<1>(queryInd[i].second), c = get<2>(queryInd[i].second);
         
-        if(i != q-1){
-            if(c != get<2>(querys[last])){
-                compresGraph = preproces(v,  get<2>(querys[last]), graph);
-                for(int j = last; j<last + v.size(); j++){
-                    ll temp = process(get<0>(querys[j]),get<1>(querys[j]),get<2>(querys[j]));
-                    ans.PB(temp);
-                }
-                v.clear();
-                last = i+1;
-            }else{
-                v.PB(a);
-                v.PB(b);
+        if(c != get<2>(queryInd[last].second)){
+            compresGraph = preproces(v,  get<2>(queryInd[last].second), graph);
+            for(int j = last; j<i; j++){
+                ll temp = process(get<0>(queryInd[j].second),get<1>(queryInd[j].second),get<2>(queryInd[j].second), compresGraph);
+                ans[queryInd[j].first] = temp;
             }
+            v.clear();
+            last = i;
         }
+        v.PB(a);
+        v.PB(b);
     }
-    compresGraph = preproces(v, get<2>(querys[last]), graph);
-    for(int j = last; j<last + v.size(); j++){
-        ll temp = process(get<0>(querys[j]),get<1>(querys[j]),get<2>(querys[j]));
-        ans.PB(temp);
+    compresGraph = preproces(v, get<2>(queryInd[last].second), graph);
+    for(int j = last; j<querys.size(); j++){
+        ll temp = process(get<0>(queryInd[j].second),get<1>(queryInd[j].second),get<2>(queryInd[j].second), compresGraph);
+        ans[queryInd[j].first] = temp;
     }
 
     return ans;
