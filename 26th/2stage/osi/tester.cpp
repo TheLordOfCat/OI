@@ -58,13 +58,13 @@ void printData(){
     }
 }
 
-void dfs(int v, vector<vector<PII>>& graph, vector<bool>& vis, vector<int>& ans){
+void dfsSCC(int v, vector<vector<PII>>& graph, vector<bool>& vis, vector<int>& ans){
     vis[v] = true;
 
     for(int i = 0; i<graph[v].size(); i++){
         int cur = graph[v][i].first;
-        if(vis[cur]){
-            dfs(cur,graph,vis,ans);
+        if(!vis[cur]){
+            dfsSCC(cur,graph,vis,ans);
         }
     }
 
@@ -86,7 +86,7 @@ int getSCC(vector<vector<PII>>& graph){
     vector<int> order;
     for(int i = 1; i<=n; i++){
         if(!vis[i]){
-            dfs(i,graph,vis,order);
+            dfsSCC(i,graph,vis,order);
         }
     }
 
@@ -96,7 +96,7 @@ int getSCC(vector<vector<PII>>& graph){
         int v = order[i];
         if(!vis[v]){
             vector<int> com;
-            dfs(v,graphRev,vis,com);
+            dfsSCC(v,graphRev,vis,com);
             SCC.PB(com);
         }
     }
@@ -138,6 +138,20 @@ PIVC brute(){
     return ans;
 }
 
+void dfs(int v, vector<vector<PII>>& graph, vector<bool>& visVec, vector<bool>& visEdge, vector<vector<PII>>& ans){
+    visVec[v] = true;
+
+    for(int i = 0; i<graph[v].size(); i++){
+        PII cur = graph[v][i];
+        if(!visVec[cur.first]){
+            visEdge[cur.second] = true;
+            ans[v].PB(cur);
+            dfs(cur.first, graph,visVec, visEdge, ans);
+        }
+    }
+
+}
+
 PIVC solve(){
     vector<vector<PII>> graph(n+1, vector<PII>());
     vector<vector<PII>> graphDir(n+1, vector<PII>());
@@ -149,26 +163,27 @@ PIVC solve(){
         graph[b].PB(MP(a,i));
     }
 
-    vector<bool> vis(n+1, false);
-    stack<PII> S;
-    S.push(MP(1,-1));
+    vector<bool> visVec(n+1, false);
+    vector<bool> visEdge(m+1, false);
+    vector<int> depth(n+1, 0);
 
     //create directed graph
-    while(!S.empty()){
-        int v = S.top().first;
-        int ind = S.top().second;
-        S.pop();
 
-        for(int j = 0; j<graph[v].size(); j++){
-            PII cur = graph[v][j];
-            if(cur.second != ind){
-                if(!vis[cur.first]){
-                    vis[cur.first] = true;
-                    S.push(cur);
-                    graphDir[v].PB(cur);
-                }else{
-                    graphDir[cur.first].PB(MP(v,cur.second));
-                }
+    //down edges
+    for(int i = 1; i<=n; i++){
+        if(!visVec[i]){
+            dfs(i,graph,visVec, visEdge, graphDir);
+        }
+    }
+
+    //returning edges
+    for(int i = 0; i<m; i++){
+        if(!visEdge[i]){
+            int a = edges[i].first, b = edges[i].second;
+            if(depth[a] > depth[b]){
+                graphDir[a].PB(MP(b,i));
+            }else{
+                graphDir[b].PB(MP(a,i));
             }
         }
     }
@@ -181,14 +196,14 @@ PIVC solve(){
             PII cur = graphDir[i][j];
             int a = edges[cur.second].first, b = edges[cur.second].second;
             if(a == i && cur.first == b){
-                c.PB('>');
+                c[cur.second] = '>';
             }else{
-                c.PB('<');
+                c[cur.second] = '<';
             }
         }
     }
 
-    PIVC ans = MP(INF, vector<char>());
+    PIVC ans = MP(temp, c);
 
     return ans;
 }
