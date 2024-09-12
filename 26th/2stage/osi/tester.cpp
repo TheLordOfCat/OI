@@ -213,7 +213,7 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
+    int op = 0;
     for(int test = 1; test<=1; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
@@ -237,6 +237,7 @@ int main()
                 cout<<ansS.second[j];
             }
             cout<<"\n";
+            printData();
             return 0;
         }
         cout<<"CORRECT\n";
