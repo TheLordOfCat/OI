@@ -37,21 +37,37 @@ void getData(){
 
 void getRandom(){
     srand(time(0));
-    cin>>n;
+
+    n = rand()%10+1;
     for(int i = 0; i<n; i++){
-        int temp;
-        cin>>temp;
+        int temp = rand()%10+10;
         atr.PB(temp);
     }
-    for(int i =0 ; i<n-1; i++){
-        int a, b;
-        cin>>a>>b;
-        edges.PB(MP(a,b));
+    int ind = 2;
+    for(int i = 1; i<=n; i++){
+        if(ind > n){
+            break;
+        }
+        int con = rand()%3+1;
+        for(int  j = 0; j<con; j++){
+            if(ind > n){
+                break;
+            }
+            edges.PB(MP(i,ind));
+            ind++;
+        }
     }
 }
 
 void printData(){
-
+    cout<<n<<"\n";
+    for(int i = 0; i<atr.size(); i++){
+        cout<<atr[i]<<" ";
+    }
+    cout<<"\n";
+    for(int i = 0; i<edges.size(); i++){
+        cout<<edges[i].first<<" "<<edges[i].second<<"\n";
+    }
 }
 
 tuple<int,int,vector<int>> brute(){
