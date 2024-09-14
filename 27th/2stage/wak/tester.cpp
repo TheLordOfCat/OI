@@ -70,30 +70,51 @@ void printData(){
     }
 }
 
-void dfsBrute(int v, vector<bool>& vis, vector<PII>& dp, vector<vector<int>>& graph){
+void dfsBrute(int v, vector<PII>& dp, vector<vector<int>>& graph){
+    vector<bool> vis(n+1, false);
     vis[v] = true;
 
-    for(int i = 0; i<graph[v].size(); i++){
-        int cur = graph[v][i];
-        ll sum = 0;
-        if(!vis[cur]){
-            sum += dp[cur].first;
-            dfsBrute(cur, vis, dp, graph);
-        }
-        dp[cur].first += sum + atr[v];
-    }
+    stack<tuple<int,bool, bool>> S;
+    S.push(MT(v,false, true));
+    vector<int> parent(n+1, -1);
 
-    PII best = MP(0,-1);
-    for(int i = 0; i<graph[v].size(); i++){
-        int cur = graph[v][i];
-        if(best.first < dp[cur].first - atr[cur]){
-            best.first += dp[cur].first - atr[cur];
-            best.second = cur;
+    while(!S.empty()){
+        int v = get<0>(S.top());
+        bool b = get<1>(S.top()), t = get<2>(S.top());
+        S.pop();
+
+        if(b){
+            int ind = -1;
+            int maxDp = 0;
+
+            int sum = 0;
+            for(int i = 0; i<graph[v].size(); i++){
+                int cur = graph[v][i];
+                if(cur != parent[v]){
+                    sum += atr[cur];
+                }
+            }
+            for(int i = 0; i<graph[v].size(); i++){
+                int cur = graph[v][i];
+                if(dp[cur].first + sum - atr[cur] > maxDp){
+                    maxDp = dp[cur].first + sum - atr[cur];
+                    ind = cur;
+                }
+            }
+
+            dp[v] = MP(maxDp + atr[v], ind);
+            continue;
+        }
+
+        S.push(MT(v,true, t));
+        for(int i = 0; i<graph[v].size(); i++){
+            int cur = graph[v][i];
+            if(cur != parent[v]){
+                parent[cur] = v;
+                S.push(MT(cur,false, !t));
+            }
         }
     }
-
-    dp[v].first += best.first;
-    dp[v].second = best.second;
 }
 
 void getPathBrute(int V, vector<bool>& vis, vector<PII>& dp,  vector<vector<int>>& graph, vector<int>& path){
@@ -114,8 +135,10 @@ void getPathBrute(int V, vector<bool>& vis, vector<PII>& dp,  vector<vector<int>
             }
             vis[cur] = true;
         }
-        path.PB(dp[v].first);
-        S.push(dp[v].first);
+        if(dp[v].second != -1){
+            path.PB(dp[v].second);
+            S.push(dp[v].second);
+        }
     }
 
 }
@@ -135,12 +158,13 @@ tuple<ll,int,vector<int>> brute(){
     for(int i = 1; i<=n; i++){
         //get ansAtr
         vector<PII> dp(n+1, MP(0,-1));
-        vector<bool> vis(n+1, false);
-        dfsBrute(i, vis, dp, graph);
+        dfsBrute(i, dp, graph);
 
         //create path
-        vis.assign(n+1, false);
-        getPathBrute(i, vis, dp, graph, ansTown);
+        if(ansAtr < dp[i].first){
+            vector<bool> vis(n+1, false);
+            getPathBrute(i, vis, dp, graph, ansTown);
+        }
     }
 
     return MT(ansAtr, ansVis, ansTown); 
