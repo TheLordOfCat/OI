@@ -70,12 +70,12 @@ void printData(){
     }
 }
 
-void dfsBrute(int v, vector<PII>& dp, vector<vector<int>>& graph){
+void dfsBrute(int V, vector<PII>& dp, vector<vector<int>>& graph){
     vector<bool> vis(n+1, false);
-    vis[v] = true;
+    vis[V] = true;
 
     stack<tuple<int,bool, bool>> S;
-    S.push(MT(v,false, true));
+    S.push(MT(V,false, true));
     vector<int> parent(n+1, -1);
 
     while(!S.empty()){
@@ -86,23 +86,39 @@ void dfsBrute(int v, vector<PII>& dp, vector<vector<int>>& graph){
         if(b){
             int ind = -1;
             int maxDp = 0;
-
             int sum = 0;
-            for(int i = 0; i<graph[v].size(); i++){
-                int cur = graph[v][i];
-                if(cur != parent[v]){
-                    sum += atr[cur];
+
+            if(t){
+                for(int i = 0; i<graph[v].size(); i++){
+                    int cur = graph[v][i];
+                    if(cur != parent[v]){
+                        if( maxDp < dp[cur].first || ind == -1){
+                            maxDp = dp[cur].first;
+                            ind = cur;
+                        }
+                    }
                 }
-            }
-            for(int i = 0; i<graph[v].size(); i++){
-                int cur = graph[v][i];
-                if(dp[cur].first + sum - atr[cur] > maxDp){
-                    maxDp = dp[cur].first + sum - atr[cur];
-                    ind = cur;
+                maxDp += atr[v-1];
+            }else{
+                for(int i = 0; i<graph[v].size(); i++){
+                    int cur = graph[v][i];
+                    if(cur != parent[v]){
+                        sum += atr[cur-1];
+                    }
+                }
+                for(int i = 0; i<graph[v].size(); i++){
+                    int cur = graph[v][i];
+                    if(cur != parent[v]){
+                        if( maxDp < sum - atr[cur-1] + dp[cur].first || ind == -1){
+                            maxDp = sum - atr[cur-1] + dp[cur].first;
+                            ind = cur;
+                        }
+                    }
                 }
             }
 
-            dp[v] = MP(maxDp + atr[v], ind);
+            dp[v] = MP(maxDp, ind);
+
             continue;
         }
 
@@ -117,27 +133,34 @@ void dfsBrute(int v, vector<PII>& dp, vector<vector<int>>& graph){
     }
 }
 
-void getPathBrute(int V, vector<bool>& vis, vector<PII>& dp,  vector<vector<int>>& graph, vector<int>& path){
-    stack<int> S;
-    S.push(V);
+void getPathBrute(int V, vector<bool>& vis, vector<PII>& dp,  vector<vector<int>>& graph, vector<int>& path, int& ansVis){
+    stack<pair<int,bool>> S;
+    S.push(MP(V,true));
+    vector<int> parent(n+1, -1);
+    path.PB(V);
 
     while(!S.empty()){
-        int v = S.top();
+        int v = S.top().first;
+        bool t = S.top().second;
         S.pop();
 
         vis[v] = true;
-
-        for(int i = 0; i<graph[v].size(); i++){
-            int cur = graph[v][i];
-            if(cur != dp[v].second){
-                path.PB(cur);
-                path.PB(v);
+        if(!t){
+            for(int i = 0; i<graph[v].size(); i++){
+                int cur = graph[v][i];
+                if(cur != dp[v].second && cur != parent[v]){
+                    path.PB(cur);
+                    path.PB(v);
+                    ansVis++;
+                }
+                vis[cur] = true;
             }
-            vis[cur] = true;
+            ansVis++;
         }
         if(dp[v].second != -1){
             path.PB(dp[v].second);
-            S.push(dp[v].second);
+            parent[dp[v].second] = v;
+            S.push(MP(dp[v].second, !t)); 
         }
     }
 
@@ -162,8 +185,9 @@ tuple<ll,int,vector<int>> brute(){
 
         //create path
         if(ansAtr < dp[i].first){
+            ansAtr = dp[i].first;
             vector<bool> vis(n+1, false);
-            getPathBrute(i, vis, dp, graph, ansTown);
+            getPathBrute(i, vis, dp, graph, ansTown, ansVis);
         }
     }
 
