@@ -194,6 +194,8 @@ tuple<ll,int,vector<int>> brute(){
     return MT(ansAtr, ansVis, ansTown); 
 }
 
+
+
 tuple<ll,int,vector<int>> solve(){
     
 }
