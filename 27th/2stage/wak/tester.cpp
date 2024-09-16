@@ -209,46 +209,52 @@ void dfsSolve(int V, vector<vector<pair<ll,int>>> &dp, vector<vector<int>>& grap
             //type 1
             ll maxDp = 0;
             int ind = 0;
+            ll sum = 0;
 
             for(int i = 0; i<graph[v].size(); i++){
-                ll sum = 0;
+                sum = 0;
                 int cur = graph[v][i];
+                if(cur == parent[v]) continue;
                 for(int j = 0; j<graph[cur].size(); j++){
                     int c = graph[cur][j];
-                    sum += atr[c-1];
+                    if(c != parent[cur]){
+                        sum += atr[c-1];
+                    }
                 }
                 for(int j = 0; j<graph[cur].size(); j++){
                     int c = graph[cur][j];
+                    if(c == v) continue;
                     if(dp[c][0].first + sum - atr[c-1] > maxDp){
-                        maxDp = dp[c][0].first;
+                        maxDp = dp[c][0].first + sum - atr[c-1];
                         ind = cur;
                     }
                 }
             }
 
-            dp[v][0].first = maxDp;
+            dp[v][0].first = maxDp + atr[v-1];
             dp[v][0].second = ind;
 
             //type 2
             vector<int> twoBest = {0,0};
             for(int j= 0 ; j<graph[v].size(); j++){
                 int cur = graph[v][j];
-                if(dp[cur][1] > dp[twoBest[0]][1]){
+                if(cur == parent[v]) continue;
+                if(dp[cur][0] > dp[twoBest[0]][0]){
                     twoBest[0] = cur;
-                }else if(dp[cur][1] > dp[twoBest[1]][1]){
+                }else if(dp[cur][0] > dp[twoBest[1]][0]){
                     twoBest[1] = cur;
                 }
             }
 
-            ll sum = 0;
+            sum = 0;
             for(int j =0; j<graph[v].size(); j++){
                 int cur = graph[v][j];
-                if(cur != twoBest[0] && cur != twoBest[1]){
+                if(cur != twoBest[0] && cur != twoBest[1] && cur != parent[v]){
                     sum += atr[cur-1];
                 }
             }
 
-            dp[v][1].first = dp[twoBest[0]][1].first + dp[twoBest[1]][1].first + sum; 
+            dp[v][1].first = dp[twoBest[0]][0].first + dp[twoBest[1]][0].first + sum; 
             if(dp[twoBest[0]][0].first > dp[twoBest[1]][0].first){
                 dp[v][1].second = twoBest[0];
             }else{
@@ -306,7 +312,7 @@ tuple<ll,int,vector<int>> solve(){
     //getPath
     if(type == 0){ // 1 path
         int temp = ind;
-        while(temp != -1){
+        while(temp != 0){
             path.PB(temp);
             temp = dp[temp][type].second;
             type = (type+1)%2;
@@ -326,7 +332,7 @@ tuple<ll,int,vector<int>> solve(){
 
         //path 1
         int temp = twoBest[0];
-        while(temp != -1){
+        while(temp != 0){
             path.PB(temp);
             temp = dp[temp][type].second;
             type = (type+1)%2;
@@ -337,8 +343,8 @@ tuple<ll,int,vector<int>> solve(){
         path.PB(ind);
 
         //path 2
-        int temp = twoBest[1];
-        while(temp != -1){
+        temp = twoBest[1];
+        while(temp != 0){
             path.PB(temp);
             temp = dp[temp][type].second;
             type = (type+1)%2;
