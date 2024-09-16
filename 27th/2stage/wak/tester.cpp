@@ -194,10 +194,158 @@ tuple<ll,int,vector<int>> brute(){
     return MT(ansAtr, ansVis, ansTown); 
 }
 
+void dfsSolve(int V, vector<vector<pair<ll,int>>> &dp, vector<vector<int>>& graph){
+    vector<int> parent(n+1, 0);
+    stack<pair<int,bool>> S;
+    S.push(MP(V,false));
 
+
+    while(!S.empty()){
+        int v = S.top().first;
+        bool b = S.top().second;
+        S.pop();
+
+        if(b){
+            //type 1
+            ll maxDp = 0;
+            int ind = 0;
+
+            for(int i = 0; i<graph[v].size(); i++){
+                ll sum = 0;
+                int cur = graph[v][i];
+                for(int j = 0; j<graph[cur].size(); j++){
+                    int c = graph[cur][j];
+                    sum += atr[c-1];
+                }
+                for(int j = 0; j<graph[cur].size(); j++){
+                    int c = graph[cur][j];
+                    if(dp[c][0].first + sum - atr[c-1] > maxDp){
+                        maxDp = dp[c][0].first;
+                        ind = cur;
+                    }
+                }
+            }
+
+            dp[v][0].first = maxDp;
+            dp[v][0].second = ind;
+
+            //type 2
+            vector<int> twoBest = {0,0};
+            for(int j= 0 ; j<graph[v].size(); j++){
+                int cur = graph[v][j];
+                if(dp[cur][1] > dp[twoBest[0]][1]){
+                    twoBest[0] = cur;
+                }else if(dp[cur][1] > dp[twoBest[1]][1]){
+                    twoBest[1] = cur;
+                }
+            }
+
+            ll sum = 0;
+            for(int j =0; j<graph[v].size(); j++){
+                int cur = graph[v][j];
+                if(cur != twoBest[0] && cur != twoBest[1]){
+                    sum += atr[cur-1];
+                }
+            }
+
+            dp[v][1].first = dp[twoBest[0]][1].first + dp[twoBest[1]][1].first + sum; 
+            if(dp[twoBest[0]][0].first > dp[twoBest[1]][0].first){
+                dp[v][1].second = twoBest[0];
+            }else{
+                dp[v][1].second = twoBest[1];
+            }
+
+            continue;
+        }
+
+        S.push(MP(v,true));
+        for(int j = 0; j<graph[v].size(); j++){
+            int cur = graph[v][j];
+            if(cur != parent[v]){
+                S.push(MP(cur,false));
+                parent[cur] = v;
+            }
+        }
+    }
+
+}
 
 tuple<ll,int,vector<int>> solve(){
-    
+    vector<vector<int>> graph(n+1, vector<int>());
+    for(int i = 0; i<edges.size(); i++){
+        int a = edges[i].first, b = edges[i].second;
+        graph[a].PB(b);
+        graph[b].PB(a);
+    }
+
+    vector<vector<pair<ll,int>>> dp(n+1, vector<pair<ll,int>>(2, MP(0,0)));
+
+    dfsSolve(1, dp, graph);
+
+    ll maxDp = 0;
+    int townVis = 0;
+    vector<int> path;
+
+    int type = -1;
+    int ind = 0;
+
+    //best verticie
+    for(int i = 1; i <= n; i++){
+        if(dp[i][0].first > maxDp){
+            type = 0;
+            ind = i;
+            maxDp = dp[i][0].first;
+        }
+        if(dp[i][1].first > maxDp){
+            type = 1;
+            ind = i;
+            maxDp = dp[i][1].first;
+        }
+    }
+
+    //getPath
+    if(type == 0){ // 1 path
+        int temp = ind;
+        while(temp != -1){
+            path.PB(temp);
+            temp = dp[temp][type].second;
+            type = (type+1)%2;
+        }
+    }else if(type == 1){ // two paths
+
+        //best two paths
+        vector<int> twoBest = {0,0};
+        for(int j= 0 ; j<graph[ind].size(); j++){
+            int cur = graph[ind][j];
+            if(dp[cur][1] > dp[twoBest[0]][1]){
+                twoBest[0] = cur;
+            }else if(dp[cur][1] > dp[twoBest[1]][1]){
+                twoBest[1] = cur;
+            }
+        }
+
+        //path 1
+        int temp = twoBest[0];
+        while(temp != -1){
+            path.PB(temp);
+            temp = dp[temp][type].second;
+            type = (type+1)%2;
+        }
+
+        reverse(path.begin(), path.end());
+
+        path.PB(ind);
+
+        //path 2
+        int temp = twoBest[1];
+        while(temp != -1){
+            path.PB(temp);
+            temp = dp[temp][type].second;
+            type = (type+1)%2;
+        }
+    }
+
+    return MT(maxDp, townVis, path);
 }
 
 int main()
