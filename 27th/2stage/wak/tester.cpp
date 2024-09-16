@@ -2,6 +2,7 @@
 #include <vector>
 #include <stack>
 #include <tuple>
+#include <algorithm>
 
 using namespace std;
 
@@ -249,7 +250,7 @@ void dfsSolve(int V, vector<vector<pair<ll,int>>> &dp, vector<vector<int>>& grap
             sum = 0;
             for(int j =0; j<graph[v].size(); j++){
                 int cur = graph[v][j];
-                if(cur != twoBest[0] && cur != twoBest[1] && cur != parent[v]){
+                if(cur != twoBest[0] && cur != twoBest[1]){
                     sum += atr[cur-1];
                 }
             }
@@ -311,12 +312,33 @@ tuple<ll,int,vector<int>> solve(){
 
     //getPath
     if(type == 0){ // 1 path
+        int prev = 0;
+        int count = 1;
         int temp = ind;
+
         while(temp != 0){
             path.PB(temp);
+            if(count == 0){
+                for(int i = 0; i<graph[temp].size(); i++){
+                    int cur = graph[temp][i];
+                    if(cur != prev && cur != dp[temp][type].second){
+                        path.PB(cur);
+                        path.PB(temp);
+                        townVis++;
+                    }
+                }
+            }else{
+                townVis++;
+            }
+            count++;
+            count %= 2;
+
+            prev = temp;
             temp = dp[temp][type].second;
+
             type = (type+1)%2;
         }
+
     }else if(type == 1){ // two paths
 
         //best two paths
@@ -331,10 +353,30 @@ tuple<ll,int,vector<int>> solve(){
         }
 
         //path 1
+        int prev = 0;
+        int count = 0;
         int temp = twoBest[0];
+
         while(temp != 0){
             path.PB(temp);
+            if(count == 0){
+                for(int i = 0; i<graph[temp].size(); i++){
+                    int cur = graph[temp][i];
+                    if(cur != prev && cur != dp[temp][type].second){
+                        path.PB(cur);
+                        path.PB(temp);
+                        townVis++;
+                    }
+                }
+            }else{
+                townVis++;
+            }
+            count++;
+            count %= 2;
+
+            prev = temp;
             temp = dp[temp][type].second;
+
             type = (type+1)%2;
         }
 
@@ -343,10 +385,30 @@ tuple<ll,int,vector<int>> solve(){
         path.PB(ind);
 
         //path 2
+        prev = 0;
+        count = 0;
         temp = twoBest[1];
+
         while(temp != 0){
             path.PB(temp);
+            if(count == 0){
+                for(int i = 0; i<graph[temp].size(); i++){
+                    int cur = graph[temp][i];
+                    if(cur != prev && cur != dp[temp][type].second){
+                        path.PB(cur);
+                        path.PB(temp);
+                        townVis++;
+                    }
+                }
+            }else{
+                townVis++;
+            }
+            count++;
+            count %= 2;
+
+            prev = temp;
             temp = dp[temp][type].second;
+
             type = (type+1)%2;
         }
     }
