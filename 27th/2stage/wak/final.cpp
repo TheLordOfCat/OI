@@ -118,6 +118,38 @@ void dfsSolve(int V, vector<vector<pair<ll,int>>> &dp, vector<vector<int>>& grap
 
 }
 
+vector<int> getPath(int ind, vector<vector<pair<ll,int>>>& dp, vector<vector<int>>& graph, int& townVis, int type){
+    vector<int> path;
+
+    int prev = 0;
+    int count = 1;
+    int temp = ind;
+
+    while(temp != 0){
+        path.PB(temp);
+        if(count == 0){
+            for(int i = 0; i<graph[temp].size(); i++){
+                int cur = graph[temp][i];
+                if(cur != prev && cur != dp[temp][type].second){
+                    path.PB(cur);
+                    path.PB(temp);
+                    townVis++;
+                }
+            }
+        }else{
+            townVis++;
+        }
+        count++;
+        count %= 2;
+
+        prev = temp;
+        temp = dp[temp][type].second;
+
+        type = (type+1)%2;
+    }
+    return path;
+}
+
 tuple<ll,int,vector<int>> solve(){
     vector<vector<int>> graph(n+1, vector<int>());
     for(int i = 0; i<edges.size(); i++){
@@ -153,32 +185,7 @@ tuple<ll,int,vector<int>> solve(){
 
     //getPath
     if(type == 0){ // 1 path
-        int prev = 0;
-        int count = 1;
-        int temp = ind;
-
-        while(temp != 0){
-            path.PB(temp);
-            if(count == 0){
-                for(int i = 0; i<graph[temp].size(); i++){
-                    int cur = graph[temp][i];
-                    if(cur != prev && cur != dp[temp][type].second){
-                        path.PB(cur);
-                        path.PB(temp);
-                        townVis++;
-                    }
-                }
-            }else{
-                townVis++;
-            }
-            count++;
-            count %= 2;
-
-            prev = temp;
-            temp = dp[temp][type].second;
-
-            type = (type+1)%2;
-        }
+        path = getPath(ind, dp, graph, townVis, type);
 
     }else if(type == 1){ // two paths
 
@@ -194,63 +201,25 @@ tuple<ll,int,vector<int>> solve(){
         }
 
         //path 1
-        int prev = 0;
-        int count = 0;
-        int temp = twoBest[0];
-
-        while(temp != 0){
-            path.PB(temp);
-            if(count == 0){
-                for(int i = 0; i<graph[temp].size(); i++){
-                    int cur = graph[temp][i];
-                    if(cur != prev && cur != dp[temp][type].second){
-                        path.PB(cur);
-                        path.PB(temp);
-                        townVis++;
-                    }
-                }
-            }else{
-                townVis++;
-            }
-            count++;
-            count %= 2;
-
-            prev = temp;
-            temp = dp[temp][type].second;
-
-            type = (type+1)%2;
-        }
+        path = getPath(twoBest[0], dp, graph, townVis, type);
 
         reverse(path.begin(), path.end());
 
         path.PB(ind);
-
-        //path 2
-        prev = 0;
-        count = 0;
-        temp = twoBest[1];
-
-        while(temp != 0){
-            path.PB(temp);
-            if(count == 0){
-                for(int i = 0; i<graph[temp].size(); i++){
-                    int cur = graph[temp][i];
-                    if(cur != prev && cur != dp[temp][type].second){
-                        path.PB(cur);
-                        path.PB(temp);
-                        townVis++;
-                    }
-                }
-            }else{
+        for(int i = 0; i<graph[ind].size(); i++){
+            int cur = graph[ind][i];
+            if(cur != twoBest[0] && cur != twoBest[1]){
+                path.PB(cur);
+                path.PB(ind);
                 townVis++;
             }
-            count++;
-            count %= 2;
+        }
 
-            prev = temp;
-            temp = dp[temp][type].second;
+        //path 2
+        vector<int> path2 = getPath(twoBest[1], dp, graph, townVis, type);
 
-            type = (type+1)%2;
+        for(int i =0 ; i<path2.size(); i++){
+            path.PB(path2[i]);
         }
     }
 
