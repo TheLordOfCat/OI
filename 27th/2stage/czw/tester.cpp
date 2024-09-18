@@ -39,7 +39,7 @@ void input(int v, int &gloInd){
     }
 }
 
-void inputRand(int v, int depth){
+void inputRand(int v, int depth, int &gloInd){
     int num;
     int type = rand()%3;
     if(type == 0){
@@ -58,8 +58,9 @@ void inputRand(int v, int depth){
     if(num == 4){
         for(int i = 0; i<4; i++){
             graph.PB(vector<int>());
-            graph[v].PB(v+i+1);
-            inputRand(v+i+1, depth + 1);
+            graph[v].PB(gloInd);
+            gloInd++;
+            input(gloInd-1, gloInd);
         }
     }
 }
@@ -82,7 +83,8 @@ void getRandom(){
     m = rand()%2+3;
 
     graph.PB(vector<int>());
-    inputRand(0, 0);
+    int gloInd = 1;
+    inputRand(0, 0, gloInd);
 }
 
 void printData(){
@@ -110,10 +112,10 @@ PII brute(){
         int c = colour[v];
 
         if(c == 4){
-            S.push(MT(graph[v][0], d+1, MP(cord.first, cord.second + 2*(1<<(m-d-1)))));
-            S.push(MT(graph[v][1], d+1, MP(cord.first + (1<<(m-d-1)), cord.second + 2*(1<<(m-d-1)))));
-            S.push(MT(graph[v][2], d+1, MP(cord.first, cord.second + (1<<(m-d-1)))));
-            S.push(MT(graph[v][3], d+1, MP(cord.first + (1<<(m-d-1)), cord.second + (1<<(m-d-1)))));
+            S.push(MT(graph[v][0], d+1, MP(cord.first, cord.second + (1<<(m-d-1)))));
+            S.push(MT(graph[v][1], d+1, MP(cord.first + (1<<(m-d-1)), cord.second + (1<<(m-d-1)))));
+            S.push(MT(graph[v][2], d+1, MP(cord.first, cord.second)));
+            S.push(MT(graph[v][3], d+1, MP(cord.first + (1<<(m-d-1)), cord.second)));
         }else{
             for(int i = cord.first; i<cord.first + (1<<(m-d)); i++){
                 for(int j = cord.second; j<cord.second + (1<<(m-d)); j++){
@@ -127,36 +129,42 @@ PII brute(){
     PII ans = MP(0,0);
 
     vector<vector<bool>> vis(1<<m, vector<bool>(1<<m, false));
-    for(int i = 0; i<1<<m; i++){
-        for(int j = 0; j<1<<m; j++){
+    for(int i = 0; i<(1<<m); i++){
+        for(int j = 0; j<(1<<m); j++){
             if(!vis[i][j] && plane[i][j] == 1){
                 int size = 0;
-                stack<PII> S;
-                S.push(MP(i,j));
+                stack<PII> St;
+                St.push(MP(i,j));
+                vis[i][j] = true;
                 
-                while(!S.empty()){
-                    PII v = S.top();
-                    S.pop();
+                while(!St.empty()){
+                    PII v = St.top();
+                    St.pop();
                     size++;
 
-                    if(i >= 1){
-                        if(!vis[i-1][j] && plane[i-1][j] == 1){
-                            S.push(MP(i-1,j));
+                    int a = v.first, b = v.second;
+                    if(a >= 1){
+                        if(!vis[a-1][b] && plane[a-1][b] == 1){
+                            St.push(MP(a-1,b));
+                            vis[a-1][b] = true;
                         }
                     }
-                    if(i < (1<<m)-1){
-                        if(!vis[i+1][j] && plane[i+1][j] == 1){
-                            S.push(MP(i+1,j));
+                    if(a < (1<<m)-1){
+                        if(!vis[a+1][b] && plane[a+1][b] == 1){
+                            St.push(MP(a+1,b));
+                            vis[a+1][b] = true;
                         }
                     }
-                    if(j >= 1){
-                        if(!vis[i][j-1] && plane[i][j-1] == 1){
-                            S.push(MP(i,j-1));
+                    if(b >= 1){
+                        if(!vis[a][b-1] && plane[a][b-1] == 1){
+                            St.push(MP(a,b-1));
+                            vis[a][b-1] = true;
                         }
                     }
-                    if(j < (1<<m)-1){
-                        if(!vis[i][j+1] && plane[i][j+1] == 1){
-                            S.push(MP(i,j+1));
+                    if(b < (1<<m)-1){
+                        if(!vis[a][b+1] && plane[a][b+1] == 1){
+                            St.push(MP(a,b+1));
+                            vis[a][b+1] = true;
                         }
                     }
                 }
