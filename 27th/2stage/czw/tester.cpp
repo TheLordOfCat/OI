@@ -5,7 +5,7 @@
 #include <stack>
 #include <tuple>
 #include <string>
-#include <set>
+#include <map>
 
 using namespace std;
 
@@ -192,14 +192,14 @@ PII brute(){
 pair<int,ll> solve(){
     pair<int,ll> ans;
 
-    int totalSize = (1<<m)*2;
+    ll totalSize = (1<<m)*2;
 
     vector<int> blocks(graph.size() + 1, -1);
-    vector<PII> blockCord(graph.size()+ 1, MP(-1,-1))
-    vector<set<PII>> rows(totalSize, set<int>());
-    vector<set<PII>> cols(totalSize, set<int>());
+    vector<PII> blockCord(graph.size()+ 1, MP(-1,-1));
+    vector<map<ll,int>> rows(totalSize, map<ll,int>());
+    vector<map<ll,int>> cols(totalSize, map<ll,int>());
 
-    stack<tuple<int,int,PIIt>> S;
+    stack<tuple<int,int,PII>> S;
     S.push(MT(1,0, MP(0,0)));
 
     //traversing graph
@@ -224,7 +224,7 @@ pair<int,ll> solve(){
     }
 
     //joining sets
-    vector<vector<int>> graphPlanes(n+1, vector<int>());
+    vector<vector<int>> graphPlane(graph.size()+1, vector<int>());
     stack<int> St;
 
     while(!St.empty()){
@@ -234,21 +234,52 @@ pair<int,ll> solve(){
         if(colour[v] == 1){
             ll len = (1<<(m-blocks[v]-1));
             //left
-            auto l = col[cord[v].first].lower_bound(cord.first+len/2);
+            auto l = cols[blockCord[v].first].lower_bound(blockCord[v].second);
+            while(l->first < blockCord[v].second + len && l != cols[blockCord[v].first].end()){
+                if(l->second != v){
+                    graph[l->second].PB(v);
+                    graph[v].PB(l->second);
+                }
+                l++;
+            }
+
             //top
-            auto t = col[cord[v].second + len].lower_bound(cord.second+len/2);
+            auto t = rows[blockCord[v].second + len].lower_bound(blockCord[v].first);
+            while(t->first < blockCord[v].first + len){
+                if(t->second != v){
+                    graph[t->second].PB(v);
+                    graph[v].PB(t->second);
+                }
+                t++;
+            }
+
             //right 
-            auto t = col[cord[v].first + len].lower_bound(cord.first+len/2);
+            auto r = cols[blockCord[v].first + len].lower_bound(blockCord[v].second);
+            while(r->first < blockCord[v].second + len){
+                if(r->second != v){
+                    graph[r->second].PB(v);
+                    graph[v].PB(r->second);
+                }
+                r++;
+            }
+
             //bottom
-            auto t = col[cord[v].second].lower_bound(cord.second+len/2);
+            auto b = rows[blockCord[v].second].lower_bound(blockCord[v].first);
+            while(b->first < blockCord[v].first + len){
+                if(b->second != v){
+                    graph[b->second].PB(v);
+                    graph[v].PB(b->second);
+                }
+                b++;
+            }
 
 
         }
         if(colour[v] == 4){
-            S.push(graph[v][0]);
-            S.push(graph[v][1]);
-            S.push(graph[v][2]);
-            S.push(graph[v][3]);
+            St.push(graph[v][0]);
+            St.push(graph[v][1]);
+            St.push(graph[v][2]);
+            St.push(graph[v][3]);
         }
     }
 
@@ -272,7 +303,7 @@ pair<int,ll> solve(){
                         size++;
                         area = (area + (1<<(m-blocks[v]-1)))%MOD;
                         vis[cur] = true;
-                        S.push(cur);
+                        Sd.push(cur);
                     }
                 }
             }
