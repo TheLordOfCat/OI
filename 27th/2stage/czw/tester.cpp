@@ -5,6 +5,7 @@
 #include <stack>
 #include <tuple>
 #include <string>
+#include <set>
 
 using namespace std;
 
@@ -24,6 +25,8 @@ int m;
 vector<int> code;
 vector<vector<int>> graph;
 vector<int> colour;
+
+const int MOD = 1'000'000'007;
 
 void input(int v, int &gloInd){
     int num = code[v];
@@ -66,6 +69,10 @@ void inputRand(int v, int depth, int &gloInd){
 }
 
 void getData(){
+    graph.clear();
+    code.clear();
+    colour.clear();
+
     cin>>m;
 
     string temp;
@@ -80,6 +87,10 @@ void getData(){
 }
 
 void getRandom(){
+    graph.clear();
+    code.clear();
+    colour.clear();
+
     m = rand()%2+3;
 
     graph.PB(vector<int>());
@@ -136,7 +147,7 @@ PII brute(){
                 stack<PII> St;
                 St.push(MP(i,j));
                 vis[i][j] = true;
-                
+
                 while(!St.empty()){
                     PII v = St.top();
                     St.pop();
@@ -178,8 +189,100 @@ PII brute(){
     return ans;
 }
 
-PII solve(){
-    
+pair<int,ll> solve(){
+    pair<int,ll> ans;
+
+    int totalSize = (1<<m)*2;
+
+    vector<int> blocks(graph.size() + 1, -1);
+    vector<PII> blockCord(graph.size()+ 1, MP(-1,-1))
+    vector<set<PII>> rows(totalSize, set<int>());
+    vector<set<PII>> cols(totalSize, set<int>());
+
+    stack<tuple<int,int,PIIt>> S;
+    S.push(MT(1,0, MP(0,0)));
+
+    //traversing graph
+    while(!S.empty()){
+        int v = get<0>(S.top());
+        int d = get<1>(S.top());
+        PII cord = get<2>(S.top());
+        S.pop();
+
+        if(colour[v] == 1){
+            blocks[v] = d;
+            blockCord[v] = cord;
+            rows[cord.second + (1<<(m-d-2))].insert(MP(cord.first, v));
+            cols[cord.first + (1<<(m-d-2))].insert(MP(cord.second, v));
+        }
+        if(colour[v] == 4){
+            S.push(MT(graph[v][0], d+1, MP(cord.first, cord.second + (1<<(m-d-1)))));
+            S.push(MT(graph[v][1], d+1, MP(cord.first + (1<<(m-d-1)), cord.second + (1<<(m-d-1)))));
+            S.push(MT(graph[v][2], d+1, MP(cord.first, cord.second)));
+            S.push(MT(graph[v][3], d+1, MP(cord.first + (1<<(m-d-1)), cord.second)));
+        }
+    }
+
+    //joining sets
+    vector<vector<int>> graphPlanes(n+1, vector<int>());
+    stack<int> St;
+
+    while(!St.empty()){
+        int v = St.top();
+        S.pop();
+
+        if(colour[v] == 1){
+            ll len = (1<<(m-blocks[v]-1));
+            //left
+            auto l = col[cord[v].first].lower_bound(cord.first+len/2);
+            //top
+            auto t = col[cord[v].second + len].lower_bound(cord.second+len/2);
+            //right 
+            auto t = col[cord[v].first + len].lower_bound(cord.first+len/2);
+            //bottom
+            auto t = col[cord[v].second].lower_bound(cord.second+len/2);
+
+
+        }
+        if(colour[v] == 4){
+            S.push(graph[v][0]);
+            S.push(graph[v][1]);
+            S.push(graph[v][2]);
+            S.push(graph[v][3]);
+        }
+    }
+
+    //counting size
+    vector<bool> vis(blocks.size(), false);
+    for(int i = 0; i<blocks.size(); i++){
+        if(!vis[i] && blocks[i] != -1){
+            stack<int> Sd;
+            Sd.push(i);
+
+            int size = 1;
+            ll area = (1<<(m-blocks[i]-1))%MOD;
+
+            while(!Sd.empty()){
+                int v = Sd.top();
+                Sd.pop();
+
+                for(int  j =0 ; j<graphPlane[v].size(); j++){
+                    int cur = graphPlane[v][j];
+                    if(!vis[cur]){
+                        size++;
+                        area = (area + (1<<(m-blocks[v]-1)))%MOD;
+                        vis[cur] = true;
+                        S.push(cur);
+                    }
+                }
+            }
+
+            ans.first++;
+            ans.second = max(ans.second, area);
+        }
+    }
+
+    return ans;
 }
 
 int main()
@@ -196,7 +299,7 @@ int main()
             getRandom();
         }
         PII ansB = brute();
-        PII ansS = solve();
+        pair<int,ll> ansS = solve();
         if(ansB.first != ansS.first || ansB.second != ansS.second){
             cout<<"ERROR\n";
             cout<<"BRUTE: \n";
