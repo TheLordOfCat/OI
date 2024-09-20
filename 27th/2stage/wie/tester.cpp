@@ -76,11 +76,14 @@ int brute() {
     for (int i = 0; i < col.size(); i++) {
       domino.PB(col[i]);
     }
+    int indAdd = 0;
     for (int i = 0; i < shortCol.first; i++) {
-      domino.PB(shortCol.second);
+      domino.PB(MP(pos[indAdd] ,shortCol.second));
+      indAdd++;
     }
     for (int i = 0; i < tallCol.first; i++) {
-      domino.PB(tallCol.second);
+      domino.PB(MP(pos[indAdd], tallCol.second));
+      indAdd++;
     }
 
     sort(domino.begin(), domino.end(), pairCompare);
@@ -127,12 +130,14 @@ int brute() {
     }
     ans = max(size, ans);
 
-  } while (nex_permutation(pos.begin(), pos.end()));
+  } while(next_permutation(pos.begin(), pos.end()));
 
   return ans;
 }
 
-int solve() { for (int) }
+int solve() {
+
+}
 
 int main() {
   ios_base::sync_with_stdio(false);
