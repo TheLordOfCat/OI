@@ -190,7 +190,7 @@ PII brute(){
 }
 
 pair<int,ll> solve(){
-    pair<int,ll> ans;
+    pair<int,ll> ans = MP(0,0);
 
     ll totalSize = (1<<m)*2;
 
@@ -200,7 +200,7 @@ pair<int,ll> solve(){
     vector<map<ll,int>> cols(totalSize, map<ll,int>());
 
     stack<tuple<int,int,PII>> S;
-    S.push(MT(1,0, MP(0,0)));
+    S.push(MT(0,0, MP(0,0)));
 
     //traversing graph
     while(!S.empty()){
@@ -208,18 +208,19 @@ pair<int,ll> solve(){
         int d = get<1>(S.top());
         PII cord = get<2>(S.top());
         S.pop();
+        ll len = (1<<(m-d-1));
 
         if(colour[v] == 1){
             blocks[v] = d;
             blockCord[v] = cord;
-            rows[cord.second + (1<<(m-d-2))].insert(MP(cord.first, v));
-            cols[cord.first + (1<<(m-d-2))].insert(MP(cord.second, v));
+            rows[cord.second + len].insert(MP(cord.first + len/2, v));
+            cols[cord.first + len].insert(MP(cord.second + len/2, v));
         }
         if(colour[v] == 4){
-            S.push(MT(graph[v][0], d+1, MP(cord.first, cord.second + (1<<(m-d-1)))));
-            S.push(MT(graph[v][1], d+1, MP(cord.first + (1<<(m-d-1)), cord.second + (1<<(m-d-1)))));
+            S.push(MT(graph[v][0], d+1, MP(cord.first, cord.second + len)));
+            S.push(MT(graph[v][1], d+1, MP(cord.first + len, cord.second + len)));
             S.push(MT(graph[v][2], d+1, MP(cord.first, cord.second)));
-            S.push(MT(graph[v][3], d+1, MP(cord.first + (1<<(m-d-1)), cord.second)));
+            S.push(MT(graph[v][3], d+1, MP(cord.first + len, cord.second)));
         }
     }
 
