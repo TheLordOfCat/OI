@@ -34,7 +34,7 @@ void getData(){
         cin>>a>>b;
         edges.PB(MP(a,b));
     }
-}
+}   
 
 void getRandom(){
     srand(time(0));

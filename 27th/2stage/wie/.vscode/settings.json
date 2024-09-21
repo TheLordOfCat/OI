@@ -1,5 +1,13 @@
 {
     "files.associations": {
-        "utility": "cpp"
+        "utility": "cpp",
+        "initializer_list": "cpp",
+        "vector": "cpp",
+        "xstring": "cpp",
+        "xutility": "cpp",
+        "algorithm": "cpp",
+        "limits": "cpp",
+        "ios": "cpp",
+        "xiosbase": "cpp"
     }
 }
