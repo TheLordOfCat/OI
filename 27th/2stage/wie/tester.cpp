@@ -77,9 +77,10 @@ int brute() {
         dist.PB(dif);
     }
 
+    //right = left 
     for(int i = 0; i<n; i++){
         int countS = shortCol.first, countT = tallCol.first;
-        //right
+
         int con = countS + countT;
         int ind = i;
         while(countS > 0 || countT > 0){
@@ -88,6 +89,7 @@ int brute() {
             }
             int len = dist[ind];
             while(len > 0){
+                //want to fill tall first
                 if(len > tallCol.second){
                     if(countT > 0){
                         len -= tallCol.second;
@@ -113,42 +115,6 @@ int brute() {
             ind++;
         }
         ans = max(ans,con);
-
-        //left
-        con = countS + countT;
-        ind = i;
-        while(countS > 0 || countT > 0){
-            if(ind <= 0){
-                break;
-            }
-            int len = dist[ind-1];
-            while(len > 0){
-                if(len > tallCol.second){
-                    if(countT > 0){
-                        len -= tallCol.second;
-                        countT--;
-                    }else{
-                        len -= shortCol.second;
-                        countS--;
-                    }
-                }else{
-                    if(countS > 0){
-                        len -= shortCol.second;
-                        countS--;
-                    }else{
-                        len -= tallCol.second;
-                        countT--;
-                    }
-                }
-                if(countS == 0 && countT == 0){
-                    break;
-                }
-            }
-            if(len <= 0) con++;
-            ind--;
-        }
-
-        ans = max(ans,con);
     }
 
     return ans;
@@ -167,19 +133,9 @@ int solve() {
     //processing catapilar method
     int left = 0; int right = 0;
 
-    int countS = shortCol.first;
-    int countT = tallCol.first;
-    int wastedT = 0;
+    
     while(right != n-1){
-        if(dist[right] > addCount * height){
-            ans = max(ans, right- left + 1 + shortCol.first + tallCol.first);
-            while(dist[right] > addCount * height){
-
-            }
-        }else{
-            addCount -= (dist[right]/ height + 1);
-            right++;
-        }
+        
     }
     ans = max(ans, right- left + 1 + shortCol.first + tallCol.first);
 
