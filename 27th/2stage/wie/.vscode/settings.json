@@ -8,6 +8,7 @@
         "algorithm": "cpp",
         "limits": "cpp",
         "ios": "cpp",
-        "xiosbase": "cpp"
+        "xiosbase": "cpp",
+        "xtree": "cpp"
     }
 }

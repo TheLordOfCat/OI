@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <iostream>
 #include <vector>
+#include <set>
 
 using namespace std;
 
@@ -12,12 +13,13 @@ const ll llINF = 9'000'000'000'000'000'000;
 const ull ullINF = 18'000'000'000'000'000'000;
 
 #define PII pair<int, int>
+#define PULLI pair<ull,int>
 #define MP make_pair
 #define PB push_back
 
 int n;
-vector<PII> col;
-PII shortCol, tallCol;
+vector<PULLI> col;
+PULLI shortCol, tallCol;
 
 void getData() {
     cin >> n;
@@ -120,23 +122,82 @@ int brute() {
     return ans;
 }
 
-int solve() {
-    int ans = 0;
-    vector<int> dist;
+ull solve() {
+    ull ans = 0;
+    vector<ull> dist;
     
     // distance to next collumn
     for(int i = 0; i<col.size()-1; i++){
-        int dif = col[i+1].first - col[i].first + col[i].second;
+        ll dif = col[i+1].first - col[i].first + col[i].second;
         dist.PB(dif);
     }
 
     //processing catapilar method
-    int left = 0; int right = 0;
-
+    ull left = 0; ull right = 0;
+    set<pair<ull,ull>> S;
     
+    ull countT = tallCol.first;
+    ull countS = shortCol.first;
+
+    vector<pair<ull,ull>> reduceSeg(n+1, MP(0,0));
+
     while(right != n-1){
-        
+        bool opti = false;
+        do{
+            ull reduceT = 0;
+            ull reduceS = 0;
+            opti = false;
+
+            ull len = dist[right + 1];
+
+            //use tall
+            ull use = len / tallCol.second;
+            if(len % tallCol.second != 0){
+                use++;
+            }
+
+            if(use < countT){
+                reduceT += countT;
+                len %= tallCol.second;
+            }else{
+                len -= tallCol.second * (countT-reduceT);
+                reduceT += countT-reduceT;
+            }
+
+            //minimize short
+
+
+            //use short 
+            ull use = len / shortCol.second;
+            if(len % shortCol.second != 0){
+                use++;
+            }
+
+            if(use < countS){
+                reduceS += countS;
+                len %= shortCol.second;
+            }else{
+                len -= shortCol.second * (countS-reduceS);
+                reduceS += countS-reduceS;
+            }
+
+            if(len != 0){
+                opti = true;
+                ans = max(ans, right - left + 1 + shortCol.first + tallCol.first);
+                countS += reduceSeg[left].first;
+                countT += reduceSeg[left].second;
+                left++;
+            }else{
+                reduceSeg[right] = MP(reduceS, reduceT);
+                right++;
+            }
+
+        }while(opti);
+        ans = max(ans, right- left + 1 + shortCol.first + tallCol.first);
+
+        right++;
     }
+
     ans = max(ans, right- left + 1 + shortCol.first + tallCol.first);
 
     return ans;
@@ -155,7 +216,7 @@ int main() {
             getRandom();
         }
         int ansB = brute();
-        int ansS = solve();
+        ull ansS = solve();
         if (ansB != ansS) {
             cout << "ERROR\n";
             cout << "BRUTE: " << ansB << "\n";
