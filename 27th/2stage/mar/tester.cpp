@@ -20,6 +20,9 @@ vector<int> digits;
 vector<int> querys;
 
 void getData(){
+    digits.clear();
+    querys.clear();
+
     cin>>n>>m;
     for(int i =0 ; i<n; i++){
         char c;
@@ -34,6 +37,9 @@ void getData(){
 }
 
 void getRandom(){
+    digits.clear();
+    querys.clear();
+
     srand(time(0));
 
     n = rand()%10+1;
@@ -71,27 +77,31 @@ int qBrute(vector<int> d){
     }
 
     int totalSize = 1<<d.size();
-    int len = 0;
-    for(int i = 0; i<totalSize; i++){
-        if(i > (1<<(len+1))){
-            len++;
-        }
-        string f;
-        for(int j = 0; j<len; j++){
-            if(i & 1<<j){
-                f += '1';
-            }else{
-                f += '0';
+    for(int i = 1; i<=n; i++){
+        bool ok = true;
+        for(int j = 0; j<(1<<i); j++){
+            string f;
+            for(int o = 0; o<i; o++){
+                if(j & (1<<o)){
+                    f += '1';
+                }else{
+                    f += '0';
+                }
+            }
+            
+            auto itr = s.find(f);
+            if(itr == s.npos){
+                ok = false;
+                break;
             }
         }
-        
-        auto itr = s.find(f);
-        if(itr == s.npos){
-            return len;
+
+        if(!ok){
+            return i;
         }
     }
 
-    return -1;
+    return d.size()+1;
 }
 
 vector<int> brute(){
@@ -203,8 +213,8 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
-    for(int test = 1; test<=1; test++){
+    int op = 0;
+    for(int test = 1; test<=10'000; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
@@ -215,7 +225,7 @@ int main()
         vector<int> ansS = solve();
         for(int i = 0; i<ansB.size(); i++){
             if(ansB[i] != ansS[i]){
-                cout<<"ERORR\n";
+                cout<<"ERROR\n";
                 cout<<"BRUTE: ";
                 for(int j =0; j<ansB.size(); j++){
                     cout<<ansB[j]<<" ";
