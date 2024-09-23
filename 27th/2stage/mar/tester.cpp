@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <string>
 
 using namespace std;
 
@@ -39,25 +40,90 @@ void getRandom(){
     m = rand()%5+1;
     for(int i =0 ; i<n; i++){
         int temp = rand()%2;
-        digits.PB(c-'0');
+        digits.PB(temp);
     }
     for(int i =0 ; i<m; i++){
-        int temp;
-        cin>>temp;
+        int temp = rand()%n+1;
         querys.PB(temp);
     }
 }
 
 void printData(){
+    cout<<"DATA: \n";
+    cout<<n<<" "<<m<<"\n";
+    for(int i = 0; i<digits.size(); i++){
+        cout<<digits[i];
+    }
+    cout<<"\n";
+    for(int i = 0; i<querys.size(); i++){
+        cout<<querys[i]<<"\n";
+    }
+}
 
+int qBrute(vector<int> d){
+    string s;
+    for(int i = 0; i<d.size(); i++){
+        if(d[i] == 0){
+            s += '0';
+        }else{
+            s += '1';
+        }
+    }
+
+    int totalSize = 1<<d.size();
+    int len = 0;
+    for(int i = 0; i<totalSize; i++){
+        if(i > (1<<(len+1))){
+            len++;
+        }
+        string f;
+        for(int j = 0; j<len; j++){
+            if(i & 1<<j){
+                f += '1';
+            }else{
+                f += '0';
+            }
+        }
+        
+        auto itr = s.find(f);
+        if(itr == s.npos){
+            return len;
+        }
+    }
+
+    return -1;
 }
 
 vector<int> brute(){
+    vector<int> ans;
+
+    vector<int> digAlt = digits;
+    ans.PB(qBrute(digAlt));
+    for(int i = 0; i<querys.size(); i++){
+        digAlt[querys[i]-1] =  (digAlt[querys[i]-1]+1)%2;
+        int temp = qBrute(digAlt);
+        ans.PB(temp);
+    }
+
+    return ans;
+}
+
+int qSolve(vector<int> d){
 
 }
 
 vector<int> solve(){
+    vector<int> ans;
 
+    vector<int> digAlt = digits;
+    ans.PB(qSolve(digAlt));
+    for(int i = 0; i<querys.size(); i++){
+        digAlt[querys[i]-1] =  (digAlt[querys[i]-1]+1)%2;
+        int temp = qSolve(digAlt);
+        ans.PB(temp);
+    }
+
+    return ans;
 }
 
 int main()
