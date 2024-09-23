@@ -110,18 +110,20 @@ vector<int> brute(){
 
 int qSolve(int v, vector<int>& d,  vector<vector<int>>& dic){
     int R = 20;
-    for(int i = min(v-R, 0); i<=v; i++){
+    for(int i = max(v-R, 0); i<=v; i++){
         ll num = 0;
         for(int j = i; j<i+R && j<n; j++){
             if(d[j] == 1){
                 num ^= (1<<(j-i));
             }
-            if(j >= v) dic[j-i+1][num]--;
+            if(j >= v){
+                dic[j-i+1][num]--;
+            }
         }
     }
 
     d[v] =  (d[v]+1)%2;
-    for(int i = min(v-R, 0); i<=v; i++){
+    for(int i = max(v-R, 0); i<=v; i++){
         ll num = 0;
         for(int j = i; j<i+R && j<n; j++){
             if(d[j] == 1){
@@ -133,12 +135,9 @@ int qSolve(int v, vector<int>& d,  vector<vector<int>>& dic){
 
     for(int l = 1; l<R; l++){
         int maxSize = (1<<l);
-        int minSize = (1<<(l-1));
-        if(l == 1) minSize = 0;
-        
         bool ok = true;
 
-        for(int i = minSize; i<maxSize; i++){
+        for(int i = 0; i<maxSize; i++){
             if(dic[l][i] == 0){
                 ok = false;
                 break;
@@ -173,12 +172,9 @@ vector<int> solve(){
 
     for(int l = 1; l<R; l++){
         int maxSize = (1<<l);
-        int minSize = (1<<(l-1));
-        if(l == 1) minSize = 0;
-        
         bool ok = true;
 
-        for(int i = minSize; i<maxSize; i++){
+        for(int i = 0; i<maxSize; i++){
             if(dic[l][i] == 0){
                 ok = false;
                 break;
@@ -187,6 +183,7 @@ vector<int> solve(){
 
         if(!ok){
             ans.PB(l);
+            break;
         } 
     }
 
