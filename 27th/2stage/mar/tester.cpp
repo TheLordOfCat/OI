@@ -108,18 +108,93 @@ vector<int> brute(){
     return ans;
 }
 
-int qSolve(vector<int> d){
+int qSolve(int v, vector<int>& d,  vector<vector<int>>& dic){
+    int R = 20;
+    for(int i = min(v-R, 0); i<=v; i++){
+        ll num = 0;
+        for(int j = i; j<i+R && j<n; j++){
+            if(d[j] == 1){
+                num ^= (1<<(j-i));
+            }
+            if(j >= v) dic[j-i+1][num]--;
+        }
+    }
 
+    d[v] =  (d[v]+1)%2;
+    for(int i = min(v-R, 0); i<=v; i++){
+        ll num = 0;
+        for(int j = i; j<i+R && j<n; j++){
+            if(d[j] == 1){
+                num ^= (1<<(j-i));
+            }
+            if(j >= v) dic[j-i+1][num]++;
+        }
+    }
+
+    for(int l = 1; l<R; l++){
+        int maxSize = (1<<l);
+        int minSize = (1<<(l-1));
+        if(l == 1) minSize = 0;
+        
+        bool ok = true;
+
+        for(int i = minSize; i<maxSize; i++){
+            if(dic[l][i] == 0){
+                ok = false;
+                break;
+            }
+        }
+
+        if(!ok){
+            return l;
+        } 
+    }
+
+    return -1;
 }
 
 vector<int> solve(){
     vector<int> ans;
+    int R = 20;
 
     vector<int> digAlt = digits;
-    ans.PB(qSolve(digAlt));
+    vector<vector<int>> dic(R+1, vector<int>((1<<R)+1, 0));
+
+    //initial traversal
+    for(int i = 0; i<n; i++){
+        ll num = 0;
+        for(int j = i; j<i+R && j<n; j++){
+            if(digAlt[j] == 1){
+                num ^= (1<<(j-i));
+            }
+            dic[j-i+1][num]++;
+        }
+    }
+
+    for(int l = 1; l<R; l++){
+        int maxSize = (1<<l);
+        int minSize = (1<<(l-1));
+        if(l == 1) minSize = 0;
+        
+        bool ok = true;
+
+        for(int i = minSize; i<maxSize; i++){
+            if(dic[l][i] == 0){
+                ok = false;
+                break;
+            }
+        }
+
+        if(!ok){
+            ans.PB(l);
+        } 
+    }
+
+    if(ans.size() == 0) ans.PB(-1);
+
+    //proces query
     for(int i = 0; i<querys.size(); i++){
-        digAlt[querys[i]-1] =  (digAlt[querys[i]-1]+1)%2;
-        int temp = qSolve(digAlt);
+        int temp = qSolve(querys[i]-1, digAlt, dic);
         ans.PB(temp);
     }
 
