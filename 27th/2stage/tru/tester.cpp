@@ -79,6 +79,36 @@ tuple<ull,ull,ull> brute(){
 
 vector<ull> primes = {2,3,5,7,11,13,17,19,23,29,31,37,41};
 
+void genAntiPrime(ll a, ll j, ll cand, ll div, ull& border, ull& antiPrime, ull& antiPrimeDiv){
+    if(a>primes.size()) return;
+    if(div > antiPrimeDiv){
+        antiPrime = cand;
+        antiPrimeDiv = div;
+    }else if(cand > antiPrime){
+        antiPrime = cand;
+    }
+    for(int i = 1; i<=j; i++){
+        if(primes[a]*cand > border) return;
+        cand *= primes[a];
+        genAntiPrime(a+1, i, cand, div*(i+1), border, antiPrime, antiPrimeDiv);
+    }
+}
+
+void genCandRec(ll a, ll j, ll cand, ll div, ull& border, vector<ull>& candidates){
+    if(a>primes.size()) return;
+    
+    //predict number of divisors
+
+    for(int i = 1; i<=j; i++){
+        if(primes[a]*cand > border){
+            candidates.PB(cand);
+            return;
+        }
+        cand *= primes[a];
+        genCandRec(a+1, i, cand, div*(i+1), border, candidates);
+    }
+}
+
 void genCandidates(ull v, vector<ull>& candidates){
     if(v <= 100){
         for(int i = 1; i<v; i++){
@@ -89,81 +119,10 @@ void genCandidates(ull v, vector<ull>& candidates){
         ull antiPrime = 0;
         ull antiPrimeDiv = 0;
 
-        stack<pair<ull, vector<ull>>> S;
-        S.push(MP(1, vector<ull>(primes.size(), 0)));
-
-        while(!S.empty()){
-            ull num = S.top().first;
-            vector<ull> alpha = S.top().second;
-            S.pop();
-            
-            for(ull i = 0; i<primes.size(); i++){
-                if(num * primes[i] > v){
-                    ull div = 1;
-                    for(int j = 0; j<alpha.size(); j++){
-                        div *= (1+alpha[j]);
-                    }
-                    if(div > antiPrimeDiv){
-                        antiPrime = num;
-                        antiPrimeDiv = div;
-                    }
-                    break;
-                }else if(i > 0){
-                    if(alpha[i] + 1 > alpha[i-1]){
-                        break;
-                    }
-                }
-
-                vector<ull> temp = alpha;
-
-                temp[i]++;
-                num *= primes[i];
-                S.push(MP(num,temp));
-                
-            }
-        }
+        genAntiPrime(0, 54, 1, 1, v, antiPrime, antiPrimeDiv);
 
         //generate candidates
-        S.push(MP(1, vector<ull>(primes.size(), 0)));
-
-        while(!S.empty()){
-            ull num = S.top().first;
-            vector<ull> alpha = S.top().second;
-            S.pop();
-            
-            for(ull i = 0; i<primes.size(); i++){
-                //cheking for predicted number of divisors
-                ull div = 1;
-                for(int j = 1; j<alpha.size(); j++){
-                    div *= (1+alpha[j]);
-                }
-
-                ull num2 = alpha[0];
-                while(num *= (1<<num2) < v){
-                    num2++;
-                }
-                
-                div *= (1+num2);
-                if(div < antiPrimeDiv/2){
-                    break;
-                }
-
-                if(num * primes[i] > v){
-                    candidates.PB(num);
-                    break;
-                }else if(i > 0){
-                    if(alpha[i] + 1 > alpha[i-1]){
-                        break;
-                    }
-                }
-
-                vector<ull> temp = alpha;
-
-                temp[i]++;
-                num *= primes[i];
-                S.push(MP(num,temp));
-            }
-        }
+        genCandRec(0, 54, 1, 1, v, candidates);
     }
 }
 
@@ -177,17 +136,17 @@ vector<tuple<ull,ull,ull>> getRange(){
 
         tuple<ull,ull,ull> best = MT(0,0,0);
 
-        for(ull i = 1; i <= n; i++){
-            for(ull j = i; j >= 1; j--){
-                ull divA = numberDivsors(i);
-                ull divB = numberDivsors(j);
-                ull g = gcd(i,j);
+        for(ull i = 0; i < candidates.size(); i++){
+            for(ull j = i; j >= 0; j--){
+                ull divA = numberDivsors(candidates[i]);
+                ull divB = numberDivsors(candidates[j]);
+                ull g = gcd(candidates[i],candidates[j]);
                 ull divG = numberDivsors(g);
 
                 ull temp = divA+divB-divG;
                 
                 if(get<0>(best) < temp){
-                    best = MT(i, j, temp);
+                    best = MT(candidates[i], candidates[j], temp);
                 }
             }
         }
