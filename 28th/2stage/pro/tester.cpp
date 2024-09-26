@@ -55,7 +55,25 @@ bool verify(vector<vector<int>>& plane){
 }
 
 vector<vector<int>> solve(){
+    vector<vector<int>> plane(100, vector<int>(100, 1));
 
+    PII ind = MP(plane.size()-1, plane.size()-1);
+
+    while(ind.second != 0){
+        //cover one block
+        for(int i = ind.first; i>=ind.first-1; i--){
+            for(int  j = ind.second; j>=ind.second-3; j--){
+                plane[j][i] = 0;
+            }
+        }
+        ind = MP(ind.first-1, ind.second-3);
+    }
+    for(int i = 0; i<plane.size(); i++){
+        for(int  j =0; j<plane[i].size(); j++){
+            cout<<plane[i][j];
+        }
+        cout<<"\n";
+    }
 }
 
 int main()
