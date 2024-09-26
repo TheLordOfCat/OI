@@ -31,7 +31,27 @@ void printData(){
 }
 
 bool verify(vector<vector<int>>& plane){
+    vector<vector<ull>> dp(plane.size(), vector<ull>(plane.size(), 0));
 
+    for(int i = 0; i<plane.size(); i++){
+        for(int j = 0; j<plane[i].size(); j++){
+            if(plane[i][j] == 1){
+                ull sum = 0;
+                if(i > 0){
+                    sum += dp[i-1][j];
+                }
+                if(j > 0){
+                    sum += dp[i][j-1];
+                }
+                dp[i][j] = sum;
+            }
+        }
+    }
+    if(dp[plane.size()-1][plane.size()-1] == K){
+        return true;
+    }else{
+        return false;
+    }
 }
 
 vector<vector<int>> solve(){
