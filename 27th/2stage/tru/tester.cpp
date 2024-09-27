@@ -79,6 +79,20 @@ tuple<ull, ull, ull> brute() {
 
 vector<ull> primes = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41};
 
+ull numberDivsorsOpti(ull v){
+    ull ans = 1;
+    for(ll i = 0; i<primes.size(); i++){
+        ll count = 0;
+        while(v%primes[i] == 0){
+            count++;
+            v /= primes[i];
+        }
+        ans *= (1+count);
+    }
+
+    return ans;
+}
+
 void genAntiPrime(ll a, ll j, ll cand, ll div, ull &border, ull &antiPrime, ull &antiPrimeDiv) {
     if (a > primes.size())
         return;
@@ -95,42 +109,47 @@ void genAntiPrime(ll a, ll j, ll cand, ll div, ull &border, ull &antiPrime, ull 
     }
 }
 
-void genCandRec(ll a, ll j, ll cand, ll div, ull t2, ull &border,
-    vector<ull> &candidates, ull &minDiv) {
-    if (a > primes.size()) return;
+void genCandRec(ll primeInd, ll powerPrime, ll cand, ll div, ull t2, ull &border, vector<pair<ull,ull>> &candidates, ull &minDiv) {
+    if (primeInd > primes.size()) return;
 
     // predict number of divisors
     ull temp = div / (t2 + 1);
     ull p = 0;
     ull num = 1 << t2;
     while (num < border) {
-        p++;
+        t2++;
         num *= 2;
     }
+
+    if(temp < 1<<(12)){
+        temp = 1<<(12);
+    }
+
     temp *= (p + t2 + 1);
 
     if (temp < minDiv) {
         return;
     }
 
-    for (int i = 1; i <= j; i++) {
-        if (primes[a] * cand > border) {
-            candidates.PB(cand);
+    for (int i = 1; i <= powerPrime; i++) {
+        if (primes[primeInd] * cand > border) {
+            candidates.PB(MP(cand,div * i));
             return;
         }
-        cand *= primes[a];
-        if (a == 0) {
-            genCandRec(a + 1, i, cand, div * (i + 1), i, border, candidates, minDiv);
+        cand *= primes[primeInd];
+        if (primeInd == 0) {
+            genCandRec(primeInd + 1, i, cand, div * (i + 1), i, border, candidates, minDiv);
         } else {
-            genCandRec(a + 1, i, cand, div * (i + 1), t2, border, candidates, minDiv);
+            genCandRec(primeInd + 1, i, cand, div * (i + 1), t2, border, candidates, minDiv);
         }
     }
 }
 
-void genCandidates(ull v, vector<ull> &candidates) {
+void genCandidates(ull v, vector<pair<ull,ull>> &candidates) {
     if (v <= 100) {
         for (int i = 1; i < v; i++) {
-            candidates.PB(i);
+            ll div = numberDivsors(i);
+            candidates.PB(MP(i,div));
         }
     } else {
         // anit prime numbers
@@ -139,37 +158,40 @@ void genCandidates(ull v, vector<ull> &candidates) {
 
         genAntiPrime(0, 54, 1, 1, v, antiPrime, antiPrimeDiv);
 
+        antiPrimeDiv /= 2;
+
         // generate candidates
-        genCandRec(0, 54, 1, 1, 0, v, candidates, anitPrimesDiv / 2);
+        genCandRec(0, 54, 1, 1, 0, v, candidates, antiPrimeDiv);
     }
-    }
+}
 
 vector<tuple<ull, ull, ull>> getRange() {
     vector<tuple<ull, ull, ull>> ans;
 
     ull v = MAXN;
     while (v >= 1) {
-        vector<ull> candidates;
+        vector<pair<ull,ull>> candidates;
         genCandidates(v, candidates);
 
         tuple<ull, ull, ull> best = MT(0, 0, 0);
 
-        for (ull i = 0; i < candidates.size(); i++) {
-            for (ull j = i; j >= 0; j--) {
-                ull divA = numberDivsors(candidates[i]);
-                ull divB = numberDivsors(candidates[j]);
-                ull g = gcd(candidates[i], candidates[j]);
-                ull divG = numberDivsors(g);
+        for (ll i = 0; i < candidates.size(); i++) {
+            for (ll j = i; j >= 0; j--) {
+                ull divA = candidates[i].second;
+                ull divB = candidates[j].second;
+                ull g = gcd(candidates[i].first, candidates[j].first);
+                ull divG = numberDivsorsOpti(g);
 
                 ull temp = divA + divB - divG;
 
                 if (get<0>(best) < temp) {
-                    best = MT(candidates[i], candidates[j], temp);
+                    best = MT(candidates[i].first, candidates[j].first, temp);
                 }
             }
         }
 
         ans.PB(best);
+        if(max(get<0>(best), get<1>(best)) == 0) break;
         v = max(get<0>(best), get<1>(best)) - 1;
     }
 
@@ -203,22 +225,22 @@ int main() {
     for (int test = 1; test <= 1; test++) {
         cout << "TEST nr." << test << " = ";
         if (op == 1) {
-        getData();
+            getData();
         } else {
-        getRandom();
+            getRandom();
         }
         tuple<ull, ull, ull> ansB = brute();
         tuple<ull, ull, ull> ansS = solve();
         if (get<0>(ansB) != get<0>(ansS)) {
-        cout << "ERROR\n";
-        cout << "BRUTE: \n";
-        cout << get<0>(ansB) << "\n";
-        cout << get<1>(ansB) << " " << get<1>(ansB) << "\n";
-        cout << "SOLVE: \n";
-        cout << get<0>(ansS) << "\n";
-        cout << get<1>(ansS) << " " << get<1>(ansS) << "\n";
-        printData();
-        return 0;
+            cout << "ERROR\n";
+            cout << "BRUTE: \n";
+            cout << get<0>(ansB) << "\n";
+            cout << get<1>(ansB) << " " << get<1>(ansB) << "\n";
+            cout << "SOLVE: \n";
+            cout << get<0>(ansS) << "\n";
+            cout << get<1>(ansS) << " " << get<1>(ansS) << "\n";
+            printData();
+            return 0;
         }
     }
 

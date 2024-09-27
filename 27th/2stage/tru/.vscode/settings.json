@@ -3,6 +3,8 @@
         "vector": "cpp",
         "tuple": "cpp",
         "stack": "cpp",
-        "utility": "cpp"
+        "utility": "cpp",
+        "iterator": "cpp",
+        "xutility": "cpp"
     }
 }
