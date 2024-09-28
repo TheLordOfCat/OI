@@ -76,7 +76,7 @@ vector<ull> brute() {
             ind++;
             i--;
         } else {
-            ans.PB(i);
+            ans.PB(ind);
         }
     }
 
