@@ -32,10 +32,11 @@ void printData() {
 
 bool verify(vector<vector<int>> &plane) {
     vector<vector<ull>> dp(plane.size(), vector<ull>(plane.size(), 0));
+    dp[0][0] = 1;
 
     for (int i = 0; i < plane.size(); i++) {
         for (int j = 0; j < plane[i].size(); j++) {
-            if (plane[i][j] == 1) {
+            if (plane[i][j] == 0) {
                 ull sum = 0;
                 if (i > 0) {
                     sum += dp[i - 1][j];
@@ -43,7 +44,7 @@ bool verify(vector<vector<int>> &plane) {
                 if (j > 0) {
                     sum += dp[i][j - 1];
                 }
-                dp[i][j] = sum;
+                dp[i][j] += sum;
             }
         }
     }
@@ -82,46 +83,46 @@ vector<vector<int>> solve() {
     //     cout<<"\n";
     // }
     ull j = 0;
+    ull minHeight = 99;
+    ull offset = 97;
 
-    while ((1 << j) < K) {
+    while ((((ull)1) << j) <= K) {
         int type = 0;
 
         // numer 1
-        if ((1 << j) & K) {
+        if ((((ull)1) << j) & K) {
             type++;
         }
 
         // numer 2
-        if ((1 << (j + 1)) & K) {
-            type &= (1 << (j + 1));
+        if ((((ull)1) << (j+1)) & K) {
+            type += 2;
         }
-
-        j += 2;
 
         // mark the connections
-        ull minHeight = 0;
-        ull offset = 99;
-
-        for (int i = 0; i < j; i++) {
-            minHeight += 3;
-            offset -= 1;
-        }
-
         if (type == 1) {
-            for (int j = offset; j >= 0; j--) {
-                plane[minHeight][j] = '0';
+            for (int o = offset; o >= 0; o--) {
+                if(plane[minHeight][o] == 0) break;
+                plane[minHeight][o] = 0;
             }
         } else if (type == 2) {
-            for (int j = offset; j >= 0; j--) {
-                plane[minHeight + 1][j] = '0';
+            for (int o = offset; o >= 0; o--) {
+                if(plane[minHeight-1][o] == 0) break;
+                plane[minHeight - 1][o] = 0;
             }
         } else if (type == 3) {
-            plane[minHeight][offset - 1] = '0';
-            for (int j = offset; j >= 0; j--) {
-                plane[minHeight + 1][j] = '0';
+            plane[minHeight][offset] = 0;
+            for (int o = offset; o >= 0; o--) {
+                if(plane[minHeight - 1][o] == 0) break;
+                plane[minHeight - 1][o] = 0;
             }
         }
+
+        minHeight -= 3;
+        offset -= 1;
+        j += 2;
     }
+    // cout<<"\n\n\n";
     // for(int i = 0; i<plane.size(); i++){
     //     for(int  j =0; j<plane[i].size(); j++){
     //         cout<<plane[i][j];
@@ -138,19 +139,20 @@ int main() {
 
     int op = 1;
     for (int test = 1; test <= 1; test++) {
+        cout<<"TEST nr."<<test<<" = ";
         if (op == 1) {
             getData();
         } else {
             getRandom();
         }
         vector<vector<int>> ansS = solve();
-        if (verify(ansS)) {
+        if (!verify(ansS)) {
             cout << "ERROR\n";
             cout << "SOLVE: ";
             cout << ansS.size() << "\n";
             for (int i = 0; i < ansS.size(); i++) {
                 for (int j = 0; j < ansS[i].size(); j++) {
-                    if (ansS[i][j] == 0) {
+                    if (ansS[i][j] == 1) {
                         cout << "#";
                     } else {
                         cout << ".";
@@ -158,7 +160,9 @@ int main() {
                 }
                 cout << "\n";
             }
+            return 0;
         }
+        cout<<"CORRECT\n";
     }
 
     return 0;
