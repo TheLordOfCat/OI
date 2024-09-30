@@ -132,44 +132,46 @@ void lazyUpadte(int v){
 }
 
 void updateRange(int l, int r, int val){
-    int L = leaf(l);
-    int R = leaf(r);
-    changeTree[L] += val;
-    if(L != R){
-        changeTree[R] += val;
+    int vl = leaf(l);
+    int vr = leaf(r);
+    changeTree[vl] += val;
+    if(vl != vr){
+        changeTree[vr] += val;
     }
 
-    while(parent(L) != parent(R)){
-        if(L = left(parent(L))){
-            changeTree[right(parent(L))] += val;
+    while(parent(vl) != parent(vr)){
+        if(vl = left(parent(vl))){
+            changeTree[right(parent(vl))] += val;
         }
-        if(R = right(parent(R))){
-            changeTree[left(parent(R))] += val;
-        }
-
-        //update left
-        lazyUpadte(left(L));
-        lazyUpadte(right(L));
-        if(difTree[left(L)].first > difTree[right(L)].first){
-            difTree[L] = difTree[left(L)];
-        }else{
-            difTree[R] = difTree[right(R)];
+        if(vr = right(parent(vr))){
+            changeTree[left(parent(vr))] += val;
         }
 
-        //update right
-        lazyUpadte(left(R));
-        lazyUpadte(right(R));
-        if(difTree[left(L)].first > difTree[right(L)].first){
-            difTree[L] = difTree[left(L)];
-        }else{
-            difTree[R] = difTree[right(R)];
+        if(vl <= R && vr <= R){
+            //update left
+            lazyUpadte(left(vl));
+            lazyUpadte(right(vl));
+            if(difTree[left(vl)].first > difTree[right(vl)].first){
+                difTree[vl] = difTree[left(vl)];
+            }else{
+                difTree[vl] = difTree[right(vl)];
+            }
+
+            //update right
+            lazyUpadte(left(vr));
+            lazyUpadte(right(vr));
+            if(difTree[left(vr)].first > difTree[right(vr)].first){
+                difTree[vr] = difTree[left(vr)];
+            }else{
+                difTree[vr] = difTree[right(vr)];
+            }
         }
 
-        L = parent(L);
-        R = parent(R);
+        vl = parent(vl);
+        vr = parent(vr);
     }
 
-    int V = parent(L);
+    int V = parent(vl);
     while(V >= 1){
         if(difTree[left(V)].first > difTree[right(V)].first){
             difTree[V] = difTree[left(V)];
@@ -181,16 +183,16 @@ void updateRange(int l, int r, int val){
 }
 
 pair<ll,ll> getRange(int l, int r, int lb, int rb, int v){
-    if(l > r) return MP(llINF, -1);
+    if(l > r) return MP(-llINF, -1);
 
     lazyUpadte(v);
     
     if(l == lb && r == rb){
         return difTree[v];
     }else{
-        ll mb = (lb+rb)/2;
-        pair<ll,ll> pl = getRange(l, min(r,rb), lb, mb, left(v));
-        pair<ll,ll> pr = getRange(max(l,lb), r, mb, rb, right(v));
+        int mb = (lb+rb)/2;
+        pair<ll,ll> pl = getRange(l, min(r,mb), lb, mb, left(v));
+        pair<ll,ll> pr = getRange(max(l,mb+1), r, mb+1, rb, right(v));
 
         if(pl.first > pr.first){
             return pl;
@@ -225,11 +227,11 @@ vector<ll> solve() {
 
     //create seg trees
     changeTree.assign(totalSize+1, 0);
-    difTree.assign(totalSize+1, MP(0,-1));
+    difTree.assign(totalSize+1, MP(-llINF,-1));
     
     for(int i = totalSize; i>=1; i--){
         if(i > R && i <= R+n){
-            difTree[i] = MP(s[i-R],i);
+            difTree[i] = MP(s[i-R-1],i);
         }else if(i <= R){
             if(difTree[left(i)].first > difTree[right(i)].first){
                 difTree[i] = difTree[left(i)];
@@ -241,16 +243,16 @@ vector<ll> solve() {
 
     //get ans
     vector<ll> ans;
-
-    ll sum = 0;
-    for(int i = 1; i<=n; i++){
-        pair<ull,ull> p = getRange(0, n-1, 0, totalSize-1, 1);
-        sum += p.first;
+    ans.PB(sum);
+    for(int i = 1; i<n; i++){
+        pair<ull,ull> p = getRange(1, n, 1, totalSize - R, 1);
+        sum -= w[p.second - R-1];
         ans.PB(sum);
-        updateSingle(p.second, -llINF);
-        updateRange(0,p.second-1, p.first);
+        updateSingle(p.second - R, -llINF);
+        updateRange(1, p.second - R, w[p.second - R-1]);
     }
 
+    reverse(ans.begin(), ans.end());
     return ans;
 }
 
