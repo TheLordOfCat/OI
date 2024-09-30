@@ -119,17 +119,6 @@ void updateNode(int v){
     } 
 }
 
-void updateSingle(int v, ll val){
-    int V = leaf(v);
-    difTree[V] = MP(val,-1);
-    V = parent(V);
-
-    while(V >= 1){
-        updateNode(V);
-        V = parent(V);
-    }
-}
-
 void lazyUpadte(int v){
     if(changeTree[v] != 0){
         difTree[v].first += changeTree[v];
@@ -139,6 +128,22 @@ void lazyUpadte(int v){
         }
         changeTree[v] = 0;
     }
+}
+
+void updateSingle(int v, ll val){
+    int V = leaf(v);
+    difTree[V] = MP(val,-1);
+    V = parent(V);
+
+    while(V >= 1){
+        if(v <= R){
+            lazyUpadte(left(V));
+            lazyUpadte(right(V));
+        }
+        updateNode(V);
+        V = parent(V);
+    }
+    lazyUpadte(1);
 }
 
 void updateRange(int l, int r, int val){
@@ -247,10 +252,11 @@ vector<ll> solve() {
     ans.PB(sum);
     for(int i = 1; i<n; i++){
         pair<ull,ull> p = getRange(1, n, 1, totalSize - R, 1);
-        sum -= w[p.second - R-1];
+        ll ind = p.second-R-1;
+        sum -= w[ind];
         ans.PB(sum);
-        updateSingle(p.second - R, -llINF);
-        updateRange(1, p.second - R - 1, w[p.second - R-1]);
+        updateSingle(ind+1, -llINF);
+        updateRange(1, ind, w[ind]);
     }
 
     reverse(ans.begin(), ans.end());
