@@ -34,7 +34,8 @@ void getData() {
 void getRandom() {
     w.clear();
 
-    n = rand() % 10 + 1;
+    // n = rand() % 10 + 1;
+    n = 8;
     for (int i = 0; i < n; i++) {
         ull temp = rand() % 20 + 1;
         w.PB(temp);
@@ -106,17 +107,25 @@ int right(int v){
     return v*2+1;
 }
 
+void updateNode(int v){
+    if(difTree[left(v)].first >= 0){
+        difTree[v] = difTree[left(v)];
+    }else{
+        if(difTree[left(v)].first >= difTree[right(v)].first){
+            difTree[v] = difTree[left(v)];
+        }else{
+            difTree[v] = difTree[right(v)];
+        }
+    } 
+}
+
 void updateSingle(int v, ll val){
     int V = leaf(v);
     difTree[V] = MP(val,-1);
     V = parent(V);
 
     while(V >= 1){
-        if(difTree[left(V)].first > difTree[right(V)].first){
-            difTree[V] = difTree[left(V)];
-        }else{
-            difTree[V] = difTree[right(V)];
-        }
+        updateNode(V);
         V = parent(V);
     }
 }
@@ -124,7 +133,7 @@ void updateSingle(int v, ll val){
 void lazyUpadte(int v){
     if(changeTree[v] != 0){
         difTree[v].first += changeTree[v];
-        if(v <= R){ //posibble error
+        if(v <= R){
             changeTree[left(v)] += changeTree[v];
             changeTree[right(v)] += changeTree[v];
         }
@@ -132,59 +141,48 @@ void lazyUpadte(int v){
     }
 }
 
-void lazyUpdateParent(int v){
-    lazyUpadte(left(v));
-    lazyUpadte(right(v));
-    if(difTree[left(v)].first > difTree[right(v)].first){
-        difTree[v] = difTree[left(v)];
-    }else{
-        difTree[v] = difTree[right(v)];
-    }
-}
-
 void updateRange(int l, int r, int val){
     int vl = leaf(l);
     int vr = leaf(r);
     changeTree[vl] += val;
+    lazyUpadte(vl);
     if(vl != vr){
         changeTree[vr] += val;
+        lazyUpadte(vr);
     }
 
     while(parent(vl) != parent(vr)){
-        if(vl = left(parent(vl))){
+        if(vl == left(parent(vl))){
             changeTree[right(parent(vl))] += val;
+            lazyUpadte(right(parent(vl)));
         }
-        if(vr = right(parent(vr))){
+        if(vr == right(parent(vr))){
             changeTree[left(parent(vr))] += val;
+            lazyUpadte(left(parent(vr)));
         }
 
         if(vl <= R && vr <= R){
-            //update left
-            lazyUpdateParent(vl);
-
-            //update right
-            lazyUpdateParent(vr);
+            updateNode(vl);
+            updateNode(vr);
         }
+        lazyUpadte(vl);
+        lazyUpadte(vr);
 
         vl = parent(vl);
         vr = parent(vr);
     }
 
-    if(vl <= R && vr <= R){
-        lazyUpdateParent(vl);
-        lazyUpdateParent(vr);
-    }
-
     lazyUpadte(vl);
     lazyUpadte(vr);
+    if(vl <= R && vr <= R){
+        updateNode(vl);
+        updateNode(vr);
+    }
 
     int V = parent(vl);
     while(V >= 1){
-        if(difTree[left(V)].first > difTree[right(V)].first){
-            difTree[V] = difTree[left(V)];
-        }else{
-            difTree[V] = difTree[right(V)];
-        }
+        lazyUpadte(V);
+        updateNode(V);
         V = parent(V);
     }
 }
@@ -201,7 +199,7 @@ pair<ll,ll> getRange(int l, int r, int lb, int rb, int v){
         pair<ll,ll> pl = getRange(l, min(r,mb), lb, mb, left(v));
         pair<ll,ll> pr = getRange(max(l,mb+1), r, mb+1, rb, right(v));
 
-        if(pl.first > pr.first){
+        if(pl.first >= pr.first){
             return pl;
         }else{
             return pr;
@@ -240,11 +238,7 @@ vector<ll> solve() {
         if(i > R && i <= R+n){
             difTree[i] = MP(s[i-R-1],i);
         }else if(i <= R){
-            if(difTree[left(i)].first > difTree[right(i)].first){
-                difTree[i] = difTree[left(i)];
-            }else{
-                difTree[i] = difTree[right(i)];
-            }
+            updateNode(i);
         }
     }
 
@@ -256,7 +250,7 @@ vector<ll> solve() {
         sum -= w[p.second - R-1];
         ans.PB(sum);
         updateSingle(p.second - R, -llINF);
-        updateRange(1, p.second - R, w[p.second - R-1]);
+        updateRange(1, p.second - R - 1, w[p.second - R-1]);
     }
 
     reverse(ans.begin(), ans.end());
