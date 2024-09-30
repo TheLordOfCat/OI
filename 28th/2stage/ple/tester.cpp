@@ -268,7 +268,7 @@ int main() {
     cin.tie(NULL);
 
     int op = 1;
-    for (int test = 1; test <= 1; test++) {
+    for (int test = 1; test <= 10; test++) {
         cout << "TEST nr." << test << " = ";
         if (op == 1) {
             getData();

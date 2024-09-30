@@ -36,6 +36,7 @@ ll depth;
 ll totalSize;
 vector<pair<ll,ll>> difTree;
 vector<ll> changeTree;
+vector<bool> used;
 
 int leaf(int v){
     return v + R;
@@ -56,8 +57,10 @@ int right(int v){
 void updateNode(int v){
     if(difTree[left(v)].first >= 0){
         difTree[v] = difTree[left(v)];
+    }else if(difTree[right(v)].first >= 0){
+        difTree[v] = difTree[right(v)];
     }else{
-        if(difTree[left(v)].first >= difTree[right(v)].first){
+        if(!used[difTree[left(v)].second-R]){
             difTree[v] = difTree[left(v)];
         }else{
             difTree[v] = difTree[right(v)];
@@ -77,6 +80,7 @@ void lazyUpadte(int v){
 }
 
 void updateSingle(int v, ll val){
+    used[v] = true;
     int V = leaf(v);
     difTree[V] = MP(val,-1);
     V = parent(V);
@@ -161,6 +165,7 @@ pair<ll,ll> getRange(int l, int r, int lb, int rb, int v){
 vector<ll> solve() {
     changeTree.clear();
     difTree.clear();
+    used.clear();
     
     //prepare the tree
     R = 1;
@@ -184,6 +189,7 @@ vector<ll> solve() {
     //create seg trees
     changeTree.assign(totalSize+1, 0);
     difTree.assign(totalSize+1, MP(-llINF,-1));
+    used.assign(n+1, false);
     
     for(int i = totalSize; i>=1; i--){
         if(i > R && i <= R+n){
