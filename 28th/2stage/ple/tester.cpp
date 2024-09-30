@@ -2,6 +2,7 @@
 #include <stack>
 #include <tuple>
 #include <vector>
+#include <algorithm>
 
 using namespace std;
 
@@ -131,6 +132,16 @@ void lazyUpadte(int v){
     }
 }
 
+void lazyUpdateParent(int v){
+    lazyUpadte(left(v));
+    lazyUpadte(right(v));
+    if(difTree[left(v)].first > difTree[right(v)].first){
+        difTree[v] = difTree[left(v)];
+    }else{
+        difTree[v] = difTree[right(v)];
+    }
+}
+
 void updateRange(int l, int r, int val){
     int vl = leaf(l);
     int vr = leaf(r);
@@ -149,27 +160,23 @@ void updateRange(int l, int r, int val){
 
         if(vl <= R && vr <= R){
             //update left
-            lazyUpadte(left(vl));
-            lazyUpadte(right(vl));
-            if(difTree[left(vl)].first > difTree[right(vl)].first){
-                difTree[vl] = difTree[left(vl)];
-            }else{
-                difTree[vl] = difTree[right(vl)];
-            }
+            lazyUpdateParent(vl);
 
             //update right
-            lazyUpadte(left(vr));
-            lazyUpadte(right(vr));
-            if(difTree[left(vr)].first > difTree[right(vr)].first){
-                difTree[vr] = difTree[left(vr)];
-            }else{
-                difTree[vr] = difTree[right(vr)];
-            }
+            lazyUpdateParent(vr);
         }
 
         vl = parent(vl);
         vr = parent(vr);
     }
+
+    if(vl <= R && vr <= R){
+        lazyUpdateParent(vl);
+        lazyUpdateParent(vr);
+    }
+
+    lazyUpadte(vl);
+    lazyUpadte(vr);
 
     int V = parent(vl);
     while(V >= 1){
@@ -273,6 +280,7 @@ int main() {
         for (int i = 0; i < ansB.size(); i++) {
             if (ansB[i] != ansS[i]) {
                 cout << "ERROR\n";
+                printData();
                 cout << "BRUTE: \n";
                 for (int j = 0; j < ansB.size(); j++) {
                     cout << ansB[j] << " ";
