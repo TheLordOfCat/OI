@@ -67,6 +67,27 @@ void printData(){
     }
 }
 
+bool verify(vector<vector<int>>& graph, vector<int>& perm){
+    bool ok = true;
+    for(int i = 2; i<n; i++){
+        int countB = 0, countS = 0;
+        for(int j = 0; j<graph[i].size(); j++){
+            int cur = graph[i][j];
+            if(perm[i-1] > perm[cur-1]){
+                countS++;
+            }else{
+                countB++;
+            }
+        }
+        if(countB != countS){
+            ok = false;
+            break;
+        }
+    }
+
+    return ok;
+}
+
 vector<int> brute(){
     vector<vector<int>> graph(n+1, vector<int>());
     for(int i = 0; i<relat.size(); i++){
@@ -84,21 +105,7 @@ vector<int> brute(){
     }
 
     do{
-        bool ok = true;
-        for(int i = 1; i<=n; i++){
-            int countB = 0, countS = 0;
-            for(int j = 0; j<graph[i].size(); j++){
-                int cur = graph[i][j];
-                if(perm[i-1] > perm[cur-1]){
-                    countS++;
-                }else{
-                    countB++;
-                }
-            }
-            if(countB != countS){
-                ok = false;
-            }
-        }
+        bool ok = verify(graph, perm);
 
         if(ok){
             ans = perm;
@@ -141,23 +148,28 @@ int main()
             cout<<"\n";
             printData();
             return 0;
-        }else{
-            for(int i = 0; i<ansB.size(); i++){
-                if(ansB[i] != ansS[i]){
-                    cout<<"ERROR\n";
-                    cout<<"BRUTE: ";
-                    for(int j =0 ; j<ansB.size(); j++){
-                        cout<<ansB[j]<<" ";
-                    }
-                    cout<<"\n";
-                    cout<<"SOLVE: ";
-                    for(int j =0 ; j<ansS.size(); j++){
-                        cout<<ansS[j]<<" ";
-                    }
-                    cout<<"\n";
-                    printData();
-                    return 0;
+        }else if(ansS.size() != 0){
+            vector<vector<int>> graph(n+1, vector<int>());
+            for(int i = 0; i<relat.size(); i++){
+                int a = relat[i].first, b = relat[i].second;
+                graph[a].PB(b);
+                graph[b].PB(a);
+            }
+            
+            if(!verify(graph, ansS)){
+                cout<<"ERROR\n";
+                cout<<"BRUTE: ";
+                for(int j =0 ; j<ansB.size(); j++){
+                    cout<<ansB[j]<<" ";
                 }
+                cout<<"\n";
+                cout<<"SOLVE: ";
+                for(int j =0 ; j<ansS.size(); j++){
+                    cout<<ansS[j]<<" ";
+                }
+                cout<<"\n";
+                printData();
+                return 0;
             }
         }
         cout<<"CORRECT\n";
