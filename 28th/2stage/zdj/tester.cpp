@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <algorithm>
 
 using namespace std;
 
@@ -36,11 +37,25 @@ void getRandom(){
     m = 0;
     for(int i = 1; i<n; i++){
         relat.PB(MP(i,i+1));
+        m++;
     }
     relat.PB(MP(n,1));
+    m++;
+
     int ind = 1;
     while(ind != n){
-        
+        int con = rand()%n+1;
+        if(ind == n){
+            relat.PB(MP(1,n));
+            m++;
+        }else if(ind + con >n){
+            relat.PB(MP(ind,n));
+            m++;
+        }else{
+            relat.PB(MP(ind,con+ind));
+            ind += con;
+            m++;
+        }  
     }
 }
 
@@ -53,7 +68,44 @@ void printData(){
 }
 
 vector<int> brute(){
+    vector<vector<int>> graph(n+1, vector<int>());
+    for(int i = 0; i<relat.size(); i++){
+        int a = relat[i].first, b = relat[i].second;
+        graph[a].PB(b);
+        graph[b].PB(a);
+    }
 
+
+    vector<int> ans;
+    vector<int> perm;
+
+    for(int i = 1; i<=n; i++){
+        perm.PB(i);
+    }
+
+    do{
+        bool ok = true;
+        for(int i = 1; i<=n; i++){
+            int countB = 0, countS = 0;
+            for(int j = 0; j<graph[i].size(); j++){
+                int cur = graph[i][j];
+                if(perm[i-1] > perm[cur-1]){
+                    countS++;
+                }else{
+                    countB++;
+                }
+            }
+            if(countB != countS){
+                ok = false;
+            }
+        }
+
+        if(ok){
+            ans = perm;
+        }
+    }while(next_permutation(perm.begin(), perm.end()));
+
+    return ans;
 }
 
 vector<int> solve(){
