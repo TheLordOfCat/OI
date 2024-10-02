@@ -154,6 +154,7 @@ vector<int> solve(){
                 if(inEdge[cur] == 0){
                     S.push(cur);
                     ans[cur] = ind;
+                    ind++;
                 }
             }
         }
@@ -166,11 +167,26 @@ vector<int> solve(){
         }
     }
 
-    if(!verify(graph, ans)){
-        return vector<int>();
+   for(int i = 3; i<=n; i++){
+        int countB = 0, countS = 0;
+        for(int j = 0; j<graph[i].size(); j++){
+            int cur = graph[i][j];
+            if(ans[i] > ans[cur]){
+                countS++;
+            }else{
+                countB++;
+            }
+        }
+        if(countB != countS){
+            return vector<int>();
+        }
     }
 
     //TAK
+    for(int i = 0; i<n; i++){
+        ans[i] = ans[i+1];
+    }
+    ans.pop_back();
     return ans;
 }
 
