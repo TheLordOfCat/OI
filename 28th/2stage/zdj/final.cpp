@@ -41,6 +41,7 @@ vector<int> solve(){
 
     vector<int> inEdge(n+1, 0);
     for(int i = 3; i<=n; i++){
+        if(graph[i].size() %2 != 0) return vector<int>();
         inEdge[i] = graph[i].size()/2;
     }
 
@@ -69,6 +70,13 @@ vector<int> solve(){
                     ind++;
                 }
             }
+        }
+    }
+
+    for(int i = 3; i<=n; i++){
+        if(graph[i].size() == 0){
+            ans[i] = ind;
+            ind++;
         }
     }
 

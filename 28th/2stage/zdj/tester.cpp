@@ -34,30 +34,72 @@ void getRandom(){
     relat.clear();
     srand(time(0));
 
-    n = rand()%10+1;
+    n = rand()%10+2;
     m = 0;
-    for(int i = 1; i<n; i++){
+
+    //type 3
+    for(int i = 1; i<= n; i++){
         relat.PB(MP(i,i+1));
         m++;
     }
-    relat.PB(MP(n,1));
+
+    int con = rand()%3+2;
+    int ind = 3;
+    for(int i = 0; i<con; i++){
+        relat.PB(MP(ind, n+1));
+        ind = n+1;
+        n++;
+        m++;
+    }
+    relat.PB(MP(ind,3));
     m++;
 
-    int ind = 1;
-    while(ind != n){
-        int con = rand()%n+1;
-        if(ind == n){
-            relat.PB(MP(1,n));
-            m++;
-        }else if(ind + con >n){
-            relat.PB(MP(ind,n));
-            m++;
-        }else{
-            relat.PB(MP(ind,con+ind));
-            ind += con;
-            m++;
-        }  
-    }
+    //type 2
+    // for(int i = 1; i<=n; i++){
+    //     int con = rand()%2+1;
+    //     for(int j = 0; j<con; j++){
+    //         int a = i;
+    //         while(a != i){
+    //             a = rand()%n+1;
+    //         }
+
+    //         //check for existing
+    //         bool ok = true;
+    //         for(int o = 0; o<relat.size(); o++){
+    //             if(relat[o].first == i && relat[o].second == a || relat[o].first == a && relat[o].second == i){
+    //                 ok = false;
+    //                 break;
+    //             }
+    //         }
+
+    //         if(ok){
+    //             relat.PB(MP(i,a));
+    //         }
+    //     }
+    // }
+
+
+    //type 1
+    // for(int i = 1; i<n; i++){
+    //     relat.PB(MP(i,i+1));
+    //     m++;
+    // }
+    // relat.PB(MP(n,1));
+    // m++;
+
+    // int ind = 1;
+    // while(ind != n){
+    //     int con = rand()%n+1;
+    //     if(ind + con >n){
+    //         relat.PB(MP(ind,n));
+    //         ind = n;
+    //         m++;
+    //     }else{
+    //         relat.PB(MP(ind,con+ind));
+    //         ind += con;
+    //         m++;
+    //     }  
+    // }
 }
 
 void printData(){
@@ -129,6 +171,7 @@ vector<int> solve(){
 
     vector<int> inEdge(n+1, 0);
     for(int i = 3; i<=n; i++){
+        if(graph[i].size() %2 != 0) return vector<int>();
         inEdge[i] = graph[i].size()/2;
     }
 
@@ -157,6 +200,13 @@ vector<int> solve(){
                     ind++;
                 }
             }
+        }
+    }
+
+    for(int i = 3; i<=n; i++){
+        if(graph[i].size() == 0){
+            ans[i] = ind;
+            ind++;
         }
     }
 
@@ -195,8 +245,8 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
-    for(int test = 1; test <= 1; test++){
+    int op = 0;
+    for(int test = 1; test <= 10; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
