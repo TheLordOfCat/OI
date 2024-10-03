@@ -14,6 +14,7 @@ const ull ullINF = 18'000'000'000'000'000'000;
 
 #define MP make_pair
 #define PII pair<int,int>
+#define PLL pair<ll,ll>
 #define PB push_back
 
 int n, X, z;
@@ -79,11 +80,77 @@ void printData(){
     cout<<"\n";
 }
 
-vector<PII> brute(){
-
+bool compareQuery(PLL a, PLL b){
+    if(a.first == b.first){
+        return a.second < b.second;
+    }
+    return a.first < b.first;
 }
 
-vector<PII> solve(){
+vector<PLL> brute(){
+    vector<PLL> ans(k.size(), MP(0,0));
+
+    //avoid fractions
+    ll maxDiv = 1<<30;
+    vector<ll> pla;
+    for(int i = 0; i < x.size(); i++){
+        ll temp = x[i];
+        temp *= maxDiv;
+        pla.PB(temp);
+    }
+
+    //sort querys
+    vector<PLL> querys;
+    for(int i = 0; i<k.size(); i++){
+        querys.PB(MP(k[i], i));
+    } 
+
+    sort(querys.begin(), querys.end(), compareQuery);
+
+    int ind = 0;
+    for(int i = 0; i<querys.size(); i++){
+        PLL bestDist = MP(-1,-1);
+        
+        while(ind != querys[i].first){
+            ind++;
+            bestDist = MP(-1,-1);
+
+            //fiding the best place
+            for(int j = 1; j<pla.size(); j++){
+                ll len = pla[j] - pla[j-1];
+                if(len > bestDist.first){
+                    bestDist.first = len;
+                    bestDist.second = pla[j-1]+len/2;
+                }
+            }
+
+            pla.PB(0);
+            for(int j = 1; j<pla.size(); j++){
+                ll len = pla[j] - pla[j-1];
+                if(len == bestDist.first){
+                    for(int o = pla.size()-1; o>j; o--){
+                        pla[o] = pla[o-1];
+                    }
+                    pla[j] = pla[j-1] + len/2;
+                    break;
+                }
+            }
+
+        }
+
+        //back to fractions
+        int pwr = 30;
+        while(bestDist.second %2 == 0 && pwr > 0){
+            bestDist.second /= 2;
+            pwr--;
+        }
+        ans[querys[i].second] = MP(bestDist.second, (1<<pwr));
+    }
+
+    return ans;
+}
+
+vector<PLL> solve(){
 
 }
 
@@ -100,8 +167,8 @@ int main()
         }else{
             getRandom();
         }
-        vector<PII> ansB = brute();
-        vector<PII> ansS = solve();
+        vector<PLL> ansB = brute();
+        vector<PLL> ansS = solve();
         for(int i = 0; i<ansB.size(); i++){
             if(ansB[i] != ansS[i]){
                 cout<<"ERROR\n";
