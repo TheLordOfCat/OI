@@ -16,6 +16,7 @@ const ull ullINF = 18'000'000'000'000'000'000;
 #define PII pair<int,int>
 #define PLL pair<ll,ll>
 #define PB push_back
+#define MT make_tuple
 
 int n, X, z;
 vector<int> x;
@@ -150,8 +151,91 @@ vector<PLL> brute(){
     return ans;
 }
 
-vector<PLL> solve(){
+vector<PLL> solve(){    
+    //avoid fractions
+    ll maxDiv = 1<<30;
+    vector<ll> pla;
+    for(int i = 0; i < x.size(); i++){
+        ll temp = x[i];
+        temp *= maxDiv;
+        pla.PB(temp);
+    }
+    
+    vector<PLL> org;
 
+    for(int i = 1; i<=n; i++){
+        org.PB(MP(pla[i] - pla[i-1], pla[i]));
+    }
+
+    sort(org.begin(), org.end(), compareQuery);
+    reverse(org.begin(), org.end());
+    
+    //sort querys
+    vector<PLL> querys;
+    for(int i = 0; i<k.size(); i++){
+        querys.PB(MP(k[i], i));
+    } 
+
+    //simulating
+    vector<PLL> ans(k.size(), MP(0,0));
+
+    queue<tuple<ll,ll,ll>> Q;
+    ll sim = 0;
+    ll index = 0;
+    while(sim != querys.size()){
+        if(org.size() > 0 && Q.size() > 0){ //both queues have numbers
+
+            if(org.back().first > get<0>(Q.front())){//div Queue better
+                while(get<2>(Q.front()) + index > querys[sim].first){
+                    ans[querys[sim].second] = (MP(org.back().second + org.back().first*(querys[sim].first - index) + org.back().first/2, 1));
+                    sim++;
+                }
+
+                index += get<2>(Q.front());
+                Q.push(MT(get<0>(Q.front())/2, get<1>(Q.front()), get<2>(Q.front())*2));
+                Q.pop();
+            }else{
+                if(index == querys[sim].first){ //orginal queue better
+                    ans[querys[sim].second] = (MP(org.back().second + org.back().first/2, 1));
+                    sim++;
+                }
+                Q.push(MT(org.back().first/2, org.back().second, 2));
+                
+                index++;    
+            }
+
+        }else if(org.size() > 0){ //only original queue
+            if(index == querys[sim].first){ 
+                ans[querys[sim].second] = (MP(org.back().second + org.back().first/2, 1));
+                sim++;
+            }
+            Q.push(MT(org.back().first/2, org.back().second, 2));
+            Q.pop();
+            
+            index++;
+        }else{  //only div queue
+            while(get<2>(Q.front()) + index > querys[sim].first){
+                ans[querys[sim].second] = (MP(org.back().second + org.back().first*(querys[sim].first - index) + org.back().first/2, 1));
+                sim++;
+            }
+
+            index += get<2>(Q.front());
+            Q.push(MT(get<0>(Q.front())/2, get<1>(Q.front()), get<2>(Q.front())*2));
+            Q.pop();
+        }
+    }
+
+    //back to fractions
+    for(int i = 0; i<ans.size(); i++){
+        int pwr = 30;
+        while(ans[i].first %2 == 0 && pwr > 0){
+            ans[i].first /= 2;
+            pwr--;
+        }
+        ans[i] = MP(ans[i].first, (1<<pwr));
+    }
+
+    return ans;
 }
 
 int main()
