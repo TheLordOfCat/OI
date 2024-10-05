@@ -2,6 +2,7 @@
 #include <vector>
 #include <queue>
 #include <algorithm>
+#include <tuple>
 
 using namespace std;
 
@@ -161,14 +162,14 @@ vector<PLL> solve(){
         pla.PB(temp);
     }
     
+    //get base queue
     vector<PLL> org;
-
-    for(int i = 1; i<=n; i++){
+    for(int i = 1; i<pla.size(); i++){
         org.PB(MP(pla[i] - pla[i-1], pla[i]));
     }
 
     sort(org.begin(), org.end(), compareQuery);
-    reverse(org.begin(), org.end());
+    // reverse(org.begin(), org.end());
     
     //sort querys
     vector<PLL> querys;
@@ -185,7 +186,7 @@ vector<PLL> solve(){
     while(sim != querys.size()){
         if(org.size() > 0 && Q.size() > 0){ //both queues have numbers
 
-            if(org.back().first > get<0>(Q.front())){//div Queue better
+            if(org.back().first <= get<0>(Q.front())){//div Queue better
                 while(get<2>(Q.front()) + index > querys[sim].first){
                     ans[querys[sim].second] = (MP(org.back().second + org.back().first*(querys[sim].first - index) + org.back().first/2, 1));
                     sim++;
@@ -200,7 +201,7 @@ vector<PLL> solve(){
                     sim++;
                 }
                 Q.push(MT(org.back().first/2, org.back().second, 2));
-                
+                org.pop_back();
                 index++;    
             }
 
@@ -210,8 +211,8 @@ vector<PLL> solve(){
                 sim++;
             }
             Q.push(MT(org.back().first/2, org.back().second, 2));
-            Q.pop();
-            
+            org.pop_back();
+
             index++;
         }else{  //only div queue
             while(get<2>(Q.front()) + index > querys[sim].first){
