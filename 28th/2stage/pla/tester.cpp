@@ -47,18 +47,19 @@ void getRandom(){
     srand(time(0));
 
     n = rand()%10+2;
-    X = rand()%10+1;
+    X = rand()%10+n;
     z = rand()%10+1;
 
     vector<bool> used(n+1, false);
-    used[0] = true; used[n] = true;
+    used[0] = true; used[X] = true;
 
     x = {0,X};
     for(int i = 0; i<n; i++){
         int a = 0;
         while(used[a]){
-            a = rand()%n+1;
+            a = rand()%X+1;
         }
+        used[a] = true;
         x.PB(a);
     }
     sort(x.begin(), x.end());
@@ -77,7 +78,7 @@ void printData(){
     }
     cout<<"\n";
     for(int i = 0; i<k.size(); i++){
-        cout<<k[i]<<" ";
+        cout<<k[i]<<"\n";
     }
     cout<<"\n";
 }
@@ -140,6 +141,11 @@ vector<PLL> brute(){
 
         }
 
+        if(bestDist.first == -1){
+            ans[querys[i].second] = ans[querys[i-1].second];
+            continue;
+        }
+
         //back to fractions
         int pwr = 30;
         while(bestDist.second %2 == 0 && pwr > 0){
@@ -150,6 +156,35 @@ vector<PLL> brute(){
     }
 
     return ans;
+}
+
+bool compareOrg(PLL a, PLL b){
+    if(a.first == b.first){
+        return a.second > b.second;
+    }
+    return a.first < b.first;
+}
+
+void updateQ(queue<tuple<ll,ll,ll>>& Q, vector<PLL>& org, ll& index, ll& sim, vector<PLL>& ans, vector<PLL>& querys){
+    while(get<2>(Q.front()) + index > querys[sim].first){
+        if(sim >= querys.size()) break;
+        ans[querys[sim].second] = (MP(get<1>(Q.front()) + get<0>(Q.front())*(querys[sim].first - index) + get<0>(Q.front())/2, 1));
+        sim++;
+    }
+
+    index += get<2>(Q.front());
+    Q.push(MT(get<0>(Q.front())/2, get<1>(Q.front()), get<2>(Q.front())*2));
+    Q.pop();
+}
+
+void updateOrg(queue<tuple<ll,ll,ll>>& Q, vector<PLL>& org, ll& index, ll& sim, vector<PLL>& ans, vector<PLL>& querys){
+    while(index == querys[sim].first){ 
+        ans[querys[sim].second] = (MP(org.back().second + org.back().first/2, 1));
+        sim++;
+    }
+    Q.push(MT(org.back().first/2, org.back().second, 2));
+    org.pop_back();
+    index++;   
 }
 
 vector<PLL> solve(){    
@@ -165,10 +200,10 @@ vector<PLL> solve(){
     //get base queue
     vector<PLL> org;
     for(int i = 1; i<pla.size(); i++){
-        org.PB(MP(pla[i] - pla[i-1], pla[i]));
+        org.PB(MP(pla[i] - pla[i-1], pla[i-1]));
     }
 
-    sort(org.begin(), org.end(), compareQuery);
+    sort(org.begin(), org.end(), compareOrg);
     // reverse(org.begin(), org.end());
     
     //sort querys
@@ -176,53 +211,32 @@ vector<PLL> solve(){
     for(int i = 0; i<k.size(); i++){
         querys.PB(MP(k[i], i));
     } 
+    sort(querys.begin(), querys.end(), compareQuery);
 
     //simulating
     vector<PLL> ans(k.size(), MP(0,0));
 
     queue<tuple<ll,ll,ll>> Q;
     ll sim = 0;
-    ll index = 0;
+    ll index = 1;
     while(sim != querys.size()){
         if(org.size() > 0 && Q.size() > 0){ //both queues have numbers
-
-            if(org.back().first <= get<0>(Q.front())){//div Queue better
-                while(get<2>(Q.front()) + index > querys[sim].first){
-                    ans[querys[sim].second] = (MP(org.back().second + org.back().first*(querys[sim].first - index) + org.back().first/2, 1));
-                    sim++;
+            if(org.back().first == get<0>(Q.front())){
+                if(org.back().second < get<1>(Q.front())){
+                    updateOrg(Q, org, index, sim, ans, querys);
+                }else{
+                    updateQ(Q, org, index, sim, ans, querys);
                 }
-
-                index += get<2>(Q.front());
-                Q.push(MT(get<0>(Q.front())/2, get<1>(Q.front()), get<2>(Q.front())*2));
-                Q.pop();
+            }else if(org.back().first < get<0>(Q.front())){//div Queue better
+                updateQ(Q, org, index, sim,ans, querys);
             }else{
-                if(index == querys[sim].first){ //orginal queue better
-                    ans[querys[sim].second] = (MP(org.back().second + org.back().first/2, 1));
-                    sim++;
-                }
-                Q.push(MT(org.back().first/2, org.back().second, 2));
-                org.pop_back();
-                index++;    
+                updateOrg(Q, org, index, sim,ans, querys);//original queue better
             }
 
         }else if(org.size() > 0){ //only original queue
-            if(index == querys[sim].first){ 
-                ans[querys[sim].second] = (MP(org.back().second + org.back().first/2, 1));
-                sim++;
-            }
-            Q.push(MT(org.back().first/2, org.back().second, 2));
-            org.pop_back();
-
-            index++;
+            updateOrg(Q, org, index, sim,ans, querys);
         }else{  //only div queue
-            while(get<2>(Q.front()) + index > querys[sim].first){
-                ans[querys[sim].second] = (MP(org.back().second + org.back().first*(querys[sim].first - index) + org.back().first/2, 1));
-                sim++;
-            }
-
-            index += get<2>(Q.front());
-            Q.push(MT(get<0>(Q.front())/2, get<1>(Q.front()), get<2>(Q.front())*2));
-            Q.pop();
+            updateQ(Q, org, index, sim, ans, querys);
         }
     }
 
@@ -244,8 +258,8 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
-    for(int test = 1; test<=1; test++){
+    int op = 0;
+    for(int test = 1; test<=10'000; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();

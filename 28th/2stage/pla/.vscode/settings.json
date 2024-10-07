@@ -2,6 +2,8 @@
     "files.associations": {
         "vector": "cpp",
         "utility": "cpp",
-        "tuple": "cpp"
+        "tuple": "cpp",
+        "queue": "cpp",
+        "algorithm": "cpp"
     }
 }
