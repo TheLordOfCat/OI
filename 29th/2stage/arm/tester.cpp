@@ -53,10 +53,15 @@ ull brute(){
 ull solve(){
     ull ans = ullINF;
     for(ull m = 1; (1<<m) <= 2*n; m++){
-        ull s = floor(pow(n, 1.0 / m));
-        for(ull k = 0; k<m; k++){
-            ull cost = pow(s,k) * pow(s+1,m-k);
-            ans = min(ans,cost);
+        ull s = floor(pow((n+1), 1.0 / m));
+        for(ull k = 0; k<=m; k++){
+            ull sum = pow(s,k) * pow(s+1,m-k);
+            if(sum >= n+1){
+                ull cost = m*a+(s*m-k)*b;
+                if(cost < ans){
+                    ans = cost;
+                }
+            }
         }
     }
 
@@ -68,8 +73,8 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
-    for(int test = 1; test <= 1; test++){
+    int op = 0;
+    for(int test = 1; test <= 10'000; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
