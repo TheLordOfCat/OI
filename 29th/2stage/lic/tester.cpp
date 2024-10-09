@@ -106,9 +106,9 @@ ull setInEx(ull x, vector<ull>& primes){
         multi = x/multi;
 
         if(count%2 == 0){
-            ans -= multi;
-        }else{
             ans += multi;
+        }else{
+            ans -= multi;
         }
     }
 
@@ -192,6 +192,7 @@ int main()
                 return 0;
             }
         }
+        cout<<"CORRECT\n";
     }
 
     return 0;
