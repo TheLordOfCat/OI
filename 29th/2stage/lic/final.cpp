@@ -74,13 +74,16 @@ ull setInEx(ull x, vector<ull>& primes){
 }
 
 ull binarySearch(vector<ull>& primes){
-    ull left = 1, right = 10*n;
+    ull ans = ullINF;
+
+    ull left = 1, right = 1000*n;
     while(left < right){
         ull mid = (left+right)/2;
         ull coprimes = setInEx(mid, primes);
 
         if(coprimes == k){
-            return mid;
+            ans = mid;
+            right = mid-1;
         }else if(coprimes > k){
             right = mid-1;
         }else{
@@ -88,7 +91,8 @@ ull binarySearch(vector<ull>& primes){
         }
     }
 
-    return 0;
+    if(setInEx(left,primes) == k) return left;
+    return ans;
 }
 
 vector<ull> solve(){

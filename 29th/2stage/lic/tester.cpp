@@ -66,7 +66,7 @@ vector<ull> brute(){
     vector<ull> primes = factorization(n);
 
     for(ull i = 0; i<primes.size(); i++){
-        for(ull j = primes[i]; j<=coprime.size(); j+= primes[i]){
+        for(ull j = primes[i]; j<coprime.size(); j+= primes[i]){
             coprime[j] = false;
         }
     }
@@ -74,7 +74,7 @@ vector<ull> brute(){
     vector<ull> ans;
 
     ull count = 1;
-    for(ull i = 1; i<=coprime.size(); i++){
+    for(ull i = 1; i<coprime.size(); i++){
         if(coprime[i]){
             if(count >= k){
                 ans.PB(i);
@@ -116,21 +116,25 @@ ull setInEx(ull x, vector<ull>& primes){
 }
 
 ull binarySearch(vector<ull>& primes){
-    ull left = 1, right = 10*n;
+    ull ans = ullINF;
+
+    ull left = 1, right = 1000*n;
     while(left < right){
         ull mid = (left+right)/2;
         ull coprimes = setInEx(mid, primes);
 
         if(coprimes == k){
-            return mid;
+            ans = mid;
+            right = mid-1;
         }else if(coprimes > k){
             right = mid-1;
         }else{
             left = mid+1;
         }
     }
-
-    return 0;
+    
+    if(setInEx(left,primes) == k) return left;
+    return ans;
 }
 
 vector<ull> solve(){
@@ -166,7 +170,7 @@ int main()
     cin.tie(NULL);
 
     int op = 1;
-    for(int test = 1; test <=1; test++){
+    for(int test = 1; test <=1'000'000; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
@@ -178,6 +182,7 @@ int main()
         for(int i = 0; i<ansB.size(); i++){
             if(ansB[i] != ansS[i]){
                 cout<<"ERROR\n";
+                printData();
                 cout<<"BRUTE: ";
                 for(int j = 0; j<ansB.size(); j++){
                     cout<<ansB[j]<<" ";
@@ -188,7 +193,6 @@ int main()
                     cout<<ansS[j]<<" ";
                 }
                 cout<<"\n";
-                printData();
                 return 0;
             }
         }
