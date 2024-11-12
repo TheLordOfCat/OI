@@ -4,6 +4,7 @@
         "vector": "cpp",
         "xutility": "cpp",
         "iostream": "cpp",
-        "queue": "cpp"
+        "queue": "cpp",
+        "tuple": "cpp"
     }
 }

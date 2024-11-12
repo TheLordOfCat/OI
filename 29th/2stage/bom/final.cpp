@@ -102,18 +102,25 @@ vector<vector<int>> getDist(PII start){
     return ans;
 }
 
-int processBomb(PII b, vector<vector<int>> &dist){
+tuple<int,PII> processBomb(PII b, vector<vector<int>> &dist){
     if(plane[b.first][b.second] != '.'){
-        return INF;
+        return MT(INF,MP(INF,INF));
     }
     vector<int> vertical(n+1, 0), horizontal(n+1, 0);
+    vector<PII> verticalJump(n+1, MP(-1,-1)), horizontalJump(n+1, MP(-1,-1));
 
     int last = INF;
     //bottom
     int ind = n;
     while(ind != b.first && ind > 0){
         if(plane[ind][b.second] != 'X'){
-            vertical[ind] = min(dist[ind][b.second], last+1);
+            if(dist[ind][b.second] < last+1){
+                verticalJump[ind] = MP(ind,b.second);
+                vertical[ind] = dist[ind][b.second];
+            }else{
+                verticalJump[ind] = verticalJump[ind-1];
+                vertical[ind] = last+1;
+            }
             last = vertical[ind];
         }else{
             last = INF;
@@ -126,7 +133,13 @@ int processBomb(PII b, vector<vector<int>> &dist){
     ind = 1;
     while(ind != b.first && ind <=n){
         if(plane[ind][b.second] != 'X'){
-            vertical[ind] = min(dist[ind][b.second], last+1);
+            if(dist[ind][b.second] < last+1){
+                verticalJump[ind] = MP(ind,b.second);
+                vertical[ind] = dist[ind][b.second];
+            }else{
+                verticalJump[ind] = verticalJump[ind+1];
+                vertical[ind] = last+1;
+            }
             last = vertical[ind];
         }else{
             last = INF;
@@ -139,7 +152,13 @@ int processBomb(PII b, vector<vector<int>> &dist){
     ind = 1;
     while(ind != b.second && ind <= n){
         if(plane[b.first][ind] != 'X'){
-            horizontal[ind] = min(dist[b.first][ind], last+1);
+            if(dist[b.first][ind] < last+1){
+                verticalJump[ind] = MP(b.first, ind);
+                vertical[ind] = dist[b.first][ind];
+            }else{
+                verticalJump[ind] = verticalJump[ind-1];
+                vertical[ind] = last+1;
+            }
             last = horizontal[ind];
         }else{
             last = INF;
@@ -152,7 +171,13 @@ int processBomb(PII b, vector<vector<int>> &dist){
     ind = n;
     while(ind != b.second && ind > 0){
         if(plane[b.first][ind] != 'X'){
-            horizontal[ind] = min(dist[b.first][ind], last+1);
+            if(dist[b.first][ind] < last+1){
+                verticalJump[ind] = MP(b.first, ind);
+                vertical[ind] = dist[b.first][ind];
+            }else{
+                verticalJump[ind] = verticalJump[ind+1];
+                vertical[ind] = last+1;
+            }
             last = horizontal[ind];
         }else{
             last = INF;
@@ -162,59 +187,75 @@ int processBomb(PII b, vector<vector<int>> &dist){
     }
 
     int ans = INF;
+    PII j = MP(-1,-1);
     if(b.first-1 > 0){
-        ans = min(ans, vertical[b.first-1]);
+        if(ans > vertical[b.first-1]){
+            ans = vertical[b.first-1];
+            j = verticalJump[b.first-1];
+        }
     }
     if(b.first+1 <= n){
-        ans = min(ans, vertical[b.first+1]);
+        if(ans > vertical[b.first+1]){
+            ans = vertical[b.first+1];
+            j = verticalJump[b.first+1];
+        }
     }
     if(b.second-1 > 0){
-        ans = min(ans, horizontal[b.second-1]);
+        if(ans > horizontal[b.second-1]){
+            ans = horizontal[b.second-1];
+            j = horizontalJump[b.second-1];
+        }
     }
     if(b.second+1 <= n){
-        ans = min(ans, horizontal[b.second+1]);
-    }
-
-    return ans+1;
-}
-
-vector<vector<int>> getDp(vector<vector<int>> &dist){
-    vector<vector<int>> dp(n+1, vector<int>(n+1, 0));
-
-    for(int i = 1; i<=n; i++){
-        for(int j = 1; j<=n; j++){
-            int temp = processBomb(MP(i,j), dist);
-            dp[i][j] = temp;
+        if(ans > horizontal[b.second+1]){
+            ans = horizontal[b.second+1];
+            j = horizontalJump[b.second+1];
         }
     }
 
-    return dp;
+    return MP(ans+1,j);
+}
+
+pair<vector<vector<int>>,vector<vector<PII>>> getDp(vector<vector<int>> &dist){
+    vector<vector<int>> dp(n+1, vector<int>(n+1, 0));
+    vector<vector<PII>> jump(n+1, vector<PII>(n+1, MP(0,0)));
+
+    for(int i = 1; i<=n; i++){
+        for(int j = 1; j<=n; j++){
+            tuple<int, PII> temp = processBomb(MP(i,j), dist);
+            dp[i][j] = get<0>(temp);
+            jump[i][j] = get<1>(temp);
+        }
+    }
+
+    return MP(dp,jump);
 }
 
 vector<vector<PII>> processMoves(PII start){
     vector<vector<PII>> previous(n+1, vector<PII>(n+1, MP(-1,-1)));
     queue<PII> Q;
-    Q.push(P);
+    Q.push(start);
 
     while(!Q.empty()){
         PII v = Q.front();
         Q.pop();
-        if(v.first == K.first && v.second == K.second){
-            break;
-        }
 
         for(int o = -1; o<2; o+=2){
             if(v.first + o > 0 && v.first + o <=n){
-                if(previous[v.first+o][v.second].first == -1 && (bombPlane[v.first +o][v.second] == '.' || bombPlane[v.first +o][v.second] == 'K')){
-                    Q.push(MP(v.first+o, v.second));
+                if(previous[v.first+o][v.second].first == -1 && plane[v.first +o][v.second] != 'P' && plane[v.first +o][v.second] != 'K'){
+                    if(plane[v.first +o][v.second] == '.'){
+                        Q.push(MP(v.first+o, v.second));
+                    }
                     previous[v.first+o][v.second] = v;
                 }
             }
         }
         for(int o = -1; o<2; o+=2){
             if(v.second + o > 0 && v.second + o <= n){
-                if(previous[v.first][v.second+o].first == -1 && (bombPlane[v.first][v.second+o] == '.' || bombPlane[v.first][v.second+o] == 'K')){
-                    Q.push(MP(v.first, v.second+o));
+                if(previous[v.first][v.second+o].first == -1 && plane[v.first][v.second + o] != 'P' && plane[v.first][v.second+o] != 'K'){
+                    if(plane[v.first][v.second+o] == '.' ){
+                        Q.push(MP(v.first, v.second+o));
+                    }
                     previous[v.first][v.second + o] = v;
                 }
             }
@@ -224,14 +265,13 @@ vector<vector<PII>> processMoves(PII start){
     return previous;
 }
 
-vector<int> getMoves(PII b){
+vector<int> getMoves(PII b, vector<vector<PII>> jumpP, vector<vector<PII>> jumpK){
     vector<vector<PII>> startMoves = processMoves(P);
     vector<vector<PII>> endMoves = processMoves(K);
 
     vector<int> ans;
-    bool ok = true;
-    PII v = K;
-    while(v.first != b.first || v.second != b.second){
+    PII v = jumpK[b.first][b.second];
+    while(v.first != K.first || v.second != K.second){
         PII p = endMoves[v.first][v.second];
         if(p.first < v.first){
             ans.PB(3);
@@ -243,8 +283,9 @@ vector<int> getMoves(PII b){
             ans.PB(4);
         }
         v = p;
-    }
-    v = b;
+    }    
+
+    v = jumpP[b.first][b.second];
     while(v.first != P.first || v.second != P.second){
         PII p = startMoves[v.first][v.second];
         if(p.first < v.first){
@@ -257,7 +298,7 @@ vector<int> getMoves(PII b){
             ans.PB(4);
         }
         v = p;
-    }
+    }    
 
     reverse(ans.begin(), ans.end());
 
@@ -270,20 +311,20 @@ tuple<int, PII, vector<int>> solve(){
     vector<vector<int>> distP = getDist(P);
     vector<vector<int>> distK = getDist(K);
 
-    vector<vector<int>> dpP = getDp(distP);
-    vector<vector<int>> dpK = getDp(distK);
+    pair<vector<vector<int>>,vector<vector<PII>>> dpP = getDp(distP);
+    pair<vector<vector<int>>,vector<vector<PII>>> dpK = getDp(distK);
     for(int i = 1; i<=n; i++){
         for(int j = 1; j<=n; j++){
             if(plane[i][j] == '.' ){
-                ll temp = (ll)dpP[i][j] + (ll)dpK[i][j];
+                ll temp = (ll)dpP.first[i][j] + (ll)dpK.first[i][j];
                 if(temp < get<0>(ans)){
-                    ans = MT(dpP[i][j] + dpK[i][j], MP(i,j), vector<int>()); 
+                    ans = MT(dpP.first[i][j] + dpK.first[i][j], MP(i,j), vector<int>()); 
                 }
             }
         }
     }
 
-    vector<int> previous = getMoves(get<1>(ans));
+    vector<int> previous = getMoves(get<1>(ans), dpP.second, dpK.second);
 
     return MT(get<0>(ans), get<1>(ans), previous);
 }
