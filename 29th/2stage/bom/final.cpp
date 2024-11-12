@@ -153,11 +153,11 @@ tuple<int,PII> processBomb(PII b, vector<vector<int>> &dist){
     while(ind != b.second && ind <= n){
         if(plane[b.first][ind] != 'X'){
             if(dist[b.first][ind] < last+1){
-                verticalJump[ind] = MP(b.first, ind);
-                vertical[ind] = dist[b.first][ind];
+                horizontalJump[ind] = MP(b.first, ind);
+                horizontal[ind] = dist[b.first][ind];
             }else{
-                verticalJump[ind] = verticalJump[ind-1];
-                vertical[ind] = last+1;
+                horizontalJump[ind] = horizontalJump[ind-1];
+                horizontal[ind] = last+1;
             }
             last = horizontal[ind];
         }else{
@@ -172,11 +172,11 @@ tuple<int,PII> processBomb(PII b, vector<vector<int>> &dist){
     while(ind != b.second && ind > 0){
         if(plane[b.first][ind] != 'X'){
             if(dist[b.first][ind] < last+1){
-                verticalJump[ind] = MP(b.first, ind);
-                vertical[ind] = dist[b.first][ind];
+                horizontalJump[ind] = MP(b.first, ind);
+                horizontal[ind] = dist[b.first][ind];
             }else{
-                verticalJump[ind] = verticalJump[ind+1];
-                vertical[ind] = last+1;
+                horizontalJump[ind] = horizontalJump[ind+1];
+                horizontal[ind] = last+1;
             }
             last = horizontal[ind];
         }else{
@@ -270,34 +270,89 @@ vector<int> getMoves(PII b, vector<vector<PII>> jumpP, vector<vector<PII>> jumpK
     vector<vector<PII>> endMoves = processMoves(K);
 
     vector<int> ans;
+    vector<int> temp;
+
     PII v = jumpK[b.first][b.second];
+    if(b.first != v.first){
+        if(b.first < v.first){
+            for(int i = b.first; i < v.first; i++){
+                temp.PB(3);
+            }
+        }else if(b.first > v.first){
+            for(int i = b.first; i > v.first; i--){
+                temp.PB(1);
+            }
+        }
+    }else{
+        if(b.second < v.second){
+            for(int i = b.second; i < v.second; i++){
+                temp.PB(2);
+            }
+        }else if(b.second > v.second){
+            for(int i = b.second; i > v.second; i--){
+                temp.PB(4);
+            }
+        }
+    }
+
+
     while(v.first != K.first || v.second != K.second){
         PII p = endMoves[v.first][v.second];
         if(p.first < v.first){
-            ans.PB(3);
+            temp.PB(1);
         }else if(p.first > v.first){
-            ans.PB(1);
+            temp.PB(3);
         }else if(p.second < v.second){
-            ans.PB(2);
+            temp.PB(4);
         }else{
-            ans.PB(4);
+            temp.PB(2);
         }
         v = p;
+    }
+
+    for(int i = temp.size()-1; i>= 0; i--){
+        ans.PB(temp[i]);
     }    
+    temp.clear();
 
     v = jumpP[b.first][b.second];
+    if(b.first != v.first){
+        if(b.first < v.first){
+            for(int i = b.first; i < v.first; i++){
+                temp.PB(1);
+            }
+        }else if(b.first > v.first){
+            for(int i = b.first; i > v.first; i--){
+                temp.PB(3);
+            }
+        }
+    }else{
+        if(b.second < v.second){
+            for(int i = b.second; i < v.second; i++){
+                temp.PB(4);
+            }
+        }else if(b.second > v.second){
+            for(int i = b.second; i > v.second; i--){
+                temp.PB(2);
+            }
+        }
+    }
+
     while(v.first != P.first || v.second != P.second){
         PII p = startMoves[v.first][v.second];
         if(p.first < v.first){
-            ans.PB(3);
+            temp.PB(3);
         }else if(p.first > v.first){
-            ans.PB(1);
+            temp.PB(1);
         }else if(p.second < v.second){
-            ans.PB(2);
+            temp.PB(2);
         }else{
-            ans.PB(4);
+            temp.PB(4);
         }
         v = p;
+    }    
+    for(int i = 0; i < temp.size(); i++){
+        ans.PB(temp[i]);
     }    
 
     reverse(ans.begin(), ans.end());

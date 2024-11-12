@@ -5,6 +5,7 @@
         "xutility": "cpp",
         "iostream": "cpp",
         "queue": "cpp",
-        "tuple": "cpp"
+        "tuple": "cpp",
+        "xiosbase": "cpp"
     }
 }

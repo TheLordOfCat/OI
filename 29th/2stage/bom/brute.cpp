@@ -81,15 +81,6 @@ tuple<int, PII, vector<int>> brute(){
                     }
                 }
             }
-
-            cout<<"BOMB: "<<i<<" "<<j<<"\n";
-            for(int i = 1; i<=n; i++){
-                for(int j = 1; j<=n; j++){
-                    cout<<bombPlane[i][j]<<" ";
-                }
-                cout<<"\n";
-            }
-            cout<<"\n";
         
             //find the shortes path
             vector<vector<PII>> previous(n+1, vector<PII>(n+1, MP(-1,-1)));
@@ -120,14 +111,6 @@ tuple<int, PII, vector<int>> brute(){
                     }
                 }
             }
-
-            for(int i = 1; i<=n; i++){
-                for(int j = 1; j<=n; j++){
-                    cout<<"("<<previous[i][j].first<<" "<<previous[i][j].second<<") ";
-                }
-                cout<<"\n";
-            }
-            cout<<"\n";
 
             //get the distance 
             bool ok = true;
