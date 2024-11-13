@@ -103,7 +103,7 @@ vector<vector<int>> getDist(PII start){
 }
 
 tuple<int,PII> processBomb(PII b, vector<vector<int>> &dist){
-    if(plane[b.first][b.second] != '.'){
+    if(plane[b.first][b.second] == 'X'){
         return MT(INF,MP(INF,INF));
     }
     vector<int> vertical(n+1, 0), horizontal(n+1, 0);
@@ -118,7 +118,7 @@ tuple<int,PII> processBomb(PII b, vector<vector<int>> &dist){
                 verticalJump[ind] = MP(ind,b.second);
                 vertical[ind] = dist[ind][b.second];
             }else{
-                verticalJump[ind] = verticalJump[ind-1];
+                verticalJump[ind] = verticalJump[ind+1];
                 vertical[ind] = last+1;
             }
             last = vertical[ind];
@@ -137,7 +137,7 @@ tuple<int,PII> processBomb(PII b, vector<vector<int>> &dist){
                 verticalJump[ind] = MP(ind,b.second);
                 vertical[ind] = dist[ind][b.second];
             }else{
-                verticalJump[ind] = verticalJump[ind+1];
+                verticalJump[ind] = verticalJump[ind-1];
                 vertical[ind] = last+1;
             }
             last = vertical[ind];
@@ -242,8 +242,8 @@ vector<vector<PII>> processMoves(PII start){
 
         for(int o = -1; o<2; o+=2){
             if(v.first + o > 0 && v.first + o <=n){
-                if(previous[v.first+o][v.second].first == -1 && plane[v.first +o][v.second] != 'P' && plane[v.first +o][v.second] != 'K'){
-                    if(plane[v.first +o][v.second] == '.'){
+                if(previous[v.first+o][v.second].first == -1){
+                    if(plane[v.first +o][v.second] != 'X'){
                         Q.push(MP(v.first+o, v.second));
                     }
                     previous[v.first+o][v.second] = v;
@@ -252,8 +252,8 @@ vector<vector<PII>> processMoves(PII start){
         }
         for(int o = -1; o<2; o+=2){
             if(v.second + o > 0 && v.second + o <= n){
-                if(previous[v.first][v.second+o].first == -1 && plane[v.first][v.second + o] != 'P' && plane[v.first][v.second+o] != 'K'){
-                    if(plane[v.first][v.second+o] == '.' ){
+                if(previous[v.first][v.second+o].first == -1){
+                    if(plane[v.first][v.second+o] != 'X' ){
                         Q.push(MP(v.first, v.second+o));
                     }
                     previous[v.first][v.second + o] = v;
@@ -271,8 +271,44 @@ vector<int> getMoves(PII b, vector<vector<PII>> jumpP, vector<vector<PII>> jumpK
 
     vector<int> ans;
     vector<int> temp;
+    
+    PII v;
+    if(b.first == P.first && b.second == P.second){
+        v = P;
+        while(v.first != K.first || v.second != K.second){
+            PII p = startMoves[v.first][v.second];
+            if(p.first < v.first){
+                temp.PB(3);
+            }else if(p.first > v.first){
+                temp.PB(1);
+            }else if(p.second < v.second){
+                temp.PB(2);
+            }else{
+                temp.PB(4);
+            }
+            v = p;
+        }
+        return temp;
+    }
+    if(b.first == K.first && b.second == K.second){
+        v = P;
+        while(v.first != K.first || v.second != K.second){
+            PII p = endMoves[v.first][v.second];
+            if(p.first < v.first){
+                temp.PB(1);
+            }else if(p.first > v.first){
+                temp.PB(3);
+            }else if(p.second < v.second){
+                temp.PB(4);
+            }else{
+                temp.PB(2);
+            }
+            v = p;
+        }
+        return temp;
+    }
 
-    PII v = jumpK[b.first][b.second];
+    v = jumpK[b.first][b.second];
     if(b.first != v.first){
         if(b.first < v.first){
             for(int i = b.first; i < v.first; i++){
@@ -375,6 +411,11 @@ tuple<int, PII, vector<int>> solve(){
                 if(temp < get<0>(ans)){
                     ans = MT(dpP.first[i][j] + dpK.first[i][j], MP(i,j), vector<int>()); 
                 }
+            }else if(plane[i][j] != 'X'){
+                ll temp = (ll)dpP.first[i][j];
+                if(temp < get<0>(ans)){
+                    ans = MT(dpP.first[i][j] + dpK.first[i][j], MP(i,j), vector<int>()); 
+                }
             }
         }
     }
@@ -396,8 +437,20 @@ int main()
     tuple<int,PII,vector<int>> ansS = solve();
     cout<<get<0>(ansS)<<"\n";
     cout<<get<1>(ansS).first<<" "<<get<1>(ansS).second<<"\n";
+    // for(int i = 0; i<get<2>(ansS).size(); i++){
+    //     cout<<get<2>(ansS)[i]<<" ";
+    // }
     for(int i = 0; i<get<2>(ansS).size(); i++){
-        cout<<get<2>(ansS)[i]<<" ";
+        int move = get<2>(ansS)[i];
+        if(move == 1){
+            cout<<"G";
+        }else if(move == 2){
+            cout<<"P";
+        }else if(move == 3){
+            cout<<"D";
+        }else if(move == 4){
+            cout<<"L";
+        }
     }
     cout<<"\n";
 

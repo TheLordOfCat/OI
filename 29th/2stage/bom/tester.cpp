@@ -43,6 +43,8 @@ void getData(){
 }
 
 void getRandom(){
+    plane.clear();
+
     srand(time(0));
 
     n = rand()%10+2;
@@ -51,12 +53,14 @@ void getRandom(){
         plane.PB(vector<char>());
         plane[i].PB('0');
         for(int j = 1; j<=n; j++){
-            int type = rand()%3;
+            int type = rand()%5;
             char c;
-            if(type == 0 || type == 1){
-                c = '.';
-            }else{
+            if(type == 1){
                 c = '#';
+            }else if(type == 2){
+                c = 'X';
+            }else{
+                c = '.';
             }
             plane[i].PB(c);
         }
@@ -92,8 +96,9 @@ tuple<int, PII, vector<int>> brute(){
             vector<vector<char>> bombPlane = plane;
             
             //correct the plane
-            if(bombPlane[i][j] == '.'){
-
+            if(bombPlane[i][j] != 'X'){
+                if(bombPlane[i][j] == '#') bombPlane[i][j] = '.';
+                
                 for(int o = j; o>0; o--){
                     if(bombPlane[i][o] == '#'){
                         bombPlane[i][o] = '.';
@@ -249,7 +254,7 @@ vector<vector<int>> getDist(PII start){
 }
 
 tuple<int,PII> processBomb(PII b, vector<vector<int>> &dist){
-    if(plane[b.first][b.second] != '.'){
+    if(plane[b.first][b.second] == 'X'){
         return MT(INF,MP(INF,INF));
     }
     vector<int> vertical(n+1, 0), horizontal(n+1, 0);
@@ -264,7 +269,7 @@ tuple<int,PII> processBomb(PII b, vector<vector<int>> &dist){
                 verticalJump[ind] = MP(ind,b.second);
                 vertical[ind] = dist[ind][b.second];
             }else{
-                verticalJump[ind] = verticalJump[ind-1];
+                verticalJump[ind] = verticalJump[ind+1];
                 vertical[ind] = last+1;
             }
             last = vertical[ind];
@@ -283,7 +288,7 @@ tuple<int,PII> processBomb(PII b, vector<vector<int>> &dist){
                 verticalJump[ind] = MP(ind,b.second);
                 vertical[ind] = dist[ind][b.second];
             }else{
-                verticalJump[ind] = verticalJump[ind+1];
+                verticalJump[ind] = verticalJump[ind-1];
                 vertical[ind] = last+1;
             }
             last = vertical[ind];
@@ -516,7 +521,7 @@ tuple<int, PII, vector<int>> solve(){
     pair<vector<vector<int>>,vector<vector<PII>>> dpK = getDp(distK);
     for(int i = 1; i<=n; i++){
         for(int j = 1; j<=n; j++){
-            if(plane[i][j] == '.' ){
+            if(plane[i][j] != 'X' ){
                 ll temp = (ll)dpP.first[i][j] + (ll)dpK.first[i][j];
                 if(temp < get<0>(ans)){
                     ans = MT(dpP.first[i][j] + dpK.first[i][j], MP(i,j), vector<int>()); 
@@ -536,12 +541,18 @@ int main()
     cin.tie(NULL);
 
     int op = 1;
-    for(int test = 1; test<=1; test++){
-        cout<<"TEST nr."<<test<<" = ";
-        if(op == 1){
+    for(int test = 1; test<=10'000; test++){
+        cout<<"TEST nr."<<test<<" = \n";
+        if(op == 0){
             getData();
         }else{
             getRandom();
+        }
+        for(int i = 1; i<=n; i++){
+            for(int j = 1; j<=n; j++){
+                cout<<plane[i][j]<<" ";
+            }
+            cout<<"\n";
         }
         tuple<int,PII,vector<int>> ansB = brute();
         tuple<int,PII,vector<int>> ansS = solve();
@@ -562,6 +573,7 @@ int main()
             }
             cout<<"\n";
             printData();
+            return 0;
         }    
         cout<<"CORRECT\n";
     }
