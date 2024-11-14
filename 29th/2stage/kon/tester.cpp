@@ -29,6 +29,8 @@ void getData(){
 }
 
 void getRandom(){
+    input.clear();
+    
     srand(time(0));
 
     q = rand()%10+1;
@@ -58,7 +60,34 @@ void printData(){
 }
 
 vector<int> brute(){
+    vector<vector<int>> graph(3, vector<int>());
+    graph[1].PB(2);
+    graph[2].PB(1);
 
+    vector<int> ans;
+
+    for(int i =0; i<q; i++){
+        char c = input[i].first;
+        int x = input[i].second;
+        if(c == 'Z'){
+            graph.PB(vector<int>());
+            for(int j = 0; j<graph[x].size(); j++){
+                int cur = graph[x][j];
+                graph[cur].PB(graph.size()-1);
+                graph[graph.size()-1].PB(cur);
+            }
+        }
+        if(c == 'W'){
+            graph.PB(vector<int>());
+            graph[x].PB(graph.size()-1);
+            graph[graph.size()-1].PB(x);
+        }
+        if(c == '?'){
+            ans.PB(graph[x].size());
+        }
+    }
+
+    return ans;
 }
 
 vector<int> solve(){
@@ -83,6 +112,16 @@ int main()
         for(int i = 0; i<ansB.size(); i++){
             if(ansB[i] != ansS[i]){
                 cout<<"ERROR\n";
+                cout<<"BRUTE: \n";
+                for(int i =0; i< ansB.size(); i++){
+                    cout<<ansB[i]<<" ";
+                }
+                cout<<"\n";
+                cout<<"SOLVE: \n";
+                for(int i =0; i< ansS.size(); i++){
+                    cout<<ansS[i]<<" ";
+                }
+                cout<<"\n";
                 printData();
                 return 0;
             }
