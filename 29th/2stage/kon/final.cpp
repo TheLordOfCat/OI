@@ -136,11 +136,11 @@ tuple<vector<int>, int, int> buildTree(vector<int>& trav){
     }
     
     segTree.assign((R+(1<<depth)), 0);
-    segTree[leaf(trav.front(), R)] = 1;
+    // segTree[leaf(trav.front(), R)] = 1;
     return MT(segTree, R, depth);
 }
 
-int queryTree(int tL, int tR, int l, int r, int v, vector<int>& tree){
+int queryTree(int l, int r, int R, vector<int>& tree){
     int vL = leaf(l, R);
     int vR = leaf(r, R);
 
@@ -150,10 +150,10 @@ int queryTree(int tL, int tR, int l, int r, int v, vector<int>& tree){
 
     while(parent(vL) != parent(vR)){
         if(left(parent(vL)) == vL){
-            ans += right(parent(vL));
+            ans += tree[right(parent(vL))];
         }
         if(right(parent(vR)) == vR){
-            ans += left(parent(vR));
+            ans += tree[left(parent(vR))];
         }
         vL = parent(vL);
         vR = parent(vR);
@@ -251,12 +251,18 @@ vector<int> solve(){
         if(c != '?'){
             totalGuests++;
             if(groupX[x]){
-                updateTree(travX.second[edgesX[x].first].first, get<1>(segX), 1, get<0>(segX));
-                updateTree(travX.second[edgesX[x].first].second, get<1>(segX), -1, get<0>(segX));
+                int R = get<1>(segX);
+                int v1 = travX.second[edgesX[x].first].first;
+                int v2 = travX.second[edgesX[x].first].second;
+                updateTree(v1, R, 1, get<0>(segX));
+                updateTree(v2, R, -1, get<0>(segX));
             }
             if(groupY[x]){
-                updateTree(travY.second[edgesY[x].first].first, get<1>(segY), 1, get<0>(segY));
-                updateTree(travY.second[edgesY[x].first].second, get<1>(segY), -1, get<0>(segY));
+                int R = get<1>(segY);
+                int v1 = travY.second[edgesY[x].first].first;
+                int v2 = travY.second[edgesY[x].first].second;
+                updateTree(v1, R, 1, get<0>(segY));
+                updateTree(v2, R, -1, get<0>(segY));
             }   
         }
         if(c == '?'){
@@ -264,11 +270,12 @@ vector<int> solve(){
             if(groupX[x]){
                 int vt = travY.second[pointY[x].first].first, vb = travY.second[pointY[x].second].second;
                 int R= get<1>(segY);
-                temp = queryTree(left(1,R), get<0>(segY).size(), leaf(vt,R), leaf(vb, R), 1, get<0>(segY));
+                temp = queryTree(vt,vb, R, get<0>(segY));
             }
             if(groupY[x]){
                 int vt = travX.second[pointX[x].first].first, vb = travX.second[pointX[x].second].second;
-                temp = queryTree(vt, vb, get<1>(segX), get<0>(segX));
+                int R= get<1>(segX);
+                temp = queryTree(vt, vb, R, get<0>(segX));
             }
             ans.PB(temp);
         }
