@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <stack>
+#include <tuple>
 
 using namespace std;
 
@@ -37,73 +38,76 @@ vector<PII> pointX, pointY;
 vector<PII> edgesX, edgesY;
 
 void getDominant(vector<vector<PII>>& graph, vector<PII>& point, vector<PII>& edges, vector<bool>& group){
-    int totalGuests = 1;
+    int totalGuests = 2;
     for(int i = 0; i<input.size(); i++){
         char c = input[i].first;
         int x = input[i].second;
-        totalGuests++;
         if(c == 'Z'){
+            totalGuests++;
             if(group[totalGuests]){
-                point[totalGuests] = point[x];
-            }else{
                 graph.PB(vector<PII>());
-                graph.back().PB(MP(edges[x].first, totalGuests)); //posibble error
+                graph.back().PB(MP(edges[x].first, totalGuests));
+                graph[edges[x].first].PB(MP(graph.size()-1, totalGuests));
+
                 graph.back().PB(MP(edges[x].second, x)); 
+                graph[edges[x].second].PB(MP(graph.size()-1, x));
+
                 edges[totalGuests] = MP(edges[x].first, graph.size()-1);
-
-                graph[point[x].first].pop_back();
-                graph[point[x].second].erase(graph[point[x].second].begin());
-
-                graph[point[x].first].PB(MP(graph.size()-1, totalGuests));
-                graph[point[x].second].PB(MP(graph.size()-1, x));
+                edges[x] = MP(graph.size()-1, edges[x].second);
+            }else{
+                point[totalGuests] = point[x];
             }
         }
         if(c == 'W'){
+            totalGuests++;
             if(group[totalGuests]){
-                point[totalGuests] = edges[x];
-            }else{
                 graph.PB(vector<PII>());
                 graph.back().PB(MP(point[x].second, totalGuests));
                 edges[totalGuests] = MP(point[x].second, graph.size()-1);
-
                 graph[point[x].second].PB(MP(graph.size()-1, totalGuests));
+                point[x] = MP(point[x].first, graph.size()-1);
+            }else{
+                point[totalGuests] = edges[x];
             }
         }
     }
 }
 
-vector<int> traverseGraph(vector<vector<PII>>& graph){
-    vector<int> ans;
+pair<vector<int>, vector<PII>> traverseGraph(vector<vector<PII>>& graph, vector<PII>& edges){
+    vector<int> ans1;
+    vector<PII> ans2(graph.size(), MP(-1,-1));
 
-    stack<tuple<int, int, bool>> S;
-    S.push(MT(1, 1, false));
+    stack<pair<int,bool>> S;
+    S.push(MP(0, false));
     vector<bool> vis(graph.size(), false);
 
     while(!S.empty()){
-        int v = get<0>(S.top());
-        int label = get<1>(S.top());
-        bool b = get<2>(S.top());
+        int v = S.top().first;
+        bool b = S.top().second;
         S.pop();
 
         if(b){
-            ans.PB((-1)*label);
+            ans1.PB((-1)*v);
+            ans2[v].second = ans1.size()-1;
             continue;
         }
         if(vis[v]){
             continue;
         }
+        ans1.PB(v);
+        ans2[v].first = ans1.size()-1;
+        vis[v] = true;
 
+        S.push(MP(v, true));
         for(int i = 0; i<graph[v].size(); i++){
             PII cur = graph[v][i];
-            if(!vis[cur.first]){
-                vis[cur.first] = true;
-                S.push(MT(v, cur.second, true));
-                S.push(MT(cur.first, cur.second, false));
+            if(!vis[cur.first] && ((edges[cur.second].first == v && edges[cur.second].second == cur.first) || (edges[cur.second].second == v && edges[cur.second].first == cur.first))){
+                S.push(MP(cur.first, false));
             }
         }
     }
 
-    return ans;
+    return MP(ans1,ans2);
 }
 
 int parent(int v){
@@ -136,7 +140,7 @@ tuple<vector<int>, int, int> buildTree(vector<int>& trav){
     return MT(segTree, R, depth);
 }
 
-int queryTree(int l, int r, int R, vector<int>& tree){
+int queryTree(int tL, int tR, int l, int r, int v, vector<int>& tree){
     int vL = leaf(l, R);
     int vR = leaf(r, R);
 
@@ -158,11 +162,11 @@ int queryTree(int l, int r, int R, vector<int>& tree){
     return ans;
 }
 
-void updateTree(int v, int R, vector<int>& tree){
+void updateTree(int v, int R, int val, vector<int>& tree){
     int V = leaf(v, R);
 
     while(V >= 1){
-        tree[V] += 1;
+        tree[V] += val;
         V = parent(V);
     }
 }
@@ -170,10 +174,24 @@ void updateTree(int v, int R, vector<int>& tree){
 vector<int> solve(){
     graphX.clear(); graphY.clear(); pointX.clear(); pointY.clear(); edgesX.clear(); edgesY.clear();
 
+    graphX.assign(2, vector<PII>()); graphY.assign(2, vector<PII>());
+    pointX.assign(q+1, MP(-1,-1)); pointY.assign(q+1, MP(-1,-1));
+    edgesX.assign(q+1, MP(-1,-1)); edgesY.assign(q+1, MP(-1,-1)); 
+
     //split guests into groups
-    vector<bool> groupX(q+1, false), groupY(q+1, false);
-    vector<int> setX;
-    vector<int> setY;
+    vector<bool> groupX(q+1, false), groupY(q+1, false); 
+    vector<int> setX = {1};
+    vector<int> setY = {2};
+
+    edgesX[1] = MP(0,1);
+    pointX[2] = MP(0,1);
+    pointY[1] = MP(0,1);
+    edgesY[2] = MP(0,1);
+
+    graphX[0].PB(MP(1,1));
+    graphX[1].PB(MP(0,1));
+    graphY[0].PB(MP(1,2));
+    graphY[1].PB(MP(0,2));
 
     groupX[1] = true;
     groupY[2] = true;
@@ -184,12 +202,24 @@ vector<int> solve(){
         if(c != '?'){
             totalGuests++;
             if(groupX[x]){
-                groupY[totalGuests] = true;
-                setY.PB(totalGuests);
+                if(c == 'W'){
+                    groupY[totalGuests] = true;
+                    setY.PB(totalGuests);
+                }
+                if(c == 'Z'){
+                    groupX[totalGuests] = true;
+                    setX.PB(totalGuests);
+                }
             }
             if(groupY[x]){
-                groupX[totalGuests] = true;
-                setX.PB(totalGuests);
+                if(c == 'W'){
+                    groupX[totalGuests] = true;
+                    setX.PB(totalGuests);
+                }
+                if(c == 'Z'){
+                    groupY[totalGuests] = true;
+                    setY.PB(totalGuests);
+                }
             }
         }
     }   
@@ -199,26 +229,46 @@ vector<int> solve(){
     getDominant(graphY, pointY, edgesY, groupY);
 
     //create seg tree
-    vector<int> travX = traverseGraph(graphX);
-    vector<int> travY = traverseGraph(graphY);
+    pair<vector<int>, vector<PII>> travX = traverseGraph(graphX, edgesX);
+    pair<vector<int>, vector<PII>> travY = traverseGraph(graphY, edgesY);
 
-    tuple<vector<int>, int, int> segX = buildTree(travX);
-    tuple<vector<int>, int, int> segY = buildTree(travY);
+    tuple<vector<int>, int, int> segX = buildTree(travX.first);
+    tuple<vector<int>, int, int> segY = buildTree(travY.first);
 
     //get ans
     vector<int> ans;
     totalGuests = 2;
+    //initialize 1
+    updateTree(travX.second[edgesX[1].first].first, get<1>(segX), 1, get<0>(segX));
+    updateTree(travX.second[edgesX[1].first].second, get<1>(segX), -1, get<0>(segX));
+
+    //intailize 2
+    updateTree(travY.second[edgesY[2].first].first, get<1>(segY), 1, get<0>(segY));
+    updateTree(travY.second[edgesY[2].first].second, get<1>(segY), -1, get<0>(segY));
     for(int i =0; i<input.size(); i++){
         char c = input[i].first;
         int x = input[i].second;
-        totalGuests++;
+        if(c != '?'){
+            totalGuests++;
+            if(groupX[x]){
+                updateTree(travX.second[edgesX[x].first].first, get<1>(segX), 1, get<0>(segX));
+                updateTree(travX.second[edgesX[x].first].second, get<1>(segX), -1, get<0>(segX));
+            }
+            if(groupY[x]){
+                updateTree(travY.second[edgesY[x].first].first, get<1>(segY), 1, get<0>(segY));
+                updateTree(travY.second[edgesY[x].first].second, get<1>(segY), -1, get<0>(segY));
+            }   
+        }
         if(c == '?'){
             int temp;
-            if(groupX[totalGuests]){
-                temp = queryTree(pointX[x].first, pointX[x].second, get<1>(segX), get<0>(segX));
+            if(groupX[x]){
+                int vt = travY.second[pointY[x].first].first, vb = travY.second[pointY[x].second].second;
+                int R= get<1>(segY);
+                temp = queryTree(left(1,R), get<0>(segY).size(), leaf(vt,R), leaf(vb, R), 1, get<0>(segY));
             }
-            if(groupY[totalGuests]){
-                temp = queryTree(pointY[x].first, pointY[x].second, get<1>(segY), get<0>(segY));
+            if(groupY[x]){
+                int vt = travX.second[pointX[x].first].first, vb = travX.second[pointX[x].second].second;
+                temp = queryTree(vt, vb, get<1>(segX), get<0>(segX));
             }
             ans.PB(temp);
         }
