@@ -87,44 +87,40 @@ vector<int> brute(){
 
 vector<vector<int>> fastMultiply(vector<vector<int>> a, vector<vector<int>> b){
     //compress matrix
-    vector<vector<ull>> compressA, compressB;
+    vector<vector<ull>> compressA(a.size(), vector<ull>()), compressB(b.front().size(), vector<ull>());
     for(int i =0; i<a.size(); i++){
         ull temp = 0;
         int ind = 0;
         int count = 0;
         while(ind < n){
-            temp *= 10;
-            temp += a[i][ind];
+            temp += (((ull)a[i][ind])<<(31-count));
             ind++;
+            count++;
 
-            if(count == 0){
+            if(count == 32){
                 compressA[i].PB(temp);
                 temp = 0;
                 count = 0;
             }  
         }
-        if(temp != 0){
-            compressA[i].PB(temp);
-        }
+        compressA[i].PB(temp);
     }
-    for(int i =0; i<b.size(); i++){
+    for(int i =0; i<b.front().size(); i++){
         ull temp = 0;
         int ind = 0;
         int count = 0;
         while(ind < n){
-            temp *= 10;
-            temp += b[i][ind];
+            temp += (((ull)b[ind][i])<<(31-count));
             ind++;
+            count++;
 
-            if(count == 0){
+            if(count == 32){
                 compressB[i].PB(temp);
                 temp = 0;
                 count = 0;
             }  
         }
-        if(temp != 0){
-            compressB[i].PB(temp);
-        }
+        compressB[i].PB(temp);
     }
 
     //multiply
@@ -136,7 +132,8 @@ vector<vector<int>> fastMultiply(vector<vector<int>> a, vector<vector<int>> b){
                 ull tempA = compressA[i][o];
                 ull tempB = compressB[j][o];
                 ull value = tempA & tempB;
-                ans[i][j] += popcount(value);
+                ans[i][j] += __builtin_popcountll(value);
+                ans[i][j] %= 2;
             }
         }
     }
@@ -148,16 +145,18 @@ vector<vector<int>> fastPower(vector<vector<int>> m, ull x){
     vector<vector<vector<int>>> powers;
     powers.PB(m);
     int ind = 1;
-    while((((ull)1)<<ind) < x){
+    while((((ull)1)<<ind) <= x){
         vector<vector<int>> temp = fastMultiply(powers.back(), powers.back());
         powers.PB(temp);
+        ind++;
     }
 
     //get ans
     vector<vector<int>> ans;
     bool first = true;  
     for(int i =0 ; i<powers.size(); i++){
-        if(x & (1<<i)){
+        ll temp = (((ll)1)<<i);
+        if(x & temp){
             if(first){
                 first = false;
                 ans = powers[i];
