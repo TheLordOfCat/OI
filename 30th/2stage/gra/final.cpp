@@ -52,44 +52,33 @@ void getData(){
 }
 
 vector<int> getCenter(vector<vector<int>>& graph){
-    queue<int> Q;
+    vector<int> leafs;
     vector<int> con(n+1, 0);
-    vector<bool> vis(n+1, false);
     int left = n;
     for(int i = 1; i<=n; i++){
-        con[i] = graph[i].size()-1;
-        if(con[i] == 0){
-            Q.push(i);
-            vis[i] = true;
+        if(graph[i].size() == 1){
+            leafs.PB(i);
             left--;
         }
+        con[i] = graph[i].size();
     }
 
-    int ex = 1;
-    if(n%2 == 0) ex++;
-
-    vector<int> center;
-    while(Q.empty()){
-        int v = Q.front();
-        Q.pop();
-
-        for(int i = 0; i<graph[v].size(); i++){
-            int cur = graph[v][i];
-            if(!vis[cur]){
+    while(left != 0){
+        vector<int> nextLeafs;
+        for(int i = 0; i<leafs.size(); i++){
+            for(int j = 0; j<graph[leafs[i]].size(); j++){
+                int cur = graph[leafs[i]][j];
                 con[cur]--;
-                if(left <= ex){
-                    center.PB(cur);
-                }
                 if(con[cur] == 1){
-                    Q.push(cur);
+                    nextLeafs.PB(cur);
                     left--;
                 }
-                vis[cur] = true;
             }
         }
+        leafs = nextLeafs;
     }
 
-    return center;
+    return leafs;
 }
 
 vector<int> getDistance(vector<vector<int>>& graph, vector<int>& center){
@@ -111,6 +100,7 @@ vector<int> getDistance(vector<vector<int>>& graph, vector<int>& center){
             if(!vis[cur]){
                 vis[cur] = true;
                 ans[cur] = ans[v] +1;
+                Q.push(cur);
             }
         }
     }
@@ -161,7 +151,7 @@ ll sumRange(int l, int r, int R, vector<int>& segTree){
             ans += segTree[right(parent(vL))];
         }
         if(right(parent(vR)) == vR){
-            ans += segTree[left(parent(vL))];
+            ans += segTree[left(parent(vR))];
         }
         vL = parent(vL);
         vR = parent(vR);
@@ -209,7 +199,6 @@ vector<ll> solve(){
     ll tempD = 0;
     for(int i = 0; i<Acopy.size(); i++){
         ll temp = sumRange(distance[A[i]], n, segTreeB.second, segTreeB.first);
-        temp--;
         tempD += temp;
     }
     ans.PB(tempD);
@@ -219,14 +208,20 @@ vector<ll> solve(){
         tempD = 0; // getting the diffrence
         if(get<0>(query[o]) == 'A'){
             tempD = sumRange(distance[get<2>(query[o])], n, segTreeB.second, segTreeB.first);
+            int type = 1;
             if(get<1>(query[o]) == '-'){
                 tempD *= -1;
+                type *= -1;
             }
+            updateTree(distance[get<2>(query[o])], segTreeA.second, type, segTreeA.first);
         }else{
             tempD = sumRange(1, distance[get<2>(query[o])], segTreeA.second, segTreeA.first);
+            int type = 1;
             if(get<1>(query[o]) == '-'){
                 tempD *= -1;
+                type *= -1;
             }
+            updateTree(distance[get<2>(query[o])], segTreeB.second, type, segTreeB.first);
         }
         ans.PB(tempD + ans[o]);
     }   
