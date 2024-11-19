@@ -23,7 +23,7 @@ void getData(){
 
 void getRandom(){
     srand(time(0));
-    n = rand()%10+1;
+    n = rand()%50+80;
     d = rand()%10+1;
     a = rand()%10+1;
     b = rand()%10+1;
@@ -53,20 +53,15 @@ ull brute(){
                 dif = j-(i-j);
             }
   
-            if(i-j - j <= d){
-                ull temp1 = f(j,i-j);
-                ull temp2 = f(i-j,j);
-                if(temp1 < m){
-                    m = temp1;
-                    bestJ = j;
-                }
-                if(temp2 < m){
-                    m = temp2;
+            if(dif <= d){
+                ull temp1 = min(f(j,i-j),f(i-j,j));
+                if(temp1 + dp[j] + dp[i-j]  < m){
+                    m = temp1+ dp[j] + dp[i-j];
                     bestJ = j;
                 }
             }
         }
-        dp[i] = m + dp[bestJ] + dp[i-bestJ];
+        dp[i] = m;
     }
 
     return dp[n];
@@ -82,7 +77,7 @@ ull solve(){
         if(r.first == 1){
             break;
         }
-        S.push(MP(r.first/2-d/2-2, r.second/2+d/2+2));
+        S.push(MP(max(r.first/2-d/2-2,1), r.second/2+d/2+2));
     }
 
     //get base
@@ -91,7 +86,7 @@ ull solve(){
     for(int i = 2; i<=baseRight; i++){
         ull m = ullINF;
         ull bestJ = ullINF;
-        for(ull  j = i/2+d/2+2; j>= max(0, i/2-d/2-2); j--){
+        for(ull  j = min(i/2+d/2+2,i-1); j>= max(1, i/2-d/2-2); j--){
             ull dif;
             if(i-j > j) {
                 dif = i-j-j;
@@ -99,33 +94,29 @@ ull solve(){
                 dif = j-(i-j);
             }
 
-            if(i-j - j <= d){
-                ull temp1 = f(j,i-j);
-                ull temp2 = f(i-j,j);
-                if(temp1 < m){
-                    m = temp1;
-                    bestJ = j;
-                }
-                if(temp2 < m){
-                    m = temp2;
+            if(dif <= d){
+                ull temp1 = min(f(j,i-j),f(i-j,j));
+                if(temp1 + dp[j] + dp[i-j]  < m){
+                    m = temp1+ dp[j] + dp[i-j];
                     bestJ = j;
                 }
             }
         }
-        dp[i] = m + dp[bestJ] + dp[i-bestJ];
+        dp[i] = m;
     }
 
     //process ranges
-    ull firstElement = 1;
+    S.pop();
+    ull firstElement = 0;
     while(!S.empty()){
         PII r = S.top();
         S.pop();
         
-        vector<ull> nextDp(r.second+1, 0);
-        for(int i = 2; i<=r.second; i++){
+        vector<ull> nextDp(r.second+1-r.first+1, 0);
+        for(int i = r.first; i<=r.second; i++){
             ull m = ullINF;
             ull bestJ = ullINF;
-            for(ull  j = i/2+d/2+2; j>= max(0, i/2-d/2-2); j--){
+            for(ull  j = min(i/2+d/2+2,i-1); j>= max(1, i/2-d/2-2); j--){
                 ull dif;
                 if(i-j > j) {
                     dif = i-j-j;
@@ -133,27 +124,22 @@ ull solve(){
                     dif = j-(i-j);
                 }
 
-                if(i-j - j <= d){
-                    ull temp1 = f(j,i-j);
-                    ull temp2 = f(i-j,j);
-                    if(temp1 < m){
-                        m = temp1;
-                        bestJ = j;
-                    }
-                    if(temp2 < m){
-                        m = temp2;
+                if(dif <= d){
+                    ull temp1 = min(f(j,i-j),f(i-j,j));
+                    if(temp1 + dp[j-firstElement] + dp[i-j-firstElement]  < m){
+                        m = temp1+ dp[j-firstElement] + dp[i-j-firstElement];
                         bestJ = j;
                     }
                 }
             }
-            nextDp[i] = m + dp[bestJ-firstElement] + dp[i-bestJ-firstElement];
+            nextDp[i-r.first+1] = m;
         }
 
         dp = nextDp;
-        firstElement = r.first;
+        firstElement = r.first-1;
     }
 
-    return dp.front();
+    return dp.back();
 }   
 
 int main()
