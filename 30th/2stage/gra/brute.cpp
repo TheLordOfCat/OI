@@ -91,25 +91,25 @@ vector<int> getPart(vector<vector<int>>& graph){
 vector<int> getParents(vector<vector<int>>& graph){
     queue<int> Q;
     Q.push(1);
-    vector<int> parent(n+1, -1);
-    parent[1] = -2;
+    vector<int> parents(n+1, -1);
+    parents[1] = -2;
     while(!Q.empty()){
         int v = Q.front();
         Q.pop();
 
         for(int i = 0; i<graph[v].size(); i++){
             int cur = graph[v][i];
-            if(parent[cur] == -1){
+            if(parents[cur] == -1){
                 Q.push(cur);
-                parent[cur] = v;
+                parents[cur] = v;
             }
         }
     }
 
-    return parent;
+    return parents;
 }
 
-ll winStrategy(int a, int b, vector<vector<int>>& graph, vector<int> &parent, vector<int>& part){
+ll winStrategy(int a, int b, vector<vector<int>>& graph, vector<int> &parents, vector<int>& part){
     //get mid point
     queue<PII> Q;
     vector<int> previous(n+1, -1);
@@ -175,8 +175,8 @@ ll winStrategy(int a, int b, vector<vector<int>>& graph, vector<int> &parent, ve
             break;
         }
 
-        if(parent[v] != -1 && parent[v] != -2){
-            P.push(parent[v]);
+        if(parents[v] != -1 && parents[v] != -2){
+            P.push(parents[v]);
         }
     }
 
@@ -192,10 +192,10 @@ ll winStrategy(int a, int b, vector<vector<int>>& graph, vector<int> &parent, ve
             int v = P.front();
             P.pop();
 
-            if(parent[v] != -1 && parent[v] != -2){
-                P.push(parent[v]);
+            if(parents[v] != -1 && parents[v] != -2){
+                P.push(parents[v]);
                 for(int i = 0; i<center.size(); i++){
-                    if(parent[v] == center[i]){
+                    if(parents[v] == center[i]){
                         cB = v;
                         break;
                     }
@@ -237,7 +237,7 @@ vector<ll> brute(){
     vector<int> part = getPart(graph);
 
     //get parents
-    vector<int> parent = getParents(graph);
+    vector<int> parents = getParents(graph);
 
     vector<ll> ans;
 
@@ -246,8 +246,10 @@ vector<ll> brute(){
     ll tempD = 0;
     for(int i = 0; i<Acopy.size(); i++){
         for(int j = 0; j<Bcopy.size(); j++){
-            ll temp = winStrategy(A[i], B[j], graph, parent, part);
-            tempD += temp;
+            if(Acopy[i] != Bcopy[i]){
+                ll temp = winStrategy(A[i], B[j], graph, parents, part);
+                tempD += temp;
+            }
         }
     }
     ans.PB(tempD);
@@ -257,16 +259,20 @@ vector<ll> brute(){
         tempD = 0; // getting the diffrence
         if(get<0>(query[o]) == 'A'){
             for(int i = 0; i<Bcopy.size(); i++){
-                ll temp = winStrategy(get<2>(query[o]), B[i], graph, parent, part);
-                tempD += temp;
+                if(Bcopy[i] != get<2>(query[o])){
+                    ll temp = winStrategy(get<2>(query[o]), B[i], graph, parents, part);
+                    tempD += temp;   
+                }
             }
             if(get<1>(query[o]) == '-'){
                 tempD *= -1;
             }
         }else{
             for(int i = 0; i<Acopy.size(); i++){
-                ll temp = winStrategy(A[i], get<2>(query[o]), graph, parent, part);
-                tempD += temp;
+                if(Acopy[i] != get<2>(query[o])){
+                    ll temp = winStrategy(A[i], get<2>(query[o]), graph, parents, part);
+                    tempD += temp;
+                }
             }
             if(get<1>(query[o]) == '-'){
                 tempD *= -1;
@@ -277,6 +283,7 @@ vector<ll> brute(){
 
     return ans;
 }
+
 
 int main()
 {

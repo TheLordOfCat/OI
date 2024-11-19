@@ -2,6 +2,7 @@
 #include <vector>
 #include <tuple>
 #include <queue>
+#include <stack>
 
 using namespace std;
 
@@ -52,33 +53,65 @@ void getData(){
 }
 
 vector<int> getCenter(vector<vector<int>>& graph){
-    vector<int> leafs;
-    vector<int> con(n+1, 0);
-    int left = n;
-    for(int i = 1; i<=n; i++){
-        if(graph[i].size() == 1){
-            leafs.PB(i);
-            left--;
-        }
-        con[i] = graph[i].size();
-    }
+    vector<int> dp(n+1, 0);
 
-    while(left != 0){
-        vector<int> nextLeafs;
-        for(int i = 0; i<leafs.size(); i++){
-            for(int j = 0; j<graph[leafs[i]].size(); j++){
-                int cur = graph[leafs[i]][j];
-                con[cur]--;
-                if(con[cur] == 1){
-                    nextLeafs.PB(cur);
-                    left--;
-                }
+    stack<pair<int,bool>> S;
+    S.push(MP(1,false));
+    vector<bool> vis(n+1, false);
+
+    while(!S.empty()){
+        int v = S.top().first;
+        bool b = S.top().second;
+        S.pop();
+        if(b){
+            for(int i = 0; i<graph[v].size(); i++){
+                int cur = graph[v][i];
+                dp[v] += dp[cur];
+            }
+            dp[v]++;
+        }
+        if(vis[v]){
+            continue;
+        }
+
+        vis[v] = true;
+        S.push(MP(v,true));
+        for(int i = 0; i<graph[v].size(); i++){
+            int cur = graph[v][i];
+            if(!vis[cur]){
+                S.push(MP(cur, false));
             }
         }
-        leafs = nextLeafs;
     }
 
-    return leafs;
+    vector<int> centroids;
+
+    queue<int> Q;
+    vis.assign(n+1, false);
+    vis[1] = true;
+    Q.push(1);
+    
+    while(!Q.empty()){
+        int v = Q.front();
+        vis[v] = true;
+        Q.pop();
+
+        int maxim = n-dp[v];
+        for(int i = 0; i<graph[v].size(); i++){
+            int cur = graph[v][i];
+            if(vis[cur]){
+                maxim = max(n-dp[cur]+1, maxim);
+            }else{
+                maxim = max(dp[cur], maxim);
+                Q.push(cur);
+            }
+        }
+        if(maxim <= n/2){
+            centroids.PB(v);
+        }
+    }
+
+    return centroids;
 }
 
 vector<int> getDistance(vector<vector<int>>& graph, vector<int>& center){
@@ -133,7 +166,7 @@ pair<vector<int>,int> buildTree(int len){
         depth++;
     }
 
-    vector<int> segTree(R+ (1<<depth), 0);
+    vector<int> segTree(R+ (1<<depth)+1, 0);
 
     return MP(segTree, R);
 }
@@ -185,22 +218,26 @@ vector<ll> solve(){
     vector<int> distance = getDistance(graph, center);
 
     //get seg tree
+    vector<bool> inA(n+1, false), inB(n+1, false);
     pair<vector<int>, int> segTreeA = buildTree(n), segTreeB = buildTree(n);
     for(int i = 0; i< A.size() ;i++){
         updateTree(distance[A[i]], segTreeA.second, 1, segTreeA.first);
+        inA[A[i]] = true;
     }
     for(int i = 0; i< B.size() ;i++){
         updateTree(distance[B[i]], segTreeB.second, 1, segTreeB.first);
+        inB[B[i]] = true;
     }
 
     //get the deafult
-    vector<int> Acopy = A, Bcopy = B;
     vector<ll> ans;
     ll tempD = 0;
-    for(int i = 0; i<Acopy.size(); i++){
+    for(int i = 0; i<A.size(); i++){
         ll temp = sumRange(distance[A[i]], n, segTreeB.second, segTreeB.first);
+        if(inB[A[i]]) temp--;
         tempD += temp;
     }
+    if(n == 2) tempD = 0;
     ans.PB(tempD);
 
     //process queries
@@ -208,19 +245,29 @@ vector<ll> solve(){
         tempD = 0; // getting the diffrence
         if(get<0>(query[o]) == 'A'){
             tempD = sumRange(distance[get<2>(query[o])], n, segTreeB.second, segTreeB.first);
+            if(inB[get<2>(query[o])]) tempD--;
+
             int type = 1;
+            inA[get<2>(query[o])] = true;
             if(get<1>(query[o]) == '-'){
                 tempD *= -1;
                 type *= -1;
+                inA[get<2>(query[o])] = false;
             }
+
             updateTree(distance[get<2>(query[o])], segTreeA.second, type, segTreeA.first);
         }else{
             tempD = sumRange(1, distance[get<2>(query[o])], segTreeA.second, segTreeA.first);
+            if(inA[get<2>(query[o])]) tempD--;
+
             int type = 1;
+            inB[get<2>(query[o])] = true;
             if(get<1>(query[o]) == '-'){
                 tempD *= -1;
                 type *= -1;
+                inB[get<2>(query[o])] = false;
             }
+
             updateTree(distance[get<2>(query[o])], segTreeB.second, type, segTreeB.first);
         }
         ans.PB(tempD + ans[o]);
@@ -239,7 +286,7 @@ int main()
 
     vector<ll> ansS = solve();
     for(int j = 0; j<ansS.size(); j++){
-        cout<<ansS[j]<<" ";
+        cout<<ansS[j]<<"\n";
     }
 
     return 0;
