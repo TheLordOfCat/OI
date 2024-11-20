@@ -21,8 +21,8 @@ void getData(){
     cin>>n>>d>>a>>b;
 }
 
-ll f(ll w, ll v){
-    ll temp = (ull)a*w + (ll)b*v;
+ull f(ull w, ull v){
+    ull temp = ((ull)a)*w + ((ull)b)*v;
     return temp%1001;
 }
 
@@ -36,16 +36,20 @@ ull solve(){
         if(r.first == 1){
             break;
         }
-        S.push(MP(max(r.first/2-d/2-2, (ll)1), min(r.second/2+d/2+2, (ll)n)));
+        S.push(MP(max(r.first/2-d/2-2, (ll)1), min(r.second/2+d/2+2, n)));
     }
 
     //get base
     ll baseRight = S.top().second;
     vector<ull> dp(baseRight+1, 0);
-    for(int i = 2; i<=baseRight; i++){
+    for(ull i = 2; i<=baseRight; i++){
         ull m = ullINF;
         ll bestJ = llINF;
-        for(ll  j = min(i/2+d/2+2,i-1); j>= max(1, i/2-d/2-2); j--){
+
+        ull bottom = 1;
+        if(i/2-d/2-2 > bottom && i/2 > d/2+2) bottom = i/2-d/2-2;
+
+        for(ll  j = min(i/2+d/2+2,i-1); j >= bottom; j--){
             ll dif;
             if(i-j > j) {
                 dif = i-j-j;
@@ -54,9 +58,9 @@ ull solve(){
             }
 
             if(dif <= d){
-                ll temp1 = min(f(j,i-j),f(i-j,j));
+                ull temp1 = min(f(j,i-j),f(i-j,j));
                 if(temp1 + dp[j] + dp[i-j]  < m){
-                    m = (ull)temp1+ dp[j] + dp[i-j];
+                    m = temp1+ dp[j] + dp[i-j];
                     bestJ = j;
                 }
             }
@@ -86,7 +90,7 @@ ull solve(){
                 if(dif <= d){
                     ull temp1 = min(f(j,i-j),f(i-j,j));
                     if(temp1 + dp[j-firstElement] + dp[i-j-firstElement]  < m){
-                        m = (ull)temp1 + dp[j-firstElement] + dp[i-j-firstElement];
+                        m = temp1 + dp[j-firstElement] + dp[i-j-firstElement];
                         bestJ = j;
                     }
                 }
@@ -108,7 +112,7 @@ int main()
 
     getData();
 
-    ll ansS = solve();
+    ull ansS = solve();
     cout<<ansS<<"\n";
 
     return 0;
