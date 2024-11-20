@@ -32,13 +32,16 @@ void getData(){
 
 int solve(){
     //get the larges
+    int sum = 0;
     int maxValue = -1;
     for(int i = 0; i<a.size(); i++){
         maxValue = max(maxValue, a[i]);
+        sum += a[i];
     }
+    sum -= maxValue;
 
     //group numbers
-    vector<int> group(2*maxValue+1, 0);
+    vector<int> group(5'000'000+1, 0);
     for(int i = 0; i<a.size(); i++){
         group[a[i]]++;
     }
@@ -46,38 +49,49 @@ int solve(){
 
     //reduce
     for(int i = 1; i<group.size(); i++){
-        if(group[i] > 2){
+        while(group[i] > 2){
             group[i] -= 2;
             group[i+i]++;
         }
     }
 
     //process knapsack
-    bitset<2500000> knapsack;
+    bitset<2500001> knapsack;
 
-    for(int i = 1; i<group.size(); i++){
-        if(group[i] > 0){
-            bitset<2500000> temp = knapsack;
-            temp <<i;
-            auto next = knapsack|temp;
-            knapsack = next;
-        }
-        if(group[i] == 2){
-            bitset<2500000> temp = knapsack;
-            temp <<i;
-            temp <<i;
-            auto next = knapsack|temp;
-            knapsack = next;
+    for(int i = 1; i<=2*maxValue; i++){
+        if(knapsack.none() && group[i] > 0){
+            knapsack.set(i);
+            if(group[i] == 2){
+                knapsack.set(2*i);
+            }
+        }else{
+            if(group[i] > 0){
+                bitset<2500001> temp = knapsack;
+                temp = temp <<i;
+                temp.set(i);
+                auto next = knapsack|temp;
+                knapsack = next;
+            }
+            if(group[i] == 2){
+                bitset<2500001> temp = knapsack;
+                temp = temp <<i;
+                temp = temp <<i;
+                temp.set(2*i);
+                auto next = knapsack|temp;
+                knapsack = next;
+            }
         }
     }
 
-    int ans = -1;
-    for(int i = 2500000; i>= 1; i--){
+    int ans = 0;
+    for(int i = sum/2; i>= 1; i--){
         if(knapsack.test(i)){
             ans = i;
             break;
         }
     }
+
+    ans += maxValue;
 
     return ans;
 }

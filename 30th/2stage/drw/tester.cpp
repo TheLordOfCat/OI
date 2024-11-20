@@ -38,6 +38,7 @@ void getRandom(){
     n = rand()%10+1;
     for(int i = 0; i<n; i++){
         int temp = rand()%10+1;
+        a.PB(temp);
     }
 }
 
@@ -86,7 +87,69 @@ int brute(){
 }
 
 int solve(){
+    //get the larges
+    int sum = 0;
+    int maxValue = -1;
+    for(int i = 0; i<a.size(); i++){
+        maxValue = max(maxValue, a[i]);
+        sum += a[i];
+    }
+    sum -= maxValue;
 
+    //group numbers
+    vector<int> group(2*5'000'000+1, 0);
+    for(int i = 0; i<a.size(); i++){
+        group[a[i]]++;
+    }
+    group[maxValue]--;
+
+    //reduce
+    for(int i = 1; i<group.size(); i++){
+        while(group[i] > 2){
+            group[i] -= 2;
+            group[i+i]++;
+        }
+    }
+
+    //process knapsack
+    bitset<2500001> knapsack;
+
+    for(int i = 1; i<group.size(); i++){
+        if(knapsack.none() && group[i] > 0){
+            knapsack.set(i);
+            if(group[i] == 2){
+                knapsack.set(2*i);
+            }
+        }else{
+            if(group[i] > 0){
+                bitset<2500001> temp = knapsack;
+                temp = temp <<i;
+                temp.set(i);
+                auto next = knapsack|temp;
+                knapsack = next;
+            }
+            if(group[i] == 2){
+                bitset<2500001> temp = knapsack;
+                temp = temp <<i;
+                temp = temp <<i;
+                temp.set(2*i);
+                auto next = knapsack|temp;
+                knapsack = next;
+            }
+        }
+    }
+
+    int ans = 0;
+    for(int i = sum/2; i>= 1; i--){
+        if(knapsack.test(i)){
+            ans = i;
+            break;
+        }
+    }
+
+    ans += maxValue;
+
+    return ans;
 }
 
 int main()
@@ -94,8 +157,8 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
-    for(int test = 1; test<=1; test++){
+    int op = 0;
+    for(int test = 1; test<=10'000; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
