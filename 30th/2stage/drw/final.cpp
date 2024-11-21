@@ -57,29 +57,28 @@ int solve(){
 
     //process knapsack
     bitset<2500001> knapsack;
+    bool first = true;
 
-    for(int i = 1; i<=2*maxValue; i++){
-        if(knapsack.none() && group[i] > 0){
-            knapsack.set(i);
-            if(group[i] == 2){
-                knapsack.set(2*i);
-            }
-        }else{
-            if(group[i] > 0){
+    for(int i = 1; i<=group.size(); i++){
+        // cout<<i<<"\n";
+        if(group[i] > 0){
+            if(first){
+                knapsack.set(i);
+                first = false;
+            }else{
                 bitset<2500001> temp = knapsack;
                 temp = temp <<i;
                 temp.set(i);
                 auto next = knapsack|temp;
                 knapsack = next;
             }
-            if(group[i] == 2){
-                bitset<2500001> temp = knapsack;
-                temp = temp <<i;
-                temp = temp <<i;
-                temp.set(2*i);
-                auto next = knapsack|temp;
-                knapsack = next;
-            }
+        }
+        if(group[i] == 2){
+            bitset<2500001> temp = knapsack;
+            temp = temp <<i;
+            temp.set(2*i);
+            auto next = knapsack|temp;
+            knapsack = next;
         }
     }
 

@@ -97,7 +97,7 @@ int solve(){
     sum -= maxValue;
 
     //group numbers
-    vector<int> group(2*5'000'000+1, 0);
+    vector<int> group(5'000'000+1, 0);
     for(int i = 0; i<a.size(); i++){
         group[a[i]]++;
     }
@@ -113,29 +113,28 @@ int solve(){
 
     //process knapsack
     bitset<2500001> knapsack;
+    bool first = true;
 
-    for(int i = 1; i<group.size(); i++){
-        if(knapsack.none() && group[i] > 0){
-            knapsack.set(i);
-            if(group[i] == 2){
-                knapsack.set(2*i);
-            }
-        }else{
-            if(group[i] > 0){
+    for(int i = 1; i<=group.size(); i++){
+        // cout<<i<<"\n";
+        if(group[i] > 0){
+            if(first){
+                knapsack.set(i);
+                first = false;
+            }else{
                 bitset<2500001> temp = knapsack;
                 temp = temp <<i;
                 temp.set(i);
                 auto next = knapsack|temp;
                 knapsack = next;
             }
-            if(group[i] == 2){
-                bitset<2500001> temp = knapsack;
-                temp = temp <<i;
-                temp = temp <<i;
-                temp.set(2*i);
-                auto next = knapsack|temp;
-                knapsack = next;
-            }
+        }
+        if(group[i] == 2){
+            bitset<2500001> temp = knapsack;
+            temp = temp <<i;
+            temp.set(2*i);
+            auto next = knapsack|temp;
+            knapsack = next;
         }
     }
 
@@ -152,13 +151,14 @@ int solve(){
     return ans;
 }
 
+
 int main()
 {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
     int op = 0;
-    for(int test = 1; test<=10'000; test++){
+    for(int test = 1; test<=100'000; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
