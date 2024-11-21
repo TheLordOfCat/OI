@@ -114,6 +114,17 @@ vector<int> brute(){
 }
 
 vector<int> solve(){
+    //create graph
+    vector<vector<int>> graph(n+1, vector<int>());
+    for(int i = 0; i<edges.size(); i++){
+        int a = edges[i].first, b = edges[i].second;
+        if(a < b){
+            graph[a].PB(b);
+        }else{
+            graph[b].PB(a);
+        }
+    }
+
 
 }
 
