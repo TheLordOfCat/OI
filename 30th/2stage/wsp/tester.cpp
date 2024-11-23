@@ -29,7 +29,7 @@ void getData(){
         cin>>temp;
         f.PB(temp);
     }
-    for(int i = 0; i<n; i++){
+    for(int i = 0; i<m; i++){
         int a, b;
         cin>>a>>b;
         edges.PB(MP(a,b));
@@ -41,20 +41,29 @@ void getRandom(){
 
     srand(time(0));
 
-    n = rand()%10+1;
-    m = rand()%10+1;
-    k = rand()%8+1;
+    // n = rand()%50+1;
+    n = 10;
+    m = 0;
+    // k = rand()%8+1;
+    k = 8;
 
     f.PB(-1);
     for(int i = 0; i<n; i++){
-        int temp =  rand()%10+1;
+        // int temp = rand()%1'000'000'000+1;
+        int temp = rand()%200+1;
         f.PB(temp);
     }
 
     for(int i = 1; i<=n; i++){
-        int con = rand()%k+1;
-        for(int j = 1; j<=con; j++){
+        int con;
+        if(k == 1){
+            con = 1;
+        }else{
+            con = rand()%k+1;
+        }
+        for(int j = 1; j<=con && i+j<=n; j++){
             edges.PB(MP(i, i+j));
+            m++;
         }
     }
 }
@@ -71,7 +80,7 @@ void printData(){
     }
 }
 
-vector<int> brute(){
+vector<ll> brute(){
     //create graph
     vector<vector<int>> graph(n+1, vector<int>());
     for(int i = 0; i<edges.size(); i++){
@@ -84,14 +93,14 @@ vector<int> brute(){
     }
 
     //process verticies
-    vector<int> ans(n+1, 0);
+    vector<ll> ans(n+1, 0);
 
     for(int i = n; i>=1; i--){
-        int temp = 0;
+        ll temp = 0;
         vector<bool> used(n+1, false);
         queue<int> Q;
         Q.push(i);
-        temp += f[i];
+        temp += (ll)f[i];
         used[i] = true;
         while(!Q.empty()){
             int v = Q.front();
@@ -102,7 +111,7 @@ vector<int> brute(){
                 if(!used[cur]){
                     used[cur] = true;
                     Q.push(cur);
-                    temp += f[cur];
+                    temp += (ll)f[cur];
                 }
             }
         }
@@ -113,19 +122,56 @@ vector<int> brute(){
     return ans;
 }
 
-vector<int> solve(){
+vector<ll> solve(){
+    int range = (1<<8) + 1;
     //create graph
     vector<vector<int>> graph(n+1, vector<int>());
     for(int i = 0; i<edges.size(); i++){
         int a = edges[i].first, b = edges[i].second;
-        if(a < b){
-            graph[a].PB(b);
+        graph[a].PB(b);
+    }
+
+    //dp
+    vector<vector<ll>> dp(n+1, vector<ll>(range, 0));
+    for(int j = 0; j<range; j++){
+        if(j & 1){
+            dp[n][j] = f[n];
         }else{
-            graph[b].PB(a);
+            dp[n][j] = 0;
         }
     }
 
+    for(int i = n-1; i>=1; i--){
+        for(int j = 1; j<range; j++){
+            if(j & 1){
+                int prep = j>>1;
+                for(int o = 0; o<graph[i].size(); o++){
+                    int cur = graph[i][o];
+                    int move = 1<<(cur-i-1);
+                    prep |= move;
+                }
+                dp[i][j] = dp[i+1][prep] + f[i];                                
+            }else{
+                dp[i][j] = dp[i+1][j>>1];
+            }
+        }
+    }
 
+    //get ans
+    vector<ll> ans = {-1};
+    for(int i = 1; i<n; i++){
+        int type = 0;
+        for(int j = 0; j < graph[i].size(); j++){
+            int cur = graph[i][j];
+            int move = 1<<(cur-i-1);
+            type |= move;
+        }
+
+        ans.PB(dp[i+1][type] + f[i]);
+    }
+    ans.PB(f[n]);
+
+    return ans;
 }
 
 int main()
@@ -134,15 +180,15 @@ int main()
     cin.tie(NULL);
 
     int op = 1;
-    for(int test = 1; test <= 1; test++){
+    for(int test = 1; test <= 1'000'000; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
         }else{
             getRandom();
         }
-        vector<int> ansB = brute();
-        vector<int> ansS = solve();
+        vector<ll> ansB = brute();
+        vector<ll> ansS = solve();
         for(int i = 1; i<ansB.size(); i++){
             if(ansB[i] != ansS[i]){
                 cout<<"ERROR\n";
@@ -150,14 +196,17 @@ int main()
                 for(int j = 1; j<ansB.size(); j++){
                     cout<<ansB[j]<<" ";
                 }
+                cout<<"\n";
                 cout<<"SOLVE: ";
                 for(int j = 1; j<ansS.size(); j++){
                     cout<<ansS[j]<<" ";
                 }
+                cout<<"\n";
                 printData();
                 return 0;
             }
         }
+        cout<<"CORRECT\n";
     }
 
     return 0;
