@@ -1,129 +1,148 @@
 #include<iostream>
 #include <vector>
 #include <queue>
+#include <string>
 
 using namespace std;
+
+using ll = long long int;
+using ull = unsigned long long int;
 
 #define PB push_back
 #define MP make_pair
 #define PII pair<int,int>
 
 int n, k;
-int start = 0, finish = 0;
-vector<int> removed;
+string start, finish;
+vector<string> removed;
 
 void getData(){
+    start.clear(); finish.clear(); removed.clear();
+
     cin>>n>>k;
-    for(int i = 1; i<=n; i++){
-        char temp;
-        cin>>temp;
-        start += (1<<(n-i)) * (temp-'0');
-    }
-    for(int i = 1; i<=n; i++){
-        char temp;
-        cin>>temp;
-        finish += (1<<(n-i)) * (temp-'0');
-    }
+    cin>>start>>finish;
     for(int i = 0; i<k; i++){
-        int num = 0;
-        for(int j = 1; j<=n; j++){
-            char temp;
-            cin>>temp;
-            num += (1<<(n-j)) * (temp-'0');
-        }
-        removed.PB(num);
+        string temp;
+        cin>>temp;
+        removed.PB(temp);
     }
 }
 
 void getRandom(){
-    n = rand()%3+1;
-    k = rand()%5+1;
-    start = rand()%(1<<(n-1))+1;
-    finish = rand()%(1<<(n-1))+1;
-    vector<bool> used(1<<n, false);
-    for(int i = 0; i<k; i++){
-        int a = rand()%(1<<(n-1))+1;
-        while(used[a] || a == start || a == finish){
-            a = rand()%(1<<(n-1))+1;
+    start.clear(); finish.clear(); removed.clear();
+
+    srand(time(0));
+
+    n = rand()%10+1;
+    k = rand()%n+1;
+
+    int vStart = rand()%(1<<n), vFinish = rand()%(1<<n);
+    if(vStart == vFinish){
+        if(vStart == n){
+            vFinish--;
+        }else{
+            vFinish++;
         }
-        used[a] = true;
-        removed.PB(a);
+    }
+
+    vector<int> vRemoved;
+    vector<bool> vis((1<<n) + 1, false);
+    vis[0] = true;
+    for(int i = 0; i<k; i++){
+        int temp = 0;
+        while(vis[temp]){
+            temp = rand()%n+1;
+        }
+        vis[temp] = true;
+        vRemoved.PB(temp);
+    }
+
+    while(vStart > 0){
+        int c = vStart - (vStart/10)*10;
+        start.PB(c + '0');
+    }
+    while(vFinish > 0){
+        int c = vFinish - (vFinish/10)*10;
+        finish.PB(c + '0');
+    }
+    for(int i =0 ; i<vRemoved.size(); i++){
+        int temp = vRemoved[i];
+        string s;
+        
+        while(temp > 0){
+            int c = temp - (temp/10)*10;
+            s.PB(c + '0');
+        }
+
+        removed.PB(s);
     }
 }
 
 void printData(){
-    cout<<n<<" "<<k<<" ";
-    for(int i = n; i>=1; i--){
-        cout<<start && (1<<i);
-    }
-    for(int i = n; i>=1; i--){
-        cout<<finish && (1<<i);
-    }
-    for(int i = 0; i<k; i++){
-        for(int j = n; j>=1; j--){
-            cout<<removed[i] && (1<<j);
-        }
+    cout<<n<<" "<<k<<"\n";
+    cout<<start<<" "<<finish<<"\n";
+    for(int i =0; i<removed.size(); i++){
+        cout<<removed[i]<<"\n";
     }
 }
 
 bool brute(){
-    vector<bool> vis((1<<n), false);
-    for(int i = 0; i<k; i++){
-        vis[removed[i]] = true;
+    //get graph
+    ll vS = 0, vF = 0;
+    for(int i = 0; i<start.size(); i++){
+        vS += ((1<<i)*(start[i]-'0'));
     }
-    queue<int> Q;
-    Q.push(start);
+    for(int i = 0; i<finish.size(); i++){
+        vF += ((1<<i)*(finish[i]-'0'));
+    }
+
+    vector<bool> vR((1<<n)+1, false);
+    for(int i = 0; i<removed.size(); i++){
+        ll temp = 0;
+        for(int j = 0; j<removed[i].size(); j++){
+            temp += ((1<<i)*(removed[i][j]-'0'));
+        }
+        vR[temp] = true;
+    }
+
+    vector<vector<ll>> graph(n+1, vector<ll>());
+    for(int i = 1; i<=(1<<n); i++){
+        int con;
+        for(int j = 0; j <n; j++){
+            con = i ^ (1<<j);
+        }
+        graph[i].PB(con);
+        graph[con].PB(i);
+    }
+
+    //process graph
+    bool ans = false;
+    vector<bool> vis((1<<n)+1, false);
+    queue<ll> Q;
+    Q.push(vS);
+
     while(!Q.empty()){
-        int v =  Q.front();
+        int v = Q.front();
         Q.pop();
-        for(int j = 0; j<n; j++){
-            int cur = v;
-            cur ^= (1<<j);
+        if(v == vF){
+            ans = true;
+            break;
+        }
+
+        for(int i = 0; i<graph[v].size(); i++){
+            int cur = graph[v][i];
             if(!vis[cur]){
-                vis[cur] = true;
                 Q.push(cur);
-                if(cur == finish){
-                    return true;
-                }
+                vis[cur] = true;
             }
         }
-    }   
-    return false;
+    }
+
+    return ans;
 }
 
 bool solve(){
-    vector<int> firstVec = {start, finish};
-    bool ans = true;
-    for(int t = 0; t<2; t++){
-        int count = 0;
-        vector<bool> vis((1<<n), false);
-        for(int i = 0; i<k; i++){
-            vis[removed[i]] = true;
-        }
-        queue<int> Q;
-        Q.push(firstVec[t]);
-        while(!Q.empty()){
-            int v =  Q.front();
-            Q.pop();
-            count++;
-            for(int j = 0; j<n; j++){
-                int cur = v;
-                cur ^= (1<<j);
-                if(!vis[cur]){
-                    vis[cur] = true;
-                    Q.push(cur);
-                    if(cur == firstVec[(t+1)%2]){
-                        return true;
-                    }
-                }
-            }
-        }   
-        if(count < n*k){
-            ans = false;
-            break;
-        }
-    }
-    return ans;
+
 }
 
 int main()
