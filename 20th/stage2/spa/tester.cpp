@@ -87,32 +87,37 @@ void printData(){
 }
 
 bool brute(){
-    //get graph
+        //get graph
     ll vS = 0, vF = 0;
-    for(int i = 0; i<start.size(); i++){
-        vS += ((1<<i)*(start[i]-'0'));
+    for(int i = start.size()-1; i>=0; i--){
+        if(start[i] == '1'){
+            vS += (1<<(start.size()-i-1));
+        }
     }
-    for(int i = 0; i<finish.size(); i++){
-        vF += ((1<<i)*(finish[i]-'0'));
+    for(int i = finish.size()-1; i>=0; i--){
+        if(finish[i] == '1'){
+            vF += (1<<(finish.size()-i-1));
+        }
     }
 
     vector<bool> vR((1<<n)+1, false);
     for(int i = 0; i<removed.size(); i++){
         ll temp = 0;
-        for(int j = 0; j<removed[i].size(); j++){
-            temp += ((1<<i)*(removed[i][j]-'0'));
+        for(int j = removed[i].size()-1; j>=0; j--){
+            if(removed[i][j] == '1'){
+                temp += (1<<(removed[i].size()-j-1));
+            }
         }
         vR[temp] = true;
     }
 
-    vector<vector<ll>> graph(n+1, vector<ll>());
-    for(int i = 1; i<=(1<<n); i++){
-        int con;
+    vector<vector<ll>> graph((1<<n)+1, vector<ll>());
+    for(int i = 1; i<(1<<n); i++){
         for(int j = 0; j <n; j++){
-            con = i ^ (1<<j);
+            int con = i ^ (1<<j);
+            graph[i].PB(con);
+            graph[con].PB(i);
         }
-        graph[i].PB(con);
-        graph[con].PB(i);
     }
 
     //process graph
