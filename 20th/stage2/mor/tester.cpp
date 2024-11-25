@@ -4,9 +4,6 @@
 #include <algorithm>
 #include <tuple>
 
-#include <ctime>
-#include <cstdlib>
-
 using namespace std;
 
 using ll = long long int;
@@ -21,9 +18,11 @@ const int INF = 2'000'000'000;
 
 int n, m, k;
 vector<PII> edges;
-vector<tuple<int,int,int>> requests;
+vector<tuple<int,int,int>> query;
 
 void getData(){
+    edges.clear(); query.clear();
+
     cin>>n>>m>>k;
     for(int i = 0; i<m; i++){
         int a, b;
@@ -33,79 +32,78 @@ void getData(){
     for(int i = 0; i<k; i++){
         int s, t, d;
         cin>>s>>t>>d;
-        requests.PB(MT(s,t,d));
+        query.PB(MT(s,t,d));
     }
 }
 
 void getRandom(){
-    edges.clear();
-    requests.clear();
+    edges.clear(); query.clear();
 
     srand(time(0));
 
     n = rand()%10+2;
-    m = rand()%(n+5)+1;
-    for(int i = 0; i<m; i++){
-        int a = -1, b = -1;
-        while(a != b){
-            a = rand()%n+1;
-            b = rand()%n+1;
+    m = 0;
+    k = 1;
+
+    for(int i = 1; i<=n; i++){
+        int con = rand()%3+1;
+        for(int j = 1; j <= con; j++){
+            if(i + j > n){
+                break;
+            }
+            edges.PB(MP(i,i+j));
+            m++;
         }
-        edges.PB(MP(a,b));
     }
-    int k = rand()%10+1;
+
     for(int i = 0; i<k; i++){
         int s = rand()%n+1;
         int t = rand()%n+1;
-        int d = rand()%10+1;
-        requests.PB(MT(s,t,d));
+        int d = rand()%100+1;
+        query.PB(MT(s,t,d));
     }
 }
 
 void printData(){
-    cout<<"DATA: \n";
+    cout<<"DATA:\n";
     cout<<n<<" "<<m<<" "<<k<<"\n";
-    for(int i =0; i<n; i++){
+    for(int i = 0; i<edges.size(); i++){
         cout<<edges[i].first<<" "<<edges[i].second<<"\n";
-    }
-    for(int i = 0; i<k; i++){
-        cout<<get<0>(requests[i])<<" "<<get<1>(requests[i])<<" "<<get<2>(requests[i])<<"\n";
     }
 }
 
-vector<int> brute(){
+vector<bool> brute(){
+    //get graph
     vector<vector<int>> graph(n+1, vector<int>());
-    for(int i = 0; i<m; i++){
-        int a = edges[i].first;
-        int b = edges[i].second;
+    for(int i = 0; i<edges.size(); i++){
+        int a = edges[i].first, b = edges[i].second;
         graph[a].PB(b);
         graph[b].PB(a);
     }
-    
-    vector<int> ans;
-    for(int o = 0; o<k; o++){
-        int found = 0;
 
-        int s = get<0>(requests[o]), t = get<1>(requests[o]), d = get<2>(requests[o]);
+    //process queries
+    vector<bool> ans;
+
+    for(int o = 0; o<query.size(); o++){
+        int s,t,d;
+        s = get<0>(query[o]); t = get<1>(query[o]); d = get<2>(query[o]);
+
+        bool found = false;
         queue<PII> Q;
         Q.push(MP(s,0));
         while(!Q.empty()){
             int v = Q.front().first;
             int l = Q.front().second;
             Q.pop();
-
-            if(l == d){
-                if(v == t){
-                    found = 1;
-                    break;
-                }
-
+            if(v == t && d%2 == l%2 ){
+                found = true;
+            }
+            if(d == l){
                 continue;
             }
-
             for(int i = 0; i<graph[v].size(); i++){
                 int cur = graph[v][i];
-                Q.push(MP(cur,l+1));
+                Q.push(MP(cur, l+1));
             }
         }
 
@@ -115,130 +113,8 @@ vector<int> brute(){
     return ans;
 }
 
-bool comp(const PII a, const PII b){
-    return a.first< b.first;
-}
+vector<bool> solve(){
 
-vector<int> solve(){
-    //create graph
-    vector<vector<int>> graph(n+1, vector<int>());
-    for(int i = 0; i<m; i++){
-        int a = edges[i].first;
-        int b = edges[i].second;
-        graph[a].PB(b);
-        graph[b].PB(a);
-    }
-
-    /*
-    traverse the graph
-    vector<vector<PII>> shortest(n+1,vector<PII>(n+1, MP(INF,INF)));
-
-    for(int i = 1; i<=n; i++){
-        queue<PII> Q;
-        Q.push(MP(i,0));
-
-        while(!Q.empty()){
-            int v = Q.front().first;
-            int l = Q.front().second;
-            Q.pop();
-
-            for(int j = 0; j<graph[v].size(); j++){
-                int cur = graph[v][j];
-                if((l+1)%2 == 0){
-                    if(shortest[i][cur].first >= l+1){
-                        shortest[i][cur].first = l+1;
-                        Q.push(MP(cur,l+1));
-                    }
-                }else{
-                    if(shortest[i][cur].second >= l+1){
-                        shortest[i][cur].second = l+1;
-                        Q.push(MP(cur,l+1));
-                    }
-                }
-            }
-        }
-    }
-
-    //procces requests
-    vector<int> ans;
-
-    for(int i = 0; i<k; i++){
-        int s = get<0>(requests[i]), t = get<1>(requests[i]), d = get<2>(requests[i]); 
-        int ok = 0;
-        if(d%2 == 0){
-            if(shortest[s][t].first <= d){
-                ok = 1;
-            }
-        }else{
-            if(shortest[s][t].second <= d){
-                ok = 1;
-            }
-        }
-        ans.PB(ok);
-    }
-    */
-
-    vector<PII> quests;
-    for(int i = 0; i<k; i++) quests.PB(MP(get<0>(requests[i]),i));
-
-    sort(quests.begin(), quests.end());
-
-    vector<int> ans(k, -1);
-    vector<PII> shortest(n+1, MP(INF,INF));
-
-    for(int i = 0; i<k; i++){
-        int s = get<0>(requests[i]), t = get<1>(requests[i]), d = get<2>(requests[i]); 
-
-        bool up = true;
-        if(i > 1){
-            if(quests[i-1].first == quests[i].first){
-                up = false;
-            }
-        }
-        
-        if(up){
-            shortest.clear();
-            shortest.assign(n+1, MP(INF,INF));
-
-            queue<PII> Q;
-            Q.push(MP(s,0));
-
-            while(!Q.empty()){
-                int v = Q.front().first;
-                int l = Q.front().second;
-                Q.pop();
-
-                for(int j = 0; j<graph[v].size(); j++){
-                    int cur = graph[v][j];
-                    if((l+1)%2 == 0){
-                        if(shortest[cur].first >= l+1){
-                            shortest[cur].first = l+1;
-                            Q.push(MP(cur,l+1));
-                        }
-                    }else{
-                        if(shortest[cur].second >= l+1){
-                            shortest[cur].second = l+1;
-                            Q.push(MP(cur,l+1));
-                        }
-                    }
-                }
-            }
-        }
-
-        int ok = 0;
-        if(d%2 == 0){
-            if(shortest[t].first <= d){
-                ok = 1;
-            }
-        }else{
-            if(shortest[t].second <= d){
-                ok = 1;
-            }
-        }
-        ans.PB(ok);
-    }
-
-    return ans;
 }
 
 int main()
@@ -254,8 +130,8 @@ int main()
         }else{
             getRandom();
         }
-        vector<int> ansB = brute();
-        vector<int> ansS = solve();
+        vector<bool> ansB = brute();
+        vector<bool> ansS = solve();
         for(int i = 0; i<k; i++){
             if(ansB[i] != ansS[i]){
                 cout<<"ERROR\n";

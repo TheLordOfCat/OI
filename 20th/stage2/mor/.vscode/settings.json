@@ -4,6 +4,8 @@
         "queue": "cpp",
         "xlocale": "cpp",
         "utility": "cpp",
-        "vector": "cpp"
+        "vector": "cpp",
+        "tuple": "cpp",
+        "iostream": "cpp"
     }
 }
