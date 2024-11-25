@@ -2,6 +2,7 @@
 #include <vector>
 #include <queue>
 #include <string>
+#include <unordered_set>
 
 using namespace std;
 
@@ -29,7 +30,22 @@ void getData(){
 }
 
 bool solve(){
-    //get graph
+    //change to number
+    vector<ll> vR;
+    for(int i =0 ; i<removed.size(); i++){
+        ll temp = 0;
+        for(int j = removed[i].size()-1; j>=0; j--){
+            if(removed[i][j] == '1'){
+                temp += (1<<(removed[i].size()-j-1));
+            }
+        }
+        vR.PB(temp);
+    }
+
+    //get into set
+    unordered_set<ll> S(vR.begin(), vR.end());
+
+    //bfs
     ll vS = 0, vF = 0;
     for(int i = start.size()-1; i>=0; i--){
         if(start[i] == '1'){
@@ -42,50 +58,39 @@ bool solve(){
         }
     }
 
-    vector<bool> vR((1<<n)+1, false);
-    for(int i = 0; i<removed.size(); i++){
-        ll temp = 0;
-        for(int j = removed[i].size()-1; j>=0; j--){
-            if(removed[i][j] == '1'){
-                temp += (1<<(removed[i].size()-j-1));
-            }
-        }
-        vR[temp] = true;
-    }
 
-    vector<vector<ll>> graph((1<<n)+1, vector<ll>());
-    for(int i = 1; i<(1<<n); i++){
-        for(int j = 0; j <n; j++){
-            int con = i ^ (1<<j);
-            graph[i].PB(con);
-            graph[con].PB(i);
-        }
-    }
-
-    //process graph
     bool ans = false;
-    vector<bool> vis((1<<n)+1, false);
-    queue<ll> Q;
-    Q.push(vS);
+    unordered_set<ll> U;
+    queue<int> Q;
 
-    while(!Q.empty()){
-        int v = Q.front();
+    Q.push(vS);
+    U.insert(vS);
+    int used = 1;
+    int limit = n*k + 1;
+
+    while(!Q.empty() && used < limit){
+        ll v = Q.front();
         Q.pop();
+
         if(v == vF){
             ans = true;
-            break;
         }
 
-        for(int i = 0; i<graph[v].size(); i++){
-            int cur = graph[v][i];
-            if(!vis[cur]){
-                Q.push(cur);
-                vis[cur] = true;
+        for(int i = 0; i<n; i++){
+            ll temp = v;
+            temp ^= (1<<i);
+            if(U.find(temp) == U.end()){
+                Q.push(temp);
+                U.insert(temp);
+                used++;
             }
+        }
+        if(used >= limit){
+            ans = true;
         }
     }
 
-    return ans;
+    return ans;    
 }
 
 int main()

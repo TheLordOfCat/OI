@@ -87,7 +87,7 @@ void printData(){
 }
 
 bool brute(){
-        //get graph
+    //get graph
     ll vS = 0, vF = 0;
     for(int i = start.size()-1; i>=0; i--){
         if(start[i] == '1'){
