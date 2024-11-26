@@ -34,13 +34,80 @@ void getData(){
     }
 }
 
+vector<vector<int>> traverse(int s, vector<vector<int>>& graph){
+    vector<vector<int>> mark(n+1, vector<int>(2, INF));
+
+    queue<PII> Q;
+    Q.push(MP(s,0));
+    mark[s][0] = true;
+
+    while(!Q.empty()){
+        int v = Q.front().first;
+        int dist = Q.front().second;
+        Q.pop();
+
+        for(int i = 0; i<graph[v].size(); i++){
+            int cur = graph[v][i];
+            if(mark[cur][(dist+1)%2] == INF){
+                mark[cur][(dist+1)%2] = dist+1;
+                Q.push(MP(cur, dist+1));
+            }   
+        }
+    }
+
+    return mark;
+}
+
+bool customCompare(pair<tuple<int,int,int>, int> a, pair<tuple<int,int,int>, int> b){
+    if(get<0>(a.first) != get<0>(b.first)){
+        return get<0>(a.first) < get<0>(b.first);
+    }else if(get<1>(a.first) != get<1>(b.first)){
+        return get<1>(a.first) < get<1>(b.first);
+    }else if(get<2>(a.first) != get<2>(b.first)){
+        return get<2>(a.first) < get<2>(b.first);
+    }else{
+        return a.second < b.second;
+    }
+}
+
 vector<bool> solve(){
     //create graph
+    vector<vector<int>> graph(n+1, vector<int>());
+    for(int i = 0; i<edges.size(); i++){
+        int a = edges[i].first, b = edges[i].second;
+        graph[a].PB(b);
+        graph[b].PB(a);
+    }
 
+    vector<pair<tuple<int,int,int>, int>> queryS;
+    for(int i =0 ; i<query.size(); i++){
+        queryS.PB(MP(query[i], i));
+    }
 
-    //traverse graph
+    sort(queryS.begin(), queryS.end(), customCompare);
 
-    
+    //process queries
+    vector<bool> ans(k, false);
+    vector<vector<int>> mark;
+    for(int o = 0; o < k; o++){
+        int s,t,d;
+        s = get<0>(queryS[o].first); t = get<1>(queryS[o].first); d = get<2>(queryS[o].first);
+
+        //traverse graph
+        if(o > 0){
+            if(get<0>(queryS[o].first) != get<0>(queryS[o-1].first)){
+                mark = traverse(s, graph);
+            }
+        }else{
+            mark = traverse(s, graph);
+        }
+
+        if(mark[t][d%2] <= d){
+            ans[queryS[o].second] = true;
+        }
+    }
+
+    return ans;
 }   
 
 int main()
