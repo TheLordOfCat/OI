@@ -41,12 +41,12 @@ void getRandom(){
 
     srand(time(0));
 
-    n = rand()%10+2;
+    n = rand()%100+2;
     m = 0;
     k = 10;
 
     for(int i = 1; i<=n; i++){
-        int con = rand()%3+1;
+        int con = rand()%4+1;
         for(int j = 1; j <= con; j++){
             if(i + j > n){
                 break;
@@ -73,6 +73,10 @@ void printData(){
     for(int i = 0; i<k; i++){
         cout<<get<0>(query[i])<<" "<<get<1>(query[i])<<" "<<get<2>(query[i])<<"\n";
     }
+}
+
+bool comp(const PII a, const PII b){
+    return a.first< b.first;
 }
 
 vector<bool> brute(){
@@ -191,13 +195,14 @@ vector<bool> solve(){
 
     return ans;
 }   
+
 int main()
 {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
     int op = 0;
-    for(int test = 1; test<=1'000'000; test++){
+    for(int test = 1; test<=1000'000; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();

@@ -8,6 +8,7 @@
         "tuple": "cpp",
         "iostream": "cpp",
         "deque": "cpp",
-        "xstring": "cpp"
+        "xstring": "cpp",
+        "xutility": "cpp"
     }
 }
