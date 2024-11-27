@@ -42,7 +42,7 @@ void getRandom(){
     srand(time(0));
 
     // n = rand()%10+1;
-    n = 4;
+    n = 6;
     cards.PB(MP(INF,INF));
     for(int i = 0; i<n; i++){
         int a = rand()%10+1;
@@ -51,7 +51,7 @@ void getRandom(){
     }
 
     // m = rand()%10+1;
-    m = 4;
+    m = 1;
     for(int i = 0; i<m; i++){
         int a = rand()%n + 1;
         int b = rand()%n + 1;
@@ -61,7 +61,7 @@ void getRandom(){
 
 void printData(){
     cout<<n<<"\n";
-    for(int  i =0; i<cards.size(); i++){
+    for(int  i =1; i<=n; i++){
         cout<<cards[i].first<<" "<<cards[i].second<<"\n";
     }
     cout<<m<<"\n";
@@ -158,12 +158,15 @@ void buildTree(vector<vector<int>>& cB){
         depth++;
     }
 
-    vector<vector<bool>> matrix(2, vector<bool>(2, true));
-    tree.assign(R + (1<<depth), matrix);
-    range.assign(R + (1<<depth), MP(-1,-1));
+    while(cB.size() != R + (1<<depth) + 1) cB.PB({-1,-1});
 
-    for(int i = R + (1<<depth); i>= 1; i++){
+    vector<vector<bool>> matrix(2, vector<bool>(2, true));
+    tree.assign(R + (1<<depth) + 1, matrix);
+    range.assign(R + (1<<depth) + 1, MP(-1,-1));
+
+    for(int i = R + (1<<depth); i>= 1; i--){
         if(i > R){
+            tree[i] = {{true,false}, {false,true}};
             range[i] = MP(i- R,i - R); 
         }else{
             range[i].first = range[left(i)].first;
@@ -180,6 +183,7 @@ void updateTree(int v, vector<vector<int>>& cB){
     while(V >= 1){
         vector<vector<bool>> matrix = combine(left(V), right(V), cB);
         tree[V] = matrix;
+        V = parent(V);
     }   
 }
 
@@ -219,8 +223,8 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
-    for(int test = 1; test<=1; test++){
+    int op = 0;
+    for(int test = 1; test<=100'000; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
