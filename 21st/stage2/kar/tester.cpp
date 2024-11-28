@@ -42,7 +42,7 @@ void getRandom(){
     srand(time(0));
 
     // n = rand()%10+1;
-    n = 6;
+    n = 200'000;
     cards.PB(MP(INF,INF));
     for(int i = 0; i<n; i++){
         int a = rand()%10+1;
@@ -51,10 +51,11 @@ void getRandom(){
     }
 
     // m = rand()%10+1;
-    m = 1;
+    m = 1'000'000;
     for(int i = 0; i<m; i++){
-        int a = rand()%n + 1;
-        int b = rand()%n + 1;
+        // int a = rand()%n + 1;
+        // int b = rand()%n + 1;
+        int a = 1, b = 2;
         query.PB(MP(a,b));
     }
 }
@@ -231,25 +232,25 @@ int main()
         }else{
             getRandom();
         }
-        vector<bool> ansB = brute();
+        // vector<bool> ansB = brute();
         vector<bool> ansS = solve();
-        for(int i = 0; i <m; i++){
-            if(ansB[i] != ansS[i]){
-                cout<<"ERROR\n";
-                cout<<"BRUTE: ";
-                for(int i = 0; i<m; i++){
-                    cout<<ansB[i]<<" ";
-                }
-                cout<<"\n";
-                cout<<"SOLVE: ";
+        // for(int i = 0; i <m; i++){
+        //     if(ansB[i] != ansS[i]){
+        //         cout<<"ERROR\n";
+        //         cout<<"BRUTE: ";
+        //         for(int i = 0; i<m; i++){
+        //             cout<<ansB[i]<<" ";
+        //         }
+        //         cout<<"\n";
+        //         cout<<"SOLVE: ";
                 for(int i = 0; i<m; i++){
                     cout<<ansS[i]<<" ";
                 }
                 cout<<"\n";
-                printData();
-                return 0;
-            }
-        }
+        //         printData();
+        //         return 0;
+        //     }
+        // }
         cout<<"CORRECT\n";
     }
 

@@ -7,6 +7,8 @@ using namespace std;
 using ll = long long int;
 using ull = unsigned long long int;
 
+typedef bool matrix[2][2];
+
 #define MP make_pair
 #define PII pair<int,int>
 #define PB push_back
@@ -23,13 +25,16 @@ void getData(){
     // query.clear();
 
     cin>>n;
+    // n = 200'000;
     cards.PB({-1,-1});
     for(int i = 0; i<n; i++){
+        // int a = i%10+1, b= i%10+1;
         int a, b;
         cin>>a>>b;
         cards.PB({a,b});
     }    
     cin>>m;
+    // m = 1'000'000;
     // for(int i =0; i<m; i++){
     //     int a, b;
     //     cin>>a>>b;
@@ -37,7 +42,7 @@ void getData(){
     // }
 }
 
-vector<vector<bool>> tree[524287 + 1];
+matrix tree[524287 + 1];
 PII range[524287 + 1];
 int R;
 
@@ -57,9 +62,8 @@ int leaf(int v){
     return v+R;
 }
 
-vector<vector<bool>> combine(int vL, int vR){
-    vector<vector<bool>> matrix(2, vector<bool>(2, false));
-    vector<vector<bool>> a = tree[vL], b = tree[vR];
+void combine(int vL, int vR){
+    matrix temp;
 
     for(int i = 0; i<2; i++){
         for(int j = 0; j<2; j++){
@@ -68,7 +72,7 @@ vector<vector<bool>> combine(int vL, int vR){
             for(int o = 0; o<2; o++){
                 for(int k = 0; k<2; k++){
 
-                    if(a[i][o] && b[k][j]){
+                    if(tree[vL][i][o] && tree[vR][k][j]){
                         if(cards[range[vL].second][o] <= cards[range[vR].first][k]){
                             ok = true;
                             break;
@@ -80,11 +84,11 @@ vector<vector<bool>> combine(int vL, int vR){
                 if(ok) break;
             }
 
-            matrix[i][j] = ok;
+            tree[parent(vL)][i][j] = ok;
         }
     }
 
-    return matrix;
+    return;
 }
 
 void buildTree(){
@@ -102,12 +106,18 @@ void buildTree(){
 
     for(int i = R + (1<<depth); i>= 1; i--){
         if(i > R){
-            tree[i] = {{true,false}, {false,true}};
+            matrix temp;
+            tree[i][0][0] = true;
+            tree[i][0][1] = false;
+            tree[i][1][0] = false;
+            tree[i][1][1] = true;
+            // tree[i] = {{true,false}, {false,true}};
             range[i] = MP(i- R,i - R); 
         }else{
             range[i].first = range[left(i)].first;
             range[i].second = range[right(i)].second;
-            tree[i] = combine(left(i), right(i));
+            // tree[i] = combine(left(i), right(i));
+            combine(left(i), right(i));
         }
     }
 }
@@ -117,8 +127,9 @@ void updateTree(int v){
     V = parent(V);
 
     while(V >= 1){
-        vector<vector<bool>> matrix = combine(left(V), right(V));
-        tree[V] = matrix;
+        combine(left(V), right(V));
+        // vector<vector<bool>> matrix = combine(left(V), right(V));
+        // tree[V] = matrix;
         range[V] = MP(range[left(V)].first, range[right(V)].second);
         V = parent(V);
     }   
@@ -137,6 +148,7 @@ vector<bool> solve(){
 
     buildTree();
     for(int i = 0; i<m; i++){
+        // int a = 1, b = 2;
         int a, b;
         cin>>a>>b;
 
