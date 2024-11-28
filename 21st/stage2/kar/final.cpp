@@ -14,30 +14,31 @@ using ull = unsigned long long int;
 const int INF = 2'000'000'000;
 
 int n;
-vector<PII> cards;
+vector<vector<int>> cards;
 int m;
-vector<PII> query;
+// vector<PII> query;
 
 void getData(){
-    cards.clear(); query.clear();
+    cards.clear(); 
+    // query.clear();
 
     cin>>n;
-    cards.PB(MP(-1,-1));
+    cards.PB({-1,-1});
     for(int i = 0; i<n; i++){
         int a, b;
         cin>>a>>b;
-        cards.PB(MP(a,b));
+        cards.PB({a,b});
     }    
     cin>>m;
-    for(int i =0; i<m; i++){
-        int a, b;
-        cin>>a>>b;
-        query.PB(MP(a,b));
-    }
+    // for(int i =0; i<m; i++){
+    //     int a, b;
+    //     cin>>a>>b;
+    //     query.PB(MP(a,b));
+    // }
 }
 
-vector<vector<vector<bool>>> tree;
-vector<PII> range;
+vector<vector<bool>> tree[524287 + 1];
+PII range[524287 + 1];
 int R;
 
 int parent(int v){
@@ -56,7 +57,7 @@ int leaf(int v){
     return v+R;
 }
 
-vector<vector<bool>> combine(int vL, int vR, vector<vector<int>>& cB){
+vector<vector<bool>> combine(int vL, int vR){
     vector<vector<bool>> matrix(2, vector<bool>(2, false));
     vector<vector<bool>> a = tree[vL], b = tree[vR];
 
@@ -68,7 +69,7 @@ vector<vector<bool>> combine(int vL, int vR, vector<vector<int>>& cB){
                 for(int k = 0; k<2; k++){
 
                     if(a[i][o] && b[k][j]){
-                        if(cB[range[vL].second][o] <= cB[range[vR].first][k]){
+                        if(cards[range[vL].second][o] <= cards[range[vR].first][k]){
                             ok = true;
                             break;
                         }
@@ -86,7 +87,7 @@ vector<vector<bool>> combine(int vL, int vR, vector<vector<int>>& cB){
     return matrix;
 }
 
-void buildTree(vector<vector<int>>& cB){
+void buildTree(){
     R = 0;
     int depth = 0;
     while((1<<depth) < n){
@@ -94,10 +95,10 @@ void buildTree(vector<vector<int>>& cB){
         depth++;
     }
 
-    while(cB.size() != R + (1<<depth) + 1) cB.PB({INF,INF});
-    vector<vector<bool>> matrix(2, vector<bool>(2, true));
-    tree.assign(R + (1<<depth) + 1, matrix);
-    range.assign(R + (1<<depth) + 1, MP(-1,-1));
+    while(cards.size() <= (1<<depth)) cards.PB({INF,INF});
+    // vector<vector<bool>> matrix(2, vector<bool>(2, true));
+    // tree.assign(R + (1<<depth) + 1, matrix);
+    // range.assign(R + (1<<depth) + 1, MP(-1,-1));
 
     for(int i = R + (1<<depth); i>= 1; i--){
         if(i > R){
@@ -106,17 +107,17 @@ void buildTree(vector<vector<int>>& cB){
         }else{
             range[i].first = range[left(i)].first;
             range[i].second = range[right(i)].second;
-            tree[i] = combine(left(i), right(i), cB);
+            tree[i] = combine(left(i), right(i));
         }
     }
 }
 
-void updateTree(int v, vector<vector<int>>& cB){
+void updateTree(int v){
     int V = leaf(v);
     V = parent(V);
 
     while(V >= 1){
-        vector<vector<bool>> matrix = combine(left(V), right(V), cB);
+        vector<vector<bool>> matrix = combine(left(V), right(V));
         tree[V] = matrix;
         range[V] = MP(range[left(V)].first, range[right(V)].second);
         V = parent(V);
@@ -133,27 +134,33 @@ bool queryTree(){
 
 vector<bool> solve(){
     vector<bool> ans;
-    vector<vector<int>> cB(cards.size(), vector<int>());
-    for(int i =0; i<cards.size(); i++){
-        cB[i].PB(cards[i].first);
-        cB[i].PB(cards[i].second);
-    }
 
-    buildTree(cB);
+    buildTree();
     for(int i = 0; i<m; i++){
-        int s1 = query[i].first, s2 = query[i].second;
-        swap(cB[s1], cB[s2]);
+        int a, b;
+        cin>>a>>b;
+
+        // int s1 = query[i].first, s2 = query[i].second;
+        // swap(cards[s1], cards[s2]);
+        swap(cards[a], cards[b]);
         
-        updateTree(s1, cB);
-        updateTree(s2, cB);
+        // updateTree(s1);
+        // updateTree(s2);
+
+        updateTree(a);
+        updateTree(b);
 
         bool temp = queryTree();
-        ans.PB(temp);
+        // ans.PB(temp);
+        if(temp){
+            cout<<"TAK\n";
+        }else{
+            cout<<"NIE\n";
+        }
     }
 
     return ans;
 }
-
 
 int main()
 {
@@ -163,13 +170,13 @@ int main()
     getData();
 
     vector<bool> ansS = solve();
-    for(int i = 0; i<m; i++){
-        if(ansS[i]){
-            cout<<"TAK\n";
-        }else{
-            cout<<"NIE\n";
-        }
-    }
+    // for(int i = 0; i<m; i++){
+    //     if(ansS[i]){
+    //         cout<<"TAK\n";
+    //     }else{
+    //         cout<<"NIE\n";
+    //     }
+    // }
 
     return 0;
 }
