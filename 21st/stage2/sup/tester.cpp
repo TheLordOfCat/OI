@@ -60,7 +60,7 @@ void printData(){
     cout<<"\n";
 }
 
-vector<int> bruteDepth(vector<vector<int>>& graph){
+vector<int> getDetph(vector<vector<int>>& graph){
     vector<int> ans(n+1, 0);
     stack<pair<int,bool>> S;
 
@@ -107,7 +107,7 @@ vector<int> brute(){
     }
 
     //get depth
-    vector<int> depth = bruteDepth(graph);
+    vector<int> depth = getDetph(graph);
 
     //process queries
     vector<int> ans;
@@ -139,7 +139,62 @@ vector<int> brute(){
 }
 
 vector<int> solve(){
-  
+    //create graph
+    vector<vector<int>> graph(n+1, vector<int>());
+    for(int i =0 ; i<a.size(); i++){
+        int cur = a[i];
+        graph[cur].PB(i+2); //starts with a_2
+    }
+
+    vector<int> depth = getDetph(graph);
+
+    //process verticies
+    vector<int> dp(n+1, 0);
+
+    vector<int> task(n+1, 0);
+    vector<int> blocks;
+    vector<int> blocksSize(n+1, 1);
+    int totalSize = n;
+    for(int i = n-1; i>= 1; i--){
+        int ind = 0;
+        vector<int> next;
+        while(ind < blocks.size()){
+            int delta = 0;
+            do{
+                if(task[blocks[ind]] > i){
+                    delta = blocksSize[blocks[ind]];
+                }
+                if(delta == 0){
+                    ind++;
+                    break;
+                } 
+                next.PB(blocks[ind]);
+
+                int b = blocks[ind] + blocksSize[blocks[ind]];
+                if(blocksSize[b] == 1 && task[b] + delta < i){
+                    task[b] += delta;
+                    delta = 0;
+                    next.PB(b);
+                }else{
+                    delta -= (i-task[b])*blocksSize[b];
+                    blocksSize[blocks[ind]] += blocksSize[b];
+                }
+
+                ind++;
+            }while(delta > 0);
+        }
+
+        blocks = next;
+        dp[i] = next.size();
+    }
+
+    //get ans
+    vector<int> ans;
+    for(int i = 0; i<q; i++){
+        ans.PB(dp[k[i]]);
+    }
+
+    return ans;
 }
 
 int main()
