@@ -3,9 +3,6 @@
 #include <queue>
 #include <stack>
 
-#include <cstdlib>
-#include <ctime>
-
 using namespace std;
 
 #define MP make_pair
@@ -63,34 +60,22 @@ void printData(){
     cout<<"\n";
 }
 
-struct Compare {
-    bool operator()(const std::pair<int, int>& p1, const std::pair<int, int>& p2) {
-        return p1.second < p2.second;
-    }
-};
-
-vector<int> brute(){
-    //build the tree
-    vector<vector<int>> graph(n+1, vector<int>());
-    for(int i = 0; i<n-1; i++){
-        graph[a[i]].PB(i+2);
-    }
-
-    //getting the depths
-    vector<int> depth(n+1, 0);
+vector<int> bruteDepth(vector<vector<int>>& graph){
+    vector<int> ans(n+1, 0);
     stack<pair<int,bool>> S;
+
     S.push(MP(1,false));
     while(!S.empty()){
         int v = S.top().first;
-        bool b = S.top().second;
+        bool b =  S.top().second;
         S.pop();
+
         if(b){
-            int temp = 0;
             for(int i = 0; i<graph[v].size(); i++){
                 int cur = graph[v][i];
-                temp = max(temp, depth[cur] + 1);
+                ans[v] += ans[cur];
             }
-            depth[v] = temp;
+            ans[v] += 1;
             continue;
         }
 
@@ -101,168 +86,60 @@ vector<int> brute(){
         }
     }
 
-    //iterate through k
+    return ans;
+}
+
+struct customBruteCompare{
+    bool operator()(const PII a, const PII b){
+        if(a.second == b.second){
+            return a.first < b.first;
+        }
+        return a.second < b.second;
+    }
+};
+
+vector<int> brute(){
+    //create graph
+    vector<vector<int>> graph(n+1, vector<int>());
+    for(int i =0 ; i<a.size(); i++){
+        int cur = a[i];
+        graph[cur].PB(i+2); //starts with a_2
+    }
+
+    //get depth
+    vector<int> depth = bruteDepth(graph);
+
+    //process queries
     vector<int> ans;
     for(int i = 0; i<q; i++){
-        priority_queue<PII, vector<PII>, Compare> Q;
-        Q.push(MP(1,depth[1]));
+        priority_queue<PII, vector<PII>, customBruteCompare> Q;
+        Q.push(MP(1, depth[1]));
         int turns = 0;
-        while(Q.size() > 0){
+        while(!Q.empty()){
             turns++;
-            vector<int> used;
-            for(int j = 0; j<k[i]; j++){
-                used.PB(Q.top().first);
+            vector<int> next;
+            for(int j = 0; j<k[i] && Q.size() > 0; j++){
+                int v = Q.top().first;
                 Q.pop();
-                if(Q.size() <= 0){
-                    break;
+
+                for(int o = 0; o<graph[v].size(); o++){
+                    int cur = graph[v][o];
+                    next.PB(cur);
                 }
             }
-            for(int j = 0; j<used.size(); j++){
-                for(int o = 0; o<graph[used[j]].size(); o++){
-                    int cur = graph[used[j]][o];
-                    Q.push(MP(cur, depth[cur]));
-                }
+
+            for(int j = 0; j<next.size(); j++){
+                Q.push(MP(next[j], depth[next[j]]));
             }
         }
         ans.PB(turns);
-    }    
+    }
 
     return ans;
 }
 
 vector<int> solve(){
-    vector<int> opsTurns(n+1, 0);
-
-    vector<vector<int>> graph(n+1, vector<int>());
-    for(int i = 0; i<n-1; i++){
-        graph[a[i]].PB(i+2);
-    }
-
-    vector<PII> blocks;
-    stack<PII> S;
-    S.push(MP(1,0));
-    while(!S.empty()){
-        int v = S.top().first;
-        int d = S.top().second;
-        S.pop();
-        if((int)blocks.size() - 1 < d){
-            blocks.PB(MP(0,1));
-        }
-        blocks[d].first++;
-        for(int i = 0; i<graph[v].size(); i++){
-            int cur = graph[v][i];
-            S.push(MP(cur, d+1));
-        }
-    }
-
-    for(int op = n; op >0; op--){
-        int len = 0;
-        vector<PII> nextBlocks;
-
-        int delta = 0;
-        for(int i = 0; i<blocks.size(); i++){
-            if(blocks[i].first >= op){
-                //too many blocks
-                delta += (blocks[i].first - op) * blocks[i].second;
-                if(nextBlocks.size() > 0){
-                    if(nextBlocks.back().first == op){
-                        nextBlocks.back().second += blocks[i].second;
-                    }else{
-                        nextBlocks.PB(MP(op, blocks[i].second));
-                    }
-                }else{
-                    nextBlocks.PB(MP(op, blocks[i].second));
-                }
-
-            }else{
-                //too little blocks
-                int excess = (op - blocks[i].first) * blocks[i].second;
-                if(delta == 0){
-                    if(nextBlocks.size() > 0){
-                        if(nextBlocks.back().first == blocks[i].first){
-                            nextBlocks.back().second += blocks[i].second;
-                        }else{
-                            nextBlocks.PB(MP(blocks[i].first, blocks[i].second));
-                        }
-                    }else{
-                        nextBlocks.PB(MP(blocks[i].first, blocks[i].second));
-                    }
-                }else if(excess >= delta){
-                    vector<PII> parts;
-
-                    //part 1
-                    int num = delta/(op - blocks[i].first);
-                    parts.PB(MP(op, num));
-                    delta -= (op - blocks[i].first)* num;
-                    // part 2
-                    if(delta > 0) parts.PB(MP(delta, 1));
-                    //part 3
-                    int b = 0;
-                    for(int j =0 ;j <parts.size(); j++) b += parts[j].second;
-                    if(b < blocks[i].second){
-                        parts.PB(MP(blocks[i].first, blocks[i].second - b));
-                    }
-
-                    if(parts[0].second > 0){
-                        if(nextBlocks.size() > 0){
-                            if(nextBlocks[nextBlocks.size()-1].first == parts[0].first){
-                                nextBlocks[nextBlocks.size()-1].second += parts[0].second;
-                            }else{
-                                nextBlocks.PB(MP(op, parts[0].second));
-                            }
-                        }else{
-                            nextBlocks.PB(MP(op, parts[0].second));
-                        }
-                    }
-
-                    for(int j = 1; j<parts.size(); j++){
-                        nextBlocks.PB(MP(parts[i].first, parts[i].second));
-                    }
-
-                    delta = 0;
-                }else{
-                    if(nextBlocks.size() > 0){
-                        if(nextBlocks.back().first == op){
-                            nextBlocks.back().second += blocks[i].second;
-                        }else{
-                            nextBlocks.PB(MP(op, blocks[i].second));
-                        }
-                    }else{
-                        nextBlocks.PB(MP(op, blocks[i].second));
-                    }
-                    
-                    delta -= excess;
-                }
-            }
-            if(delta < 0) delta = 0;
-            len += blocks[i].second;
-        }
-
-        if(delta > 0){
-            vector<PII> parts;
-            //part 1
-            int num = delta/op;
-            nextBlocks.back().second += num;
-
-            len += num;
-            delta -= op*num;
-            // part 2
-            if(delta > 0){
-                nextBlocks.PB(MP(delta, 1));
-                len += 1;
-            }
-        }
-
-        blocks = nextBlocks;
-        opsTurns[op] = len; 
-    }
-
-    vector<int> ans;
-    for(int i = 0; i<q; i++){
-        ans.PB(opsTurns[k[i]]);
-    }
-
-    return ans;
+  
 }
 
 int main()
