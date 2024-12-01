@@ -70,7 +70,7 @@ vector<int> solve(){
 
     int maxDepth = 0;
     for(int i = 1; i<depth.size(); i++){
-        task[depth[i]-1]++;
+        task[depth[i]]++;
         maxDepth = max(maxDepth, depth[i]);
     }
 
@@ -85,33 +85,45 @@ vector<int> solve(){
         while(ind < blocks.size()){
             int delta = 0;
             do{
-                next.PB(blocks[ind]);
-                if(task[blocks[ind]] > i){
-                    delta = blocksSize[blocks[ind]];
+                if(ind < blocks.size()){
+                    next.PB(blocks[ind]);
+                    if(task[blocks[ind]] > i){
+                        delta = blocksSize[blocks[ind]];
+                    }
+                    if(delta == 0){
+                        ind++;
+                        break;
+                    } 
                 }
-                if(delta == 0){
-                    ind++;
-                    break;
-                } 
 
-                int b = blocks[ind] + blocksSize[blocks[ind]];
-                if(blocksSize[b] == 1 && task[b] + delta < i){
-                    task[b] += delta;
-                    delta = 0;
-                    next.PB(b);
+                if(ind >= blocks.size()-1){
+                    int b = blocks.back() + blocksSize[blocks.back()];
+                    blocksSize[blocks.back()] += delta/i;
+                    delta -= delta/i;
+                    if(delta > 0){
+                        task[b + delta/i] += delta;
+                        delta = 0;
+                        next.PB(b + delta/i); 
+                    }
+                    task[blocks.back()] = i;
                 }else{
-                    delta -= (i-task[b])*blocksSize[b];
-                    blocksSize[blocks[ind]] += blocksSize[b];
+                    int b = blocks[ind] + blocksSize[blocks[ind]];
+                    if(blocksSize[b] == 1 && task[b] + delta < i){
+                        task[b] += delta;
+                        delta = 0;
+                        next.PB(b);
+                    }else{
+                        delta -= (i-task[b])*blocksSize[b];
+                        blocksSize[blocks[ind]] += blocksSize[b];
+                    }
+                    task[blocks[ind]] = i;
+                    ind+=2;
                 }
-
-                task[b] = i;
-                task[blocks[ind]] = i;
-                ind+=2;
             }while(delta > 0);
         }
 
         blocks = next;
-        dp[i] = next.size();
+        dp[i] = next.back() + blocksSize[next.back()]-1;
     }
 
     //get ans
