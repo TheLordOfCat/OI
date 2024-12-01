@@ -73,7 +73,7 @@ vector<int> getDetph(vector<vector<int>>& graph){
         if(b){
             for(int i = 0; i<graph[v].size(); i++){
                 int cur = graph[v][i];
-                ans[v] += ans[cur];
+                ans[v] = max(ans[cur],ans[v]);
             }
             ans[v] += 1;
             continue;
@@ -180,6 +180,8 @@ vector<int> solve(){
                     blocksSize[blocks[ind]] += blocksSize[b];
                 }
 
+                task[b] = i;
+                task[blocks[ind]] = i;
                 ind++;
             }while(delta > 0);
         }
