@@ -31,18 +31,25 @@ void getData(){
 }
 
 void getRandom(){
+    k.clear(); a.clear();
     srand(time(0));
 
-    n = rand()%10+1;
-    q = rand()%3+1;
-
+    n = rand()%10+10;
+    // q = rand()%4+1;
+    q = n;
     for(int i = 0; i<q; i++){
-        int temp = rand()%10+1;
+        // int temp = rand()%10+1;
+        int temp = i+1;
         k.PB(temp);
     }
     
-    for(int i = 0; i<n; i++){
-        int temp = rand()%10+1;
+    for(int i = 2; i<=n; i++){
+        int temp;
+        if(i == 2){
+            temp = 1;
+        }else{
+            temp = rand()%(i-1)+1;
+        }
         a.PB(temp);
     }
 }
@@ -54,7 +61,7 @@ void printData(){
         cout<<k[i]<<" ";
     }
     cout<<"\n";
-    for(int i = 0; i<n; i++){
+    for(int i = 0; i<a.size(); i++){
         cout<<a[i]<<" ";
     }
     cout<<"\n";
@@ -138,6 +145,27 @@ vector<int> brute(){
     return ans;
 }
 
+vector<int> traverseGraph(vector<vector<int>>& graph){
+    vector<int> ans(n+1, 0);
+
+    queue<int> Q;
+    Q.push(1);
+    ans[1] = 1;
+
+    while(!Q.empty()){
+        int v = Q.front();
+        Q.pop();
+
+        for(int i = 0; i<graph[v].size(); i++){
+            int cur = graph[v][i];
+            ans[cur] = ans[v] + 1;
+            Q.push(cur);
+        }
+    }
+
+    return ans;
+}
+
 vector<int> solve(){
     //create graph
     vector<vector<int>> graph(n+1, vector<int>());
@@ -146,7 +174,7 @@ vector<int> solve(){
         graph[cur].PB(i+2); //starts with a_2
     }
 
-    vector<int> depth = getDetph(graph);
+    vector<int> depth = traverseGraph(graph);
 
     //process verticies
     vector<int> dp(n+1, 0);
@@ -154,46 +182,93 @@ vector<int> solve(){
     vector<int> task(n+1, 0);
     vector<int> blocks;
     vector<int> blocksSize(n+1, 1);
+
+    int maxDepth = 0;
+    for(int i = 1; i<depth.size(); i++){
+        task[depth[i]]++;
+        maxDepth = max(maxDepth, depth[i]);
+    }
+
+    for(int i = 1; i<=maxDepth; i++){
+        blocks.PB(i);
+    }
+
     int totalSize = n;
+    dp[n] = blocks.size();
     for(int i = n-1; i>= 1; i--){
         int ind = 0;
         vector<int> next;
+        int delta = 0;
         while(ind < blocks.size()){
-            int delta = 0;
             do{
-                if(task[blocks[ind]] > i){
-                    delta = blocksSize[blocks[ind]];
+                //process the first block
+                next.PB(blocks[ind]);
+                if(i < task[blocks[ind]]){
+                    delta -= (i-task[blocks[ind]])*blocksSize[blocks[ind]];
+                    task[blocks[ind]] = i;
                 }
+                if(i > task[blocks[ind]]){
+                    if(delta > i - task[blocks[ind]]){
+                        delta -= (i-task[blocks[ind]])*blocksSize[blocks[ind]];
+                        task[blocks[ind]] = i;
+                    }else{
+                        task[blocks[ind]] += delta;
+                        delta = 0;
+                    }
+                }
+
+                if(ind == blocks.size()-1){
+                    ind++;
+                    break;
+                }
+
                 if(delta == 0){
                     ind++;
                     break;
-                } 
-                next.PB(blocks[ind]);
-
-                int b = blocks[ind] + blocksSize[blocks[ind]];
-                if(blocksSize[b] == 1 && task[b] + delta < i){
-                    task[b] += delta;
-                    delta = 0;
-                    next.PB(b);
-                }else{
-                    delta -= (i-task[b])*blocksSize[b];
-                    blocksSize[blocks[ind]] += blocksSize[b];
                 }
 
-                task[b] = i;
-                task[blocks[ind]] = i;
-                ind++;
-            }while(delta > 0);
+                //merge second
+                if(ind < blocks.size()-1){
+                    int b = blocks[ind] + blocksSize[blocks[ind]];
+                    if(blocksSize[b] == 1 && task[b] + delta < i){
+                        task[b] += delta;
+                        delta = 0;
+                        next.PB(b);
+                    }else{
+                        delta -= (i-task[b])*blocksSize[b];
+                        blocksSize[blocks[ind]] += blocksSize[b];
+                    }
+                    ind += 2;
+                }
+            }while(delta > 0 && ind < blocks.size());
+            
+        }
+
+        if(delta > 0){
+            int b = next.back() + blocksSize[next.back()];
+            int len = delta/i;
+            blocksSize[next.back()] += len;
+            delta -= len*i;
+            task[next.back()] = i;
+            if(delta > 0){
+                task[b + len] += delta;
+                delta = 0;
+                next.PB(b + len); 
+            }
         }
 
         blocks = next;
-        dp[i] = next.size();
+        dp[i] = next.back() + blocksSize[next.back()]-1;
     }
 
     //get ans
     vector<int> ans;
     for(int i = 0; i<q; i++){
-        ans.PB(dp[k[i]]);
+        if(k[i] > n){
+            ans.PB(dp[n]);
+        }else{
+            ans.PB(dp[k[i]]);
+        }
     }
 
     return ans;
@@ -204,8 +279,9 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
-    for(int test = 1; test<=1; test++){
+    int op = 0;
+    for(int test = 1; test<=100000; test++){
+        cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
         }else{
@@ -226,6 +302,7 @@ int main()
                     cout<<ansS[j]<<" ";
                 }
                 cout<<"\n";
+                printData();
                 return 0;
             }
         }
