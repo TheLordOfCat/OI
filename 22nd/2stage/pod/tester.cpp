@@ -1,8 +1,5 @@
-#include<iostream>
+#include <iostream>
 #include <vector>
-
-#include <cstdlib>
-#include <ctime>
 
 using namespace std;
 
@@ -29,7 +26,10 @@ void getData(){
 }
 
 void getRandom(){
+    r.clear();
+
     srand(time(0));
+
     n = rand()%10+1;
     k = rand()%10+1;
     vector<bool> used(k+1, false);
@@ -45,6 +45,15 @@ void getRandom(){
             n++;
         }
     }
+}
+
+void printData(){
+    cout<<"DATA: \n";
+    cout<<n<<" "<<k<<"\n";
+    for(int i = 0; i<n; i++){
+        cout<<r[i]<<" ";
+    }
+    cout<<"\n";
 }
 
 pair<ull, int> brute(){
@@ -74,33 +83,6 @@ pair<ull, int> brute(){
     return ans;
 } 
 
-int tree[4*MAXN+1];
-int detph = 1;
-int R = 1;
-
-int parent(int v){
-    return v/2;
-}
-
-int left(int v){
-    return 2*v;
-}
-
-int right(int v){
-    return 2*v+1;
-}
-
-int leaf(int v){
-    return R+v;
-}
-
-PII coveredRange(int v, int d){
-    PII ans = MP(v,v);
-    ans.first *= 1<<(detph-d);
-    ans.second =ans.first += (1<<d) - 1;
-    return ans;
-} 
-
 pair<ull,int> solve(){
 
 }
@@ -112,6 +94,7 @@ int main()
 
     int op = 1;
     for(int test = 1; test<=1; test++){
+        cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
         }else{
@@ -123,6 +106,8 @@ int main()
             cout<<"ERROR\n";
             cout<<"BRUTE: "<<ansB.first<<" "<<ansB.second<<"\n";
             cout<<"SOLVE: "<<ansS.first<<" "<<ansS.second<<"\n";
+            printData();
+            return 0;
         }
         cout<<"CORRECT\n";
     }
