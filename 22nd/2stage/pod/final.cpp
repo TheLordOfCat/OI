@@ -3,7 +3,8 @@
 
 using namespace std;
 
-using ll = unsigned long long int;
+using ll = long long int;
+using ull = unsigned long long int;
 
 #define MP make_pair
 #define PB push_back
@@ -87,6 +88,7 @@ void updateNode(int v, int val){
         banned[V] = 1;
     }
 
+    V = parent(V);
     while(V >= 1){
         banned[V] = banned[left(V)] + banned[right(V)];
         V = parent(V);
@@ -94,19 +96,15 @@ void updateNode(int v, int val){
 }
 
 void updateRange(int l, int r, int val){
+    if(r<l){
+        return;
+    }
     int vL = leaf(l);
     int vR = leaf(r);
 
     tree[vL] += val;
     if(vL != vR){
         tree[vR] += val;
-    }
-
-    if(tree[vL] < 0){
-        banned[vL] = 1;
-    }
-    if(tree[vR] < 0){
-        banned[vR] = 1;
     }
 
     while(parent(vL) != parent(vR)){
@@ -128,7 +126,15 @@ void updateRange(int l, int r, int val){
         vR = parent(vR);
     }
 
-    vL = leaf(l); vR = leaf(vR);
+    vL = leaf(l); vR = leaf(r);
+    if(tree[vL] < 0){
+        banned[vL] = 1;
+    }
+    if(tree[vR] < 0 && vL != vR){
+        banned[vR] = 1;
+    }
+    vL = parent(vL);
+    vR = parent(vR);
     while(vL >= 1){
         banned[vL] = banned[left(vL)] + banned[right(vL)];
         vL = parent(vL);
@@ -140,14 +146,14 @@ void updateRange(int l, int r, int val){
 }
 
 ll queryRanges(){
-    return banned[1];
+    return n - banned[1];
 }
 
 int queryLongest(int start, int v){
     //find left and right
     int V = leaf(v);
     int leftNode = -1, rightNode = -1;
-    while( V >= 1){
+    while( V > 1){
         if(left(parent(V)) == V && rightNode == -1){
             PII r = getRange(right(parent(V)));
             if(banned[right(parent(V))] < r.second-r.first+1){
@@ -165,28 +171,32 @@ int queryLongest(int start, int v){
 
     int ans = 0;
     //process left
-    while(leftNode < R){
-        PII r = getRange(right(leftNode));
-        if(banned[right(leftNode)] <= r.second-r.first-1){
-            leftNode = right(leftNode);
-        }else{
-            leftNode = left(leftNode);
+    if(leftNode != -1){
+        while(leftNode < R){
+            PII r = getRange(right(leftNode));
+            if(banned[right(leftNode)] <= r.second-r.first-1){
+                leftNode = right(leftNode);
+            }else{
+                leftNode = left(leftNode);
+            }
         }
-    }
 
-    ans= max(start-leftNode+1, ans);
+        ans= max(start-leftNode+1, ans);
+    }
 
     //process right
-    while(rightNode < R){
-        PII r = getRange(left(rightNode));
-        if(banned[left(rightNode)] <= r.second-r.first-1){
-            rightNode = left(rightNode);
-        }else{
-            rightNode = right(rightNode);
+    if(rightNode != -1){
+        while(rightNode < R){
+            PII r = getRange(left(rightNode));
+            if(banned[left(rightNode)] <= r.second-r.first-1){
+                rightNode = left(rightNode);
+            }else{
+                rightNode = right(rightNode);
+            }
         }
-    }
 
-    ans= max(rightNode-start+1, ans);
+        ans= max(rightNode-start+1, ans);
+    }
 
     return ans;
 }
@@ -215,7 +225,7 @@ pair<ll,int> solve(){
     buildTree();
 
     for(int i = 1; i<=k; i++){
-        updateRange(range[i].first+1, range[i].second-1, -1);
+        updateRange(range[i].first, range[i].second-1, -1);
     }
 
     //process
@@ -225,14 +235,12 @@ pair<ll,int> solve(){
 
     for(int i = 2; i<=n; i++){
         updateNode(i-1, -1);
-        if(next[i-1] == -1){
-            updateRange(i, n, 1);
-        }else{
-            updateRange(i, next[i-1]-1, 1);
-            updateRange(next[i-1], n, -1);
+        if(next[i-1] != -1){
+            updateRange(i-1, next[i-1], 1);
         }
         ans.first += queryRanges();
-        ans.second += queryLongest(i, min(n, n/2 + i));
+        int temp = queryLongest(i, min(n, n/2 + i));
+        ans.second = max(ans.second, temp);
     }
 
     return ans;
