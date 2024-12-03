@@ -3,7 +3,7 @@
 
 using namespace std;
 
-using ull = unsigned long long int;
+using ll = unsigned long long int;
 
 #define MP make_pair
 #define PB push_back
@@ -28,7 +28,7 @@ void getData(){
     }
 }
 
-vector<ull> tree;
+vector<ll> tree;
 vector<int> banned;
 int R;
 
@@ -76,8 +76,8 @@ void buildTree(){
     
     int totalSize = R + (1<<depth);
 
-    tree.assign(totalSize, 0);
-    banned.assign(totalSize, 0);    
+    tree.assign(totalSize+1, 0);
+    banned.assign(totalSize+1, 0);    
 }
 
 void updateNode(int v, int val){
@@ -139,7 +139,7 @@ void updateRange(int l, int r, int val){
     }
 }
 
-ull queryRanges(){
+ll queryRanges(){
     return banned[1];
 }
 
@@ -191,19 +191,19 @@ int queryLongest(int start, int v){
     return ans;
 }
 
-pair<ull,int> solve(){
+pair<ll,int> solve(){
     //get range and next
     vector<PII> range(k+1, MP(-1,-1));
     vector<int> next(n+1, -1); 
 
     vector<int> last(k+1, -1);
-    for(int i = r.size(); i>0; i--){
+    for(int i = r.size()-1; i>0; i--){
         int cur = r[i];
         if(range[cur].second == -1){
             range[cur].second = i;
         }
 
-        next[cur] = last[cur];
+        next[i] = last[cur];
         last[cur] = i;
     }
 
@@ -219,7 +219,7 @@ pair<ull,int> solve(){
     }
 
     //process
-    pair<ull,int> ans;
+    pair<ll,int> ans;
     ans.first += queryRanges();
     ans.second += queryLongest(1, n/2);
 
@@ -245,7 +245,7 @@ int main()
 
     getData();
 
-    pair<ull, int> ansS = solve();
+    pair<ll, int> ansS = solve();
     cout<<ansS.first<<" "<<ansS.second<<"\n";
 
     return 0;
