@@ -4,9 +4,6 @@
 #include <tuple>
 #include <map>
 
-#include <ctime>
-#include <cstdlib>
-
 using namespace std;
 
 using ll = long long int;
@@ -17,44 +14,42 @@ using ull = unsigned long long int;
 #define PB push_back
 #define MT make_tuple
 
-bool operator==(const pair<int, int>& lhs, const pair<int, int>& rhs) {
-    if (lhs.first == rhs.first && lhs.second == rhs.second) {
-        return true;  
-    }
-    return false;   
-}
-
-bool operator!=(const pair<int, int>& lhs, const pair<int, int>& rhs) {
-    if (lhs.first != rhs.first || lhs.second != rhs.second) {
-        return true;  
-    }
-    return false;   
-}
-
-PII operator+(const pair<int, int>& lhs, const pair<int, int>& rhs) {
-    return MP(lhs.first + rhs.first, lhs.second + rhs.second);
-}
-
-PII& operator+=( pair<int, int>& lhs, const pair<int, int>& rhs) {
+PII& operator+=( PII& lhs, PII& rhs) {
     lhs.first += rhs.first;
     lhs.second += rhs.second;
     return lhs;
 }
 
-PII& operator*=( pair<int, int>& lhs, const pair<int, int>& rhs) {
-    lhs.first *= rhs.first;
-    lhs.second *= rhs.second;
-    return lhs;
+PII operator -=(const PII& a, const PII& b){
+    PII ans = MP(0,0);
+    ans.first = a.first - b.first;
+    ans.second = a.second - b.second;
+    return ans;
 }
 
-PII operator*( const pair<int, int>& lhs, const pair<int, int>& rhs) {
-    return MP(lhs.first * rhs.first, lhs.second * rhs.second);
+PII operator +(const PII& a, const PII& b){
+    PII ans = MP(0,0);
+    ans.first = a.first + b.first;
+    ans.second = a.second + b.second;
+    return ans;
 }
 
+PII operator -(const PII& a, const PII& b){
+    PII ans = MP(0,0);
+    ans.first = a.first - b.first;
+    ans.second = a.second - b.second;
+    return ans;
+}
+
+bool operator ==(const PII& a, const PII& b){
+    if(a.first == b.first && a.second == b.second){
+        return true;
+    }
+    return false;
+}
 
 int n, m, k;
 vector<PII> blocks;
-
 int startX, startY;
 
 void getData(){
@@ -100,288 +95,76 @@ void printData(){
     }
 }
 
-//return center of a block in scaled grid
-PII centerBlock(PII cord){
-    return MP(cord.first - 1, cord.second-1);
-}
-
-//0 - not wall, 1 - side walls, 2 - floors
-int isWall(PII cord){
-    if(cord.first == 0 || cord.first == n){
+int isWall(PII pos){
+    if(pos.second == 0 || pos.second == m){
         return 1;
     }
-    if(cord.second == 0 || cord.second == m){
+    if(pos.first == 0 || pos.first == n){
         return 2;
     }
-    return 0;
+    return -1;
 }
 
-vector<int> isBlock(PII cord, PII dir){
-    vector<int> ans;
-
-    for(int i = 0; i<k; i++){
-        PII cen = centerBlock(blocks[i]);
-        vector<PII> temp;
-        temp.PB(MP(cen.first + 1, cen.second));
-        temp.PB(MP(cen.first - 1, cen.second));
-        temp.PB(MP(cen.first, cen.second + 1));
-        temp.PB(MP(cen.first, cen.second - 1));
-
-        for(int j = 0; j<temp.size(); j++){
-            if(temp[j] == cord){
-                ans.PB(i);
-            }
-        }
+void bounceWall(PII& dir, int type){
+    if(type == 1){
+        dir.second *= -1;
     }
-
-    return ans;
+    if(type == 2){
+        dir.first *= -1;
+    }
 }
 
 ull brute(){
+    PII pos = MP(n/2, 0), dir = MP(-1, 1);
+    int countBlock = k;
     ull ans = 0;
-    int blocksLeft = k;
-    PII cord = MP(startX, startY);
-    PII dir = MP(-1,1);
-    vector<bool> vis(k+1, false);
-
-    while(blocksLeft > 0){
+    vector<bool> used(k+1, false);
+    while(countBlock > 0){
+        pos += dir;
         ans++;
-        cord += dir;
-        int w = isWall(cord);
-
-        if(w == 1){
-            dir.first *= -1;
-        }else if(w == 2){
-            dir.second *= -1;
+        int w = isWall(pos);
+        if(w != -1){
+            bounceWall(dir, w);
         }else{
-            vector<int> temp = isBlock(cord, dir);
-            int b;
-            if(temp.size() == 0){
-                b = -1;
-            }else{
-                if(!vis[temp[0]]){
-                    b = temp[0];
-                }else{
-                    b = temp[1];
+            int b = -1;
+            int type = -1;
+            for(int i = 0; i<blocks.size(); i++){
+                if(!used[i]){
+                    if(pos == blocks[i]+MP(-1,0)){ // top
+                        b = i;
+                        type = 1;
+                        break;
+                    }
+                    if(pos == blocks[i]+MP(0,-1)){ // right
+                        b = i;
+                        type =2;
+                        break;
+                    }
+                    if(pos == blocks[i]+MP(-1,-2)){ //bottom
+                        b = i;
+                        type = 1;
+                        break;
+                    }
+                    if(pos == blocks[i]+MP(-2,-1)){ // left
+                        b = i;
+                        type = 2;
+                        break;
+                    }
                 }
             }
-
-            if(b >= 0 && !vis[b]){
-                vis[b] = true;
-                blocksLeft--;
-                if(blocks[b].first-1 == cord.first){
-                    dir.second *= -1;
-                }else if(blocks[b].second-1 == cord.second){
-                    dir.first *= -1;
-                }
+            if(b != -1){
+                countBlock--;
+                used[b] = true;
+                bounceWall(dir,type);
             }
         }
-    }
+    }    
 
     return ans;
 }
-
-map<tuple<PII,PII>, tuple<PII,PII, ull>> graphMap;
-
-tuple<PII,PII, ull> graph(PII cord, PII dir){
-    return graphMap[MT(cord,dir)];
-}
-
-void mergePath(PII cord1, PII dir1, PII cord2, PII dir2, int lon = 0){
-    int len = get<2>(graphMap[MT(cord1, dir1*(MP(-1,-1)))]) + get<2>(graphMap[MT(cord2, dir2*(MP(-1,-1)))]) + lon;
-    dir1 *= MP(-1,-1);
-    graphMap.erase(MT(cord1, dir1));
-    graphMap.insert(MP(MT(cord1,dir1),MT(cord2,dir2, len)));
-    
-    dir1 *= MP(-1,-1);
-    dir2 *= MP(-1,-1);
-    graphMap.erase(MT(cord2, dir2));
-    graphMap.insert(MP(MT(cord2,dir2),MT(cord1,dir1, len)));
-    // cout<<"("<<cord1.first<<" "<<cord1.second<<")"<<" <-> "<<"("<<cord2.first<<" "<<cord2.second<<")"<<"\n";
-}
-
-void removeBlock(PII b){
-    PII top = MP(b.first, b.second+1);
-    PII bottom = MP(b.first, b.second-1);
-    PII left = MP(b.first-1, b.second);
-    PII right = MP(b.first+1, b.second);
-
-    tuple<PII,PII,ull> t1, t2;
-
-    //left - top
-    // cout<<"LEFT: "<<left.first<<" "<<left.second<<" <=> "<<"TOP: "<<top.first<<" "<<top.second<<": ";
-    t1 = graph(left, MP(-1,-1));
-    t2 = graph(top, MP(1,1));
-    if(get<0>(t1) == MP(0,0)) get<0>(t1) = left;
-    if(get<0>(t2) == MP(0,0)) get<0>(t2) = top;
-    mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2), 1);
-
-    //top - right
-    // cout<<"TOP: "<<top.first<<" "<<top.second<<" <=> "<<"RIGHT: "<<right.first<<" "<<right.second<<": ";
-    t1 = graph(top, MP(-1,1));
-    t2 = graph(right, MP(1,-1));
-    if(get<0>(t1) == MP(0,0)) get<0>(t1) = top;
-    if(get<0>(t2) == MP(0,0)) get<0>(t2) = right;
-    mergePath(get<0>(t1), get<1>(t1),  get<0>(t2), get<1>(t2), 1);
-
-    //right - bottom
-    // cout<<"RIGHT: "<<right.first<<" "<<right.second<<" <=> "<<"BOTTOM: "<<bottom.first<<" "<<bottom.second<<": ";
-    t1 = graph(right, MP(1,1));
-    t2 = graph(bottom, MP(-1,-1));
-    if(get<0>(t1) == MP(0,0)) get<0>(t1) = right;
-    if(get<0>(t2) == MP(0,0)) get<0>(t2) = bottom;
-    mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2), 1);
-
-    //bottom - left
-    // cout<<"BOTTOM: "<<bottom.first<<" "<<bottom.second<<" <=> "<<"LEFT: "<<left.first<<" "<<left.second<<": ";
-    t1 = graph(bottom, MP(1,-1));
-    t2 = graph(left, MP(-1,1));
-    if(get<0>(t1) == MP(0,0)) get<0>(t1) = bottom;
-    if(get<0>(t2) == MP(0,0)) get<0>(t2) = left;
-    mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2), 1);
-}
-
-bool rightOrineted(PII a, PII b){
-    return a.first - a.second > b.first - b.second;
-}
-
-bool leftOrineted(PII a, PII b){
-    return a.first + a.second < b.first + b.second;
-}
-
-void createGraph(){
-    vector<PII> intrestPoints;
-    for(int i = 1; i<n; i += 2){
-        intrestPoints.PB(MP(i,0));
-    }
-    for(int i = 1; i<m; i += 2){
-        intrestPoints.PB(MP(0,i));
-    }
-    for(int i = 0; i<k; i++){
-        PII cen = centerBlock(blocks[i]);
-        intrestPoints.PB(MP(cen.first, cen.second - 1));
-        intrestPoints.PB(MP(cen.first + 1, cen.second));
-        intrestPoints.PB(MP(cen.first - 1, cen.second));
-        intrestPoints.PB(MP(cen.first, cen.second + 1));
-    }
-    for(int i = 1; i<n; i += 2){
-        intrestPoints.PB(MP(i,m));
-    }
-    for(int i = 1; i<m; i += 2){
-        intrestPoints.PB(MP(n,i));
-    }
-
-    sort(intrestPoints.begin(), intrestPoints.end());
-    stable_sort(intrestPoints.begin(), intrestPoints.end(), rightOrineted);
-
-    for(int i = 0; i<=intrestPoints.size(); i+=2){
-        ull len = intrestPoints[i+1].first - intrestPoints[i].first;
-        graphMap.insert(MP(MT(intrestPoints[i], MP(1,1)), MT(intrestPoints[i+1], MP(1,1), len)));
-        graphMap.insert(MP(MT(intrestPoints[i+1], MP(-1,-1)), MT(intrestPoints[i], MP(-1,-1), len)));
-        // cout<<"("<<intrestPoints[i].first<<" "<<intrestPoints[i].second<<")"<<" <-> "<<"("<<intrestPoints[i+1].first<<" "<<intrestPoints[i+1].second<<")"<<"\n";
-    }
-    
-    sort(intrestPoints.begin(), intrestPoints.end(), greater<pair<int,int>>());
-    stable_sort(intrestPoints.begin(), intrestPoints.end(), leftOrineted);
-
-    for(int i = 0; i<=intrestPoints.size(); i+=2){
-        ull len = intrestPoints[i].first - intrestPoints[i+1].first;
-        graphMap.insert(MP(MT(intrestPoints[i], MP(-1,1)), MT(intrestPoints[i+1], MP(-1,1), len)));
-        graphMap.insert(MP(MT(intrestPoints[i+1], MP(1,-1)), MT(intrestPoints[i], MP(1,-1), len)));
-        // cout<<"("<<intrestPoints[i].first<<" "<<intrestPoints[i].second<<")"<<" <-> "<<"("<<intrestPoints[i+1].first<<" "<<intrestPoints[i+1].second<<")"<<"\n";
-    }
-}
-
-void compressGraph(){
-    vector<PII> intrestPoints;
-    for(int i = 1; i<n; i += 2){
-        if(i == startX) continue;
-        tuple t1 = graph(MP(i,0), MP(-1,1));
-        tuple t2 = graph(MP(i,0), MP(1,1));
-        // cout<<"("<<i<<" "<<0<<"): ";
-        mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2));
-    }
-    for(int i = 1; i<m; i += 2){
-        tuple t1 = graph(MP(0,i), MP(1,-1));
-        tuple t2 = graph(MP(0,i), MP(1,1));
-        // cout<<"("<<0<<" "<<i<<"): ";
-        mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2));
-    }
-    for(int i = 1; i<n; i += 2){
-        tuple t1 = graph(MP(i,m), MP(-1,-1));
-        tuple t2 = graph(MP(i,m), MP(1,-1));
-        // cout<<"("<<i<<" "<<m<<"): ";
-        mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2));
-    }
-    for(int i = 1; i<m; i += 2){
-        tuple t1 = graph(MP(n,i), MP(-1,-1));
-        tuple t2 = graph(MP(n,i), MP(-1,1));
-        // cout<<"("<<n<<" "<<i<<"): ";
-        mergePath(get<0>(t1), get<1>(t1), get<0>(t2), get<1>(t2));
-    }
-}
-
-ull traverseGraph(){
-    ull ans = 0;
-
-    PII cord = MP(startX, startY);
-    PII dir = MP(-1,1);
-
-    map<PII,bool> blocksMap;
-    for(int i = 0; i<k; i++){
-        blocksMap.insert(MP(centerBlock(blocks[i]), false));
-    }
-
-    int blocksLeft = k;
-    int temp = 0;
-    while(blocksLeft > 0){
-        temp++;
-        if(temp > 15) break;
-
-        tuple t = graph(cord, dir);
-        ans += get<2>(t);
-
-        PII nextCord = get<0>(t);
-        PII nextDir = get<1>(t);
-
-        int w = isWall(nextCord);
-        if(w == 1){
-            nextDir.first *= -1;
-        }else if(w == 2){
-            nextDir.second *= -1;
-        }else{
-            auto it = blocksMap.find(MP(nextCord.first + nextDir.first, nextCord.second));
-            if(it != blocksMap.end()){
-                nextDir.first *= -1;
-
-                removeBlock(it->first);
-                blocksLeft--;
-            }else{
-                it = blocksMap.find(MP(nextCord.first, nextCord.second + nextDir.second));
-                if(it != blocksMap.end()){
-                    nextDir.second *= -1;
-                    removeBlock(it->first);
-                    blocksLeft--;
-                }
-            }
-        }
-
-        cord = nextCord;
-        dir = nextDir;
-    }
-
-    return ans;
-} 
 
 ull solve(){
-    // cout<<"======================STANDARD: \n\n";
-    createGraph();
-    // cout<<"=====================COMPRESSSED: \n\n";
-    compressGraph();
-    // cout<<"=====================REMOVED BLOCKS: \n\n";
-    ull ans = traverseGraph();
-    return ans;
-    // return 0;
+   
 }
 
 int main() {
