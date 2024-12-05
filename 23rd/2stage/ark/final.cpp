@@ -150,7 +150,7 @@ void compressWall(PII pos){
         dir1 = MP(-1,1);
         dir2 = MP(1,1);
     }
-    if(pos.second == 0){ // left
+    if(pos.first == 0){ // left
         dir1 = MP(1,1);
         dir2 = MP(1,-1);
     }
@@ -201,13 +201,43 @@ void mergeEdges(pair<pair<PII,PII>,int> cur1, pair<pair<PII,PII>,int> cur2){
     temp.second *= flip;
     auto itr = graph.find(temp);
     itr->second.first = cur2.first;
-    itr->second.second = cur1.second+cur2.second;
+    itr->second.second = cur1.second+cur2.second + 1;
+
+    // cout<<"("<<itr->first.first.first<<", "<<itr->first.first.second<<")x("<<itr->first.second.first<<", "<<itr->first.second.second<<")";
+    // cout<<"->";
+    // cout<<"("<<itr->second.first.first.first<<", "<<itr->second.first.first.second<<")x("<<itr->second.first.second.first<<", "<<itr->second.first.second.second<<")";
+    // cout<<"LEN"<<itr->second.second<<"\n";
+    
 
     temp = cur2.first;
     temp.second *= flip;
     itr = graph.find(temp);
     itr->second.first = cur1.first;
-    itr->second.second = cur1.second+cur2.second;
+    itr->second.second = cur1.second+cur2.second  + 1;
+
+    // cout<<"("<<itr->first.first.first<<", "<<itr->first.first.second<<")x("<<itr->first.second.first<<", "<<itr->first.second.second<<")";
+    // cout<<"->";
+    // cout<<"("<<itr->second.first.first.first<<", "<<itr->second.first.first.second<<")x("<<itr->second.first.second.first<<", "<<itr->second.first.second.second<<")";
+    // cout<<"LEN"<<itr->second.second<<"\n";
+}
+
+int isWall(PII pos){
+    if(pos.second == 0 || pos.second == m){
+        return 1;
+    }
+    if(pos.first == 0 || pos.first == n){
+        return 2;
+    }
+    return -1;
+}
+
+void bounceWall(PII& dir, int type){
+    if(type == 1){
+        dir.second *= -1;
+    }
+    if(type == 2){
+        dir.first *= -1;
+    }
 }
 
 ull traverseGraph(){
@@ -216,47 +246,98 @@ ull traverseGraph(){
     PII pos = MP(n/2, 0);
     PII dir = MP(-1,1);
 
-    map<PII,int> blocksMap;
+    map<pair<PII,PII>,int> blocksMap;
     for(int i = 0; i<blocks.size(); i++){
-        blocksMap.insert(MP(blocks[i] + MP(-1,0), i));
-        blocksMap.insert(MP(blocks[i] + MP(0,-1), i));
-        blocksMap.insert(MP(blocks[i] + MP(-1,-2), i));
-        blocksMap.insert(MP(blocks[i] + MP(-2,-1), i));
+        //top
+        blocksMap.insert(MP(MP(blocks[i] + MP(-1,0), MP(1,-1)), i));
+        blocksMap.insert(MP(MP(blocks[i] + MP(-1,0), MP(-1,-1)), i));
+
+        //right
+        blocksMap.insert(MP(MP(blocks[i] + MP(0,-1),MP(-1,1)), i));
+        blocksMap.insert(MP(MP(blocks[i] + MP(0,-1),MP(-1,-1)), i));
+
+        //bottom
+        blocksMap.insert(MP(MP(blocks[i] + MP(-1,-2),MP(1,1)), i));
+        blocksMap.insert(MP(MP(blocks[i] + MP(-1,-2),MP(-1,1)), i));
+
+        //left
+        blocksMap.insert(MP(MP(blocks[i] + MP(-2,-1),MP(1,1)), i));
+        blocksMap.insert(MP(MP(blocks[i] + MP(-2,-1),MP(1,-1)), i));
     }  
 
+    vector<bool> used(k+1, false);
+
     int countBlock = k;
+    int bb = 0;
     while(countBlock > 0){
+        // bb++;
+        // if(bb> 6) return 0;
+        // printGraph(pos)
         auto cur = graph[MP(pos,dir)];
         pos = cur.first.first;
         dir = cur.first.second;
         ans += cur.second;
-        auto itrB = blocksMap.find(pos);
+        auto itrB = blocksMap.find(MP(pos,dir));
         if(itrB == blocksMap.end()){
-            cout<<"LOGIC BAD eroror\n";
-            return 0;
+            //wall bounce
+            int type = isWall(pos);
+            bounceWall(dir, type);
+        }else{
+            int type;
+            if(used[itrB->second]){
+                type = isWall(pos);
+                bounceWall(dir, type);
+                continue;
+            }
+            used[itrB->second] = true;
+            //remove block
+            PII t = blocks[itrB->second] + MP(-1,0), r = blocks[itrB->second] + MP(0,-1), b = blocks[itrB->second] + MP(-1,-2), l = blocks[itrB->second] + MP(-2,-1);
+
+            vector<pair<pair<pair<PII,PII>,int>,pair<pair<PII,PII>,int>>> vec;
+            //left
+            auto curTL = graph[MP(t,MP(-1,1))];
+            auto curRL = graph[MP(r,MP(1,-1))];
+            auto curBL = graph[MP(b,MP(1,-1))];
+            auto curLL = graph[MP(l,MP(-1,1))];
+
+            auto curTR = graph[MP(t,MP(1,1))];
+            auto curRR = graph[MP(r,MP(1,1))];
+            auto curBR = graph[MP(b,MP(-1,-1))];
+            auto curLR = graph[MP(l,MP(-1,-1))];
+
+            vec.PB(MP(curTL,curRL));
+            vec.PB(MP(curTR,curLR));
+            vec.PB(MP(curLL,curBL));
+            vec.PB(MP(curRR,curBR));
+
+            int start = 0;
+            if(pos == t){
+                start = 0;
+            }else if(pos == r){
+                start = 1;
+            }else if(pos == b){
+                start = 2;
+            }else{
+                start = 3;
+            }
+
+            for(int i = 0; i<4; i++){
+                auto p1 = vec[(start+i)%4].first;
+                auto p2 = vec[(start+i)%4].second;
+                mergeEdges(p1,p2);
+            }
+
+            countBlock--;
+
+            //bounce
+            type;
+            if(pos == t || pos == b){
+                type = 1;
+            }else{
+                type = 2;
+            }
+            bounceWall(dir, type);
         }
-        
-        //remove block
-        PII t = blocks[itrB->second] + MP(-1,0), r = blocks[itrB->second] + MP(0,-1), b = blocks[itrB->second] + MP(-1,-2), l = blocks[itrB->second] + MP(-2,-1);
-
-        //left
-        auto curT = graph[MP(t,MP(-1,1))];
-        auto curR = graph[MP(r,MP(1,-1))];
-        auto curB = graph[MP(b,MP(-1,1))];
-        auto curL = graph[MP(l,MP(1,-1))];
-
-        mergeEdges(curT,curR);
-        mergeEdges(curL,curB);
-
-        //right
-        curT = graph[MP(t,MP(1,1))];
-        curR = graph[MP(r,MP(1,1))];
-        curB = graph[MP(b,MP(-1,-1))];
-        curL = graph[MP(t,MP(-1,-1))];
-
-        mergeEdges(curT,curL);
-        mergeEdges(curR,curB);
-        countBlock--;
     }
 
     return ans;
@@ -267,7 +348,6 @@ ull solve(){
     createGraph();
     //compress graph
     compressGraph();
-    printGraph(MP(-1,-1));
     //traverse graph
     ull ans = traverseGraph();
     return ans;
