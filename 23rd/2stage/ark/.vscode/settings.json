@@ -9,6 +9,7 @@
         "xiosbase": "cpp",
         "tuple": "cpp",
         "ostream": "cpp",
-        "algorithm": "cpp"
+        "algorithm": "cpp",
+        "xstddef": "cpp"
     }
 }
