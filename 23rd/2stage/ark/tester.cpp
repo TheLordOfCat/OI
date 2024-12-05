@@ -74,7 +74,7 @@ void getRandom(){
 
     // n = rand()%10+1;
     // m = rand()%10+1;
-    n = 3;
+    n = 5;
     m = 2;
     k = rand()%(n*m/2)+1;
     vector<vector<bool>> vis(n+1, vector<bool>(m+1, false));
@@ -85,6 +85,7 @@ void getRandom(){
             a = rand()%n+1;
             b = rand()%m+1;
         }
+        vis[a][b] = true;
         blocks.PB(MP(a,b));
     }
 }
@@ -425,6 +426,7 @@ ull traverseGraph(){
 }
 
 ull solve(){
+    graph.clear();
     //create graph
     createGraph();
     //compress graph
@@ -439,7 +441,7 @@ int main() {
     cin.tie(NULL);
 
     int op = 0;
-    for(int test = 1; test<=10 ;test++){
+    for(int test = 1; test<=100; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();   

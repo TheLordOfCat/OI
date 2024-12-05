@@ -203,10 +203,10 @@ void mergeEdges(pair<pair<PII,PII>,int> cur1, pair<pair<PII,PII>,int> cur2){
     itr->second.first = cur2.first;
     itr->second.second = cur1.second+cur2.second + 1;
 
-    // cout<<"("<<itr->first.first.first<<", "<<itr->first.first.second<<")x("<<itr->first.second.first<<", "<<itr->first.second.second<<")";
-    // cout<<"->";
-    // cout<<"("<<itr->second.first.first.first<<", "<<itr->second.first.first.second<<")x("<<itr->second.first.second.first<<", "<<itr->second.first.second.second<<")";
-    // cout<<"LEN"<<itr->second.second<<"\n";
+    cout<<"("<<itr->first.first.first<<", "<<itr->first.first.second<<")x("<<itr->first.second.first<<", "<<itr->first.second.second<<")";
+    cout<<"->";
+    cout<<"("<<itr->second.first.first.first<<", "<<itr->second.first.first.second<<")x("<<itr->second.first.second.first<<", "<<itr->second.first.second.second<<")";
+    cout<<"LEN"<<itr->second.second<<"\n";
     
 
     temp = cur2.first;
@@ -215,10 +215,10 @@ void mergeEdges(pair<pair<PII,PII>,int> cur1, pair<pair<PII,PII>,int> cur2){
     itr->second.first = cur1.first;
     itr->second.second = cur1.second+cur2.second  + 1;
 
-    // cout<<"("<<itr->first.first.first<<", "<<itr->first.first.second<<")x("<<itr->first.second.first<<", "<<itr->first.second.second<<")";
-    // cout<<"->";
-    // cout<<"("<<itr->second.first.first.first<<", "<<itr->second.first.first.second<<")x("<<itr->second.first.second.first<<", "<<itr->second.first.second.second<<")";
-    // cout<<"LEN"<<itr->second.second<<"\n";
+    cout<<"("<<itr->first.first.first<<", "<<itr->first.first.second<<")x("<<itr->first.second.first<<", "<<itr->first.second.second<<")";
+    cout<<"->";
+    cout<<"("<<itr->second.first.first.first<<", "<<itr->second.first.first.second<<")x("<<itr->second.first.second.first<<", "<<itr->second.first.second.second<<")";
+    cout<<"LEN"<<itr->second.second<<"\n";
 }
 
 int isWall(PII pos){
@@ -305,10 +305,15 @@ ull traverseGraph(){
             auto curBR = graph[MP(b,MP(-1,-1))];
             auto curLR = graph[MP(l,MP(-1,-1))];
 
-            vec.PB(MP(curTL,curRL));
-            vec.PB(MP(curTR,curLR));
-            vec.PB(MP(curLL,curBL));
             vec.PB(MP(curRR,curBR));
+            vec.PB(MP(curLL,curBL));
+            vec.PB(MP(curTR,curLR));
+            vec.PB(MP(curTL,curRL));
+
+            // vec.PB(MP(curTL,curRL));
+            // vec.PB(MP(curTR,curLR));
+            // vec.PB(MP(curLL,curBL));
+            // vec.PB(MP(curRR,curBR));
 
             int start = 0;
             if(pos == t){
@@ -321,9 +326,10 @@ ull traverseGraph(){
                 start = 3;
             }
 
+            cout<<countBlock<<"\n";
             for(int i = 0; i<4; i++){
-                auto p1 = vec[(start+i)%4].first;
-                auto p2 = vec[(start+i)%4].second;
+                auto p1 = vec[(start+i+1)%4].first;
+                auto p2 = vec[(start+i+1)%4].second;
                 mergeEdges(p1,p2);
             }
 
