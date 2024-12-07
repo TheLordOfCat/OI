@@ -1,5 +1,7 @@
-#include<iostream>
-#include<vector>
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <queue>
 
 using namespace std;
 
@@ -48,27 +50,18 @@ PII reduce(int num){
         lastZero--;
     }
 
-    if(lastZero <= 0){
-        return MP(num, 0);
+    if(lastZero < 0){
+        return MP(1, pos);
     }
     
-    int ans = num>>(lastZero-1);
+    int ans = num>>lastZero;
     return MP(ans, lastZero);
-}
-
-int nullify(int num){
-    if(num == 1){
-        return 1;
-    }
-    int pos = firstOnePos(num);
-    int ans = pos;
-    return ans;
 }
 
 ll solve(){
     ll ans = 0;
 
-    //reduce to 2^k - 1
+    //reduce to 2^k - 2
     vector<int> proces = a;
     for(int i =0 ; i <proces.size(); i++){
         PII temp = reduce(proces[i]);
@@ -77,16 +70,18 @@ ll solve(){
     }
 
     //finish
-    int turn = 0;
+    priority_queue<int> Q;
     for(int i =0 ; i<proces.size(); i++){
-        int temp = nullify(proces[i]);
-        if(turn == 0){
-            
+        Q.push(proces[i]);
+    }
+    while(!Q.empty()){
+        int v = Q.top();
+        Q.pop();
+        if(v == 1){
+            ans += 2;
         }else{
 
         }
-        ans += temp;
-        turn = (turn+1)%2;
     }
 
     return ans;
