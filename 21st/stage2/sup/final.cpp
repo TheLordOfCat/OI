@@ -69,11 +69,10 @@ vector<int> solve(){
     vector<int> depth = traverseGraph(graph);
 
     //process verticies
-    vector<int> dp(n+1, 0);
-
     vector<int> task(n+1, 0);
-    vector<int> blocks;
+    vector<vector<int>> blocks(n+1, vector<int>());
     vector<int> blocksSize(n+1, 1);
+    vector<bool> startBlock(n+1, false);
 
     int maxDepth = 0;
     for(int i = 1; i<depth.size(); i++){
@@ -81,76 +80,37 @@ vector<int> solve(){
         maxDepth = max(maxDepth, depth[i]);
     }
 
-    for(int i = 1; i<=maxDepth; i++){
-        blocks.PB(i);
+    vector<int> dp(n+1, maxDepth);
+
+    for(int i = 1; i<= n; i++){
+        if(task[i] > 0){
+            blocks[task[i]].PB(i);
+        }
+        startBlock[i] = true;
     }
 
-    int totalSize = n;
-    dp[n] = blocks.size();
     for(int i = n-1; i>= 1; i--){
-        int ind = 0;
-        vector<int> next;
-        int delta = 0;
-        while(ind < blocks.size()){
-            do{
-                //process the first block
-                next.PB(blocks[ind]);
-                if(i < task[blocks[ind]]){
-                    delta -= (i-task[blocks[ind]])*blocksSize[blocks[ind]];
-                    task[blocks[ind]] = i;
-                }
-                if(i > task[blocks[ind]]){
-                    if(delta > i - task[blocks[ind]]){
-                        delta -= (i-task[blocks[ind]])*blocksSize[blocks[ind]];
-                        task[blocks[ind]] = i;
-                    }else{
-                        task[blocks[ind]] += delta;
+        for(int j = 0; j<blocks[i+1].size(); j++){
+            int cur = blocks[i+1][j];
+            if(startBlock[cur] && task[cur] == i+1){
+                int delta = blocksSize[cur];
+                task[cur] = i;
+                blocks[i].PB(cur);              
+                while(delta > 0){
+                    int ind = cur + blocksSize[cur];
+                    dp[i] = max(dp[i], ind + blocksSize[ind]-1);
+                    if(blocksSize[ind] == 1 && task[ind] + delta < i){
+                        task[ind] += delta;
                         delta = 0;
+                        blocks[task[ind]].PB(ind);
+                    }else{
+                        blocksSize[cur] += blocksSize[ind];
+                        delta -= (i-task[ind])*blocksSize[ind];
+                        startBlock[ind] = false;
                     }
                 }
-
-                if(ind == blocks.size()-1){
-                    ind++;
-                    break;
-                }
-
-                if(delta == 0){
-                    ind++;
-                    break;
-                }
-
-                //merge second
-                if(ind < blocks.size()-1){
-                    int b = blocks[ind] + blocksSize[blocks[ind]];
-                    if(blocksSize[b] == 1 && task[b] + delta < i){
-                        task[b] += delta;
-                        delta = 0;
-                        next.PB(b);
-                    }else{
-                        delta -= (i-task[b])*blocksSize[b];
-                        blocksSize[blocks[ind]] += blocksSize[b];
-                    }
-                    ind += 2;
-                }
-            }while(delta > 0 && ind < blocks.size());
-            
-        }
-
-        if(delta > 0){
-            int b = next.back() + blocksSize[next.back()];
-            int len = delta/i;
-            blocksSize[next.back()] += len;
-            delta -= len*i;
-            task[next.back()] = i;
-            if(delta > 0){
-                task[b + len] += delta;
-                delta = 0;
-                next.PB(b + len); 
             }
         }
-
-        blocks = next;
-        dp[i] = next.back() + blocksSize[next.back()]-1;
     }
 
     //get ans
