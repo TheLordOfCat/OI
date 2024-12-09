@@ -2,9 +2,6 @@
 #include <vector>
 #include <algorithm>
 
-#include <ctime>
-#include <cstdlib>
-
 using namespace std;
 
 using ll = long long int;
@@ -117,98 +114,58 @@ PII brute(){
 }
 
 PII solve(){
+    //sort
     vector<PII> pas = passengers;
     sort(pas.begin(), pas.end(), comparePasRed);
-    vector<vector<int>> groups;
-    vector<PII> boundary;
-    
-    //reduction
-    vector<PII> rightBoundary;
-    vector<PII> redPas;
-    for(int i = 0; i<pas.size(); i++){
-        if(rightBoundary.size() != 0 ){
-            while(pas[i].second <= rightBoundary.back().second){
-                rightBoundary.pop_back();
-                if(rightBoundary.size() == 0){
-                    break;
-                }
-            }
+
+    //find minimum ops
+    vector<PII> reduced, marked;
+    vector<vector<PII>> group;
+    PII curMar = MP(-1,-1);
+    for(int i =0 ; i<pas.size(); i++){
+        if(pas[i].first > curMar.second){
+            curMar = pas[i];
+            marked.PB(curMar);
+            group.PB(vector<PII>());
+            group.back().PB(curMar);
         }
-        rightBoundary.PB(pas[i]);
-    }
-
-    while(rightBoundary.size() != 0 ){
-        redPas.PB(rightBoundary.back());
-        rightBoundary.pop_back();
-    }
-
-    pas = redPas;
-
-    //iterating from left to right
-    sort(pas.begin(), pas.end(), comparePasLeft);
-    int left = pas.front().first;
-    int right = pas.front().second;
-    vector<int> g;
-    for(int i = 0; i < pas.size(); i++){
-        PII cur = pas[i];
-        if(cur.first < right){
-            left = cur.first;
-            g.push_back(i);
+        if(pas[i].second < curMar.second){
+            curMar = pas[i];
+            marked.back() = curMar;
+        }
+        if(pas[i].second < reduced.back().second){
+            reduced.back() = pas[i];
+            group.back().back() = pas[i];
         }else{
-            groups.PB(g);
-            boundary.PB(MP(left,right));
-            g.clear();
-
-            g.push_back(i);
-            left = cur.first;
-            right = cur.second;
+            reduced.PB(pas[i]);
+            group.back().PB(pas[i]);
         }
     }
+    int minOps = marked.size();
 
-    groups.PB(g);
-    boundary.PB(MP(left,right));
-    g.clear();
-
-    //dp by groups
-    vector<ll> dp(m+2, 0);
-    vector<ll> sufDp(m+1, 0);
-    for(int i = boundary.back().first; i< boundary.back().second; i++){
-        dp[i] = 1;
+    //process marked
+    vector<int> dp(m+1, 0), dpRange(m+1, 0);
+    for(int i = marked.back().first; i<=marked.back().second; i++){
+        dp[i]++;
+        dpRange[i] = dpRange[i-1] + 1;
     }
-    sufDp[boundary.back().second-1] = dp[boundary.back().second-1];
-    for(int i = boundary.back().second-2; i >= pas[groups.back().front()].first; i--){
-        sufDp[i] = (dp[i]+sufDp[i+1])%MOD;
-    }
-
-    for(int i = groups.size()-2; i>=0; i--){
-        vector<int> gr = groups[i];
-        vector<int> parts;
-        for(int j =0 ; j<gr.size(); j++){
-            parts.PB(pas[gr[j]].first);
-        }
-        parts.PB(boundary[i].second);
-
-        int ind = 0;
-        for(int j = parts.front(); j<parts.back(); j++){
-            while(j >= parts[ind+1]){
-                ind++;
-            }
-            if(ind < gr.size()-1){
-                dp[j] = (sufDp[boundary[i+1].first] - sufDp[pas[gr[ind+1]].second])%MOD;
-            }else{
-                dp[j] = (sufDp[boundary[i+1].first])%MOD;
+    for(int i = marked.size()-2; i>=0; i--){
+        for(int j = 1; j<group[i].size()-1; j++){
+            for(int o = group[i-1][j].first; o < group[i][j].first; o++){
+                int sol = 0;
+                if(group[i][j].second > marked[i+1].first){
+                    sol = dpRange[group[i][j].second] - dpRange[max(group[i-1][j].second, marked[i+1].first)];
+                }
+                dp[o] = sol;
+                dpRange[o] = dpRange[o-1]+sol;
             }
         }
-        sufDp[boundary[i].second-1] = dp[boundary[i].second-1];
-        for(int j = boundary[i].second-2; j>= pas[gr.front()].first; j--){
-            sufDp[j] = (dp[j] + sufDp[j+1])%MOD;
-        }  
     }
-    
-    //getting the ans
-    pair<int,ll> ans = MP(groups.size(), sufDp[pas.front().first]%MOD);
 
-    return ans;
+    //get ans
+    int comb = dpRange[marked[0].second];
+
+    return MP(minOps, comb);
 }
 
 int main()
