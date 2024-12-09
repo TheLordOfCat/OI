@@ -36,7 +36,7 @@ void getRandom(){
     srand(time(0));
 
     m = rand()%15+10;
-    n = rand()%5+4;
+    n = rand()%10+10;
 
     for(int i = 0; i<n; i++){
         int a = -1, b = -1;
@@ -119,25 +119,24 @@ PII solve(){
     sort(pas.begin(), pas.end(), comparePasRed);
 
     //find minimum ops
-    vector<PII> reduced, marked;
+    vector<PII> marked;
     vector<vector<PII>> group;
     PII curMar = MP(-1,-1);
     for(int i =0 ; i<pas.size(); i++){
-        if(pas[i].first > curMar.second){
+        if(pas[i].first >= curMar.second){ //create new group
             curMar = pas[i];
             marked.PB(curMar);
             group.PB(vector<PII>());
             group.back().PB(curMar);
-        }
-        if(pas[i].second < curMar.second){
-            curMar = pas[i];
-            marked.back() = curMar;
-        }
-        if(pas[i].second < reduced.back().second){
-            reduced.back() = pas[i];
-            group.back().back() = pas[i];
         }else{
-            reduced.PB(pas[i]);
+            if(pas[i].second < curMar.second){//reduce marked
+                curMar = pas[i];
+                marked.back() = curMar;
+            }
+            while(pas[i].second < group.back().back().second){ //reduce group
+                group.back().pop_back();
+                if(group.back().size() == 0) break;
+            }
             group.back().PB(pas[i]);
         }
     }
@@ -145,25 +144,30 @@ PII solve(){
 
     //process marked
     vector<int> dp(m+1, 0), dpRange(m+1, 0);
-    for(int i = marked.back().first; i<=marked.back().second; i++){
+    for(int i = group.back().back().first; i<marked.back().second; i++){
         dp[i]++;
         dpRange[i] = dpRange[i-1] + 1;
     }
     for(int i = marked.size()-2; i>=0; i--){
-        for(int j = 1; j<group[i].size()-1; j++){
-            for(int o = group[i-1][j].first; o < group[i][j].first; o++){
+        for(int j = 1; j<group[i].size(); j++){
+            for(int o = group[i][j-1].first; o < group[i][j].first; o++){ //limited parts
                 int sol = 0;
                 if(group[i][j].second > marked[i+1].first){
-                    sol = dpRange[group[i][j].second] - dpRange[max(group[i-1][j].second, marked[i+1].first)];
+                    sol = dpRange[min(group[i][j].second-1,marked[i+1].second-1)];
                 }
                 dp[o] = sol;
                 dpRange[o] = dpRange[o-1]+sol;
             }
+        }//the last part
+        for(int o = group[i].back().first; o<marked[i].second; o++){
+            int sol = dpRange[marked[i+1].second-1];
+            dp[o] = sol;
+            dpRange[o] = dpRange[o-1]+sol;
         }
     }
 
     //get ans
-    int comb = dpRange[marked[0].second];
+    int comb = dpRange[marked[0].second-1];
 
     return MP(minOps, comb);
 }
