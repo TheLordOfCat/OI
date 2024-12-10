@@ -58,8 +58,9 @@ PII solve(){
 
     //find minimum ops
     vector<PII> reduced;
+    reduced.PB(pas[0]);
     PII curMar = MP(-1,-1);
-    for(int i =0 ; i<pas.size(); i++){
+    for(int i =1; i<pas.size(); i++){
         while(pas[i].second < reduced.back().second){ //reduce group
             reduced.pop_back();
             if(reduced.size() == 0) break;
@@ -84,8 +85,8 @@ PII solve(){
     vector<vector<vector<int>>> groups;
     vector<PII> g(reduced.size(), MP(-1,-1));
     int mark = 0;
-    for(int i =0; i< range.size(); i++){
-        if(range[i][2] == mark){
+    for(int i = 0; i< range.size()-1; i++){
+        if(range[i][2] == marked[mark] && range[i][1] == 1){
             groups.PB(vector<vector<int>>());
             mark++;
         }else{
