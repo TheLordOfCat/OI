@@ -72,8 +72,8 @@ PII solve(){
     vector<int> marked;
     vector<vector<int>> range;
     for(int i = 0; i<reduced.size(); i++){
-        if(pas[i].first >= curMar.second){ //create new group
-            curMar = pas[i];
+        if(reduced[i].first >= curMar.second){ //create new group
+            curMar = reduced[i];
             marked.PB(i);
         }
         range.PB({reduced[i].first, 1,i});
@@ -92,14 +92,8 @@ PII solve(){
         if(range[i][2] == marked[mark] && range[i][1] == -1){
             groups.PB(vector<vector<int>>());
             mark++;
-        }
-        if(range[i][0] >= reduced[marked[mark]].first){
+        }else if(range[i][0] >= reduced[marked[mark]].first){
             groups.back().PB({range[i][2], range[i+1][2], range[i+1][0]-range[i][0]});
-            // if(range[i][1] == 1){
-            //     g[range[i][2]].first = groups.back().size()-1;
-            // }else{
-            //     g[range[i][2]].second = groups.back().size();
-            // }
             if(range[i+1][1] == 1){
                 g[range[i+1][2]].first = groups.back().size();
             }else{
@@ -117,7 +111,11 @@ PII solve(){
     for(int i = groups.size()-2; i>=0; i--){
         dp[i].PB(0);
         for(int j = 0; j<groups[i].size(); j++){
-            dp[i].PB(dp[i+1][g[groups[i][j][1]].second]);
+            if(reduced[groups[i][j][1]].second < reduced[groups[i+1].front()[0]].first){
+                dp[i].PB(dp[i+1].back()*groups[i][j][2] + dp[i].back());
+            }else{
+                dp[i].PB(dp[i+1][g[groups[i][j][1]].second]*groups[i][j][2] + dp[i].back());
+            }
         }
     }
 
