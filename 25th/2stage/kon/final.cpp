@@ -80,22 +80,26 @@ PII solve(){
         range.PB({reduced[i].second, -1,i});
     }
     int minOps = marked.size();
+    marked.PB(reduced.size());
+    reduced.PB(MP(INF,INF));
 
     sort(range.begin(), range.end(), compareRanges);
     vector<vector<vector<int>>> groups;
-    vector<PII> g(reduced.size(), MP(-1,-1));
+    groups.PB(vector<vector<int>>());
+    vector<PII> g(reduced.size()-1, MP(0,0));
     int mark = 0;
     for(int i = 0; i< range.size()-1; i++){
-        if(range[i][2] == marked[mark] && range[i][1] == 1){
+        if(range[i][2] == marked[mark] && range[i][1] == -1){
             groups.PB(vector<vector<int>>());
             mark++;
-        }else{
+        }
+        if(range[i][0] >= reduced[marked[mark]].first){
             groups.back().PB({range[i][2], range[i+1][2], range[i+1][0]-range[i][0]});
-            if(range[i][1] == 1){
-                g[range[i][2]].first = groups.back().size();
-            }else{
-                g[range[i][2]].second = groups.back().size();
-            }
+            // if(range[i][1] == 1){
+            //     g[range[i][2]].first = groups.back().size()-1;
+            // }else{
+            //     g[range[i][2]].second = groups.back().size();
+            // }
             if(range[i+1][1] == 1){
                 g[range[i+1][2]].first = groups.back().size();
             }else{
@@ -106,12 +110,14 @@ PII solve(){
 
     //process groups
     vector<vector<int>> dp(groups.size(), vector<int>());
+    dp.back().PB(0);
     for(int i = 0; i< groups.back().size(); i++){
         dp.back().PB(groups.back()[i][2]);
     }
     for(int i = groups.size()-2; i>=0; i--){
+        dp[i].PB(0);
         for(int j = 0; j<groups[i].size(); j++){
-            dp[i][j] = dp[i+1][g[groups[i][j][1]].second];
+            dp[i].PB(dp[i+1][g[groups[i][j][1]].second]);
         }
     }
 
