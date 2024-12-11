@@ -90,14 +90,18 @@ ll updateReq(int v, int l, int r, int mL, int mR, int s, int a){
         int len = mR-mL+1;
         ll change = ((s + (s+a*(len-1)))/2)*len;
         tree[v] += change;
-        seq[left(v)] = MP(s,a);
-        seq[right(v)] = MP(s+a*(len-1), a);
+        if(v < R){
+            seq[left(v)] = MP(s,a);
+            seq[right(v)] = MP(s+a*(len-1), a);
+        }
         return change;
     }else{
         int len = mR-mL+1;
         ll change = 0;
-        change += updateReq(left(v), l, r, mL, mL+len/2, s, a);
-        change += updateReq(right(v), l, r, mL+len/2+1, mR, s+a*(len/2+1), a);
+        if(v < R){
+            change += updateReq(left(v), l, r, mL, mL+len/2, s, a);
+            change += updateReq(right(v), l, r, mL+len/2+1, mR, s+a*(len/2+1), a);
+        }
         tree[v] += change;
         return change;
     }
@@ -118,15 +122,17 @@ ll queryRec(int v, int l, int r, int mL, int mR){
     if(v < R){
         seq[left(v)] += seq[v];
         seq[right(v)] += seq[v];
-        seq[v] = MP(0,0);
     }
+    seq[v] = MP(0,0);
 
     if(l <= mL && mR <= r){
         return tree[v];
     }else{
         ll change = 0;
-        change += queryRec(left(v), l, r, mL, mL+len/2);
-        change += queryRec(right(v), l, r, mL+len/2+1, mR);
+        if(v < R){
+            change += queryRec(left(v), l, r, mL, mL+len/2);
+            change += queryRec(right(v), l, r, mL+len/2+1, mR);
+        }
         return change;
     }
 }
@@ -138,6 +144,7 @@ ll query(int l, int r){
 vector<ll> solve(){
     vector<PII> poles(n+1, MP(0,0));
     vector<ll> ans;
+    buildTree();
 
     for(int i =0 ; i<m; i++){
         char type = get<0>(promts[i]);
