@@ -38,8 +38,8 @@ void getRandom(){
     // m = rand()%15+10;
     // n = rand()%10+10;
 
-    m = 15;
-    n = 5;
+    m = 30;
+    n = 10;
 
     for(int i = 0; i<n; i++){
         int a = -1, b = -1;
@@ -157,6 +157,7 @@ PII solve(){
     int minOps = marked.size();
 
     sort(range.begin(), range.end(), compareRanges);
+    vector<int> reduceA(reduced.size(), -1);
     vector<vector<vector<int>>> groups;
     groups.PB(vector<vector<int>>());
     vector<PII> g(reduced.size(), MP(0,0));
@@ -171,6 +172,7 @@ PII solve(){
             }else if(range[i][0] >= reduced[marked[mark]].first){
                 groups.back().PB({range[i][2], range[i+1][2], range[i+1][0]-range[i][0]});
                 if(range[i+1][1] == 1){
+                    reduceA[range[i+1][2]] = groups.size();
                     g[range[i+1][2]].first = groups.back().size();
                 }else{
                     g[range[i+1][2]].second = groups.back().size();
@@ -181,14 +183,20 @@ PII solve(){
 
     //process groups
     vector<vector<int>> dp(groups.size(), vector<int>());
-    for(int i =0 ; i<=groups.back().size()-1; i++){
+    for(int i =0 ; i<=groups.back().size(); i++){
         dp.back().PB(0);
     }
-    if(groups.back().size() > 1){
-        dp.back().PB(groups.back().back()[2] + dp.back().back());
-    }else{
-        dp.back().PB(groups.back().back()[2]);
+    dp.back().back() = groups.back().back()[2];
+    for(int i = groups.back().size()-2; i>=0; i--){
+        if(reduceA[groups.back()[i][1]] != groups.size()){
+            dp.back()[i+1] = groups.back()[i][2];
+        }
     }
+    for(int i = 1; i< dp.back().size(); i++){
+        dp.back()[i] += dp.back()[i-1];
+    }
+    
+
     for(int i = groups.size()-2; i>=0; i--){
         dp[i].PB(0);
         for(int j = 0; j<groups[i].size(); j++){
@@ -224,7 +232,7 @@ int main()
     int z = 1;
     // cin>>z;
     for(int o = 0; o<z; o++){
-        for(int test = 1; test<=100; test++){
+        for(int test = 1; test<=1000; test++){
             cout<<"TEST nr."<<test<<" = ";
             if(op == 1){
                 getData();

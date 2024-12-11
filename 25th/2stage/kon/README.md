@@ -3,4 +3,4 @@
 Szkopuł: https://oi.edu.pl/pl/archive/oi/25/kon <br />
 Solution: https://youtu.be/O2DMfpmznSs <br />
 Time Complexity: O(nlogn + m)<br />
-Points: 0 <br />
+Points: 20 <br />

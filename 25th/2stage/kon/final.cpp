@@ -82,6 +82,7 @@ PII solve(){
     int minOps = marked.size();
 
     sort(range.begin(), range.end(), compareRanges);
+    vector<int> reduceA(reduced.size(), -1);
     vector<vector<vector<int>>> groups;
     groups.PB(vector<vector<int>>());
     vector<PII> g(reduced.size(), MP(0,0));
@@ -96,6 +97,7 @@ PII solve(){
             }else if(range[i][0] >= reduced[marked[mark]].first){
                 groups.back().PB({range[i][2], range[i+1][2], range[i+1][0]-range[i][0]});
                 if(range[i+1][1] == 1){
+                    reduceA[range[i+1][2]] = groups.size();
                     g[range[i+1][2]].first = groups.back().size();
                 }else{
                     g[range[i+1][2]].second = groups.back().size();
@@ -109,31 +111,40 @@ PII solve(){
     for(int i =0 ; i<=groups.back().size(); i++){
         dp.back().PB(0);
     }
-    for(int i = groups.back().size()-1; i>=0; i--){
-        if(groups.back()[i][1] )
+    dp.back().back() = groups.back().back()[2];
+    for(int i = groups.back().size()-2; i>=0; i--){
+        if(reduceA[groups.back()[i][1]] != groups.size()){
+            dp.back()[i+1] = groups.back()[i][2];
+        }
+    }
+    for(int i = 1; i< dp.back().size(); i++){
+        dp.back()[i] += dp.back()[i-1];
     }
     
 
     for(int i = groups.size()-2; i>=0; i--){
         dp[i].PB(0);
-        for(int j = 0; j<groups[i].size(); j++){
-            if(i == 0 && j <groups[i].size()-1){
-                if(reduced[groups[i][j][1]].second < reduced[groups[i+1].front()[0]].first){
+        for(int j = 0; j<groups[i].size()-1; j++){
+            // if(i == 0 && j <groups[i].size()-1){
+            //     if(reduced[groups[i][j][1]].second < reduced[groups[i+1].front()[0]].first){
+            //         dp[i].PB(0 + dp[i].back());
+            //     }else{
+            //         int next = dp[i+1][g[groups[i][j][1]].second];
+            //         dp[i].PB(next*groups[i][j][2] + dp[i].back());
+            //     }
+            // }else{
+                if(reduced[groups[i][j][1]].second <= reduced[groups[i+1].front()[0]].first){
+                    // int next = dp[i+1].back();
+                    // dp[i].PB(next*groups[i][j][2] + dp[i].back());
                     dp[i].PB(0 + dp[i].back());
                 }else{
                     int next = dp[i+1][g[groups[i][j][1]].second];
                     dp[i].PB(next*groups[i][j][2] + dp[i].back());
                 }
-            }else{
-                if(reduced[groups[i][j][1]].second <= reduced[groups[i+1].front()[0]].first){
-                    int next = dp[i+1].back();
-                    dp[i].PB(next*groups[i][j][2] + dp[i].back());
-                }else{
-                    int next = dp[i+1][g[groups[i][j][1]].second];
-                    dp[i].PB(next*groups[i][j][2] + dp[i].back());
-                }
-            }
+            // }
         }
+        int next = dp[i+1].back();
+        dp[i].PB(next*groups[i].back()[2] + dp[i].back());
     }
 
     int comb = dp.front().back();
