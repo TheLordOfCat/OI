@@ -3,17 +3,14 @@
 #include <tuple>
 #include <algorithm>
 
-#include <ctime>
-#include <cstdlib>
+using namespace std;
 
 using ll = long long int;
 using ull = unsigned long long int;
 
 const int INF = 2'000'000'000;
-const int llINF = 9'000'000'000'000'000'000;
-const int ullINF = 18'000'000'000'000'000'000;
-
-using namespace std;
+const ll llINF = 9'000'000'000'000'000'000;
+const ull ullINF = 18'000'000'000'000'000'000;
 
 #define MP make_pair
 #define PII pair<int,int>
@@ -22,18 +19,6 @@ using namespace std;
 
 int n, m;
 vector<tuple<char,int,int,int>> promts;
-
-PII& operator+=(PII& lhs, const PII& rhs) {
-    lhs.first += rhs.first;
-    lhs.second += rhs.second;
-    return lhs;
-}
-
-pair<ll, ll>& operator+=(pair<ll, ll>& lhs, const pair<ll, ll>& rhs) {
-    lhs.first += rhs.first;
-    lhs.second += rhs.second;
-    return lhs;
-}
 
 void getData(){
     promts.clear();
@@ -59,131 +44,134 @@ void getData(){
     }
 }
 
+PII& operator+=(PII& lhs, const PII& rhs) {
+    lhs.first += rhs.first;
+    lhs.second += rhs.second;
+    return lhs;
+}
+
 vector<ll> tree;
-vector<pair<ll,ll>> lazy;
-ll R = 0;
-int depth = 0;
-ll totalSize = 0;
+vector<PII> seq;
+int R;
 
 int left(int v){
-    return 2*v;
+    return v*2;
 }
 
 int right(int v){
-    return 2*v+1;
-}
-
-int leaf(int v){
-    return R+v;
+    return v*2+1;
 }
 
 int parent(int v){
     return v/2;
 }
 
-void upateTree(int v, int tl, int tr, int l, int r, ll s, ll a){
-    if(l > r || tl > r || tr < l) return;
+int leaf(int v){
+    return R+v;
+}
 
-    int mid = (tl+tr)/2;
-    if(tl == l && tr == r){
-        if(v < R){
-            lazy[left(v)] += MP(s,a);
-            lazy[right(v)] += MP(s+(a*(mid-l+1)), a);
-        }
+void buildTree(){
+    R = 0;
+    int depth = 0;
+    while((1<<depth) < n){
+        R += 1<<depth;
+        depth++;
+    }
+    tree.assign(R+(1<<depth), 0);
+    seq.assign(R+(1<<depth), MP(0,0));
+}
 
-        ll sum = 0;
-        for(ll i = 0; i<(tr-tl+1); i++){
-            sum += s+ a*i;
-        }
-        tree[v] += sum;
+ll updateReq(int v, int l, int r, int mL, int mR, int s, int a){
+    if(mR < l || mL > r){
+        return 0;
+    }
+
+    if(l >= mL && mR <= r){
+        int len = mR-mL+1;
+        ll change = ((s + (s+a*(len-1)))/2)*len;
+        tree[v] += change;
+        seq[left(v)] = MP(s,a);
+        seq[right(v)] = MP(s+a*(len-1), a);
+        return change;
     }else{
-        upateTree(left(v), tl, mid, l, min(r, mid), s, a);   
-        if(mid >= l){
-            upateTree(right(v), mid+1, tr, max(l, mid+1), r, s + (mid-l+1)*a, a);   
-        }else{
-            upateTree(right(v), mid+1, tr, max(l, mid+1), r, s, a);   
-        }
-        tree[v] = tree[left(v)] + tree[right(v)];
+        int len = mR-mL+1;
+        ll change = 0;
+        change += updateReq(left(v), l, r, mL, mL+len/2, s, a);
+        change += updateReq(right(v), l, r, mL+len/2+1, mR, s+a*(len/2+1), a);
+        tree[v] += change;
+        return change;
     }
 }
 
-ll query(int v, int tl, int tr, int l, int r){
-    if(l > r) return 0;
-    int mid = (tl+tr)/2;
-    if(lazy[v].first != 0 && lazy[v].second != 0){
-        ll s = lazy[v].first;
-        ll a = lazy[v].second;
+void updateSeq(int l, int r, int s, int a){
+    updateReq(1, l, r, 1, n, s, a);
+}
 
-        ll sum = 0;
-        for(ll i = 0; i<(tr-tl+1); i++){
-            sum += s+ a*i;
-        }
-        tree[v] += sum;
-
-        if(v < R){
-            lazy[left(v)] += MP(s,a);
-            lazy[right(v)] += MP(s+(a*(mid)), a); 
-        }
+ll queryRec(int v, int l, int r, int mL, int mR){
+    if(mR < l || mL > r){
+        return 0;
     }
-    lazy[v].first = 0; lazy[v].second = 0;
 
-    if(tl == l && tr == r){
+    int s = seq[v].first, a = seq[v].second;
+    int len = mR-mL+1;
+    tree[v] += ((s + (s+a*(len-1)))/2)*len;
+    if(v < R){
+        seq[left(v)] += seq[v];
+        seq[right(v)] += seq[v];
+        seq[v] = MP(0,0);
+    }
+
+    if(l <= mL && mR <= r){
         return tree[v];
     }else{
-        return query(left(v), tl, mid, l, min(r, mid)) + query(right(v), mid+1, tr, max(l, mid+1), r);
+        ll change = 0;
+        change += queryRec(left(v), l, r, mL, mL+len/2);
+        change += queryRec(right(v), l, r, mL+len/2+1, mR);
+        return change;
     }
+}
+
+ll query(int l, int r){
+    return queryRec(1,l,r,1,n);
 }
 
 vector<ll> solve(){
-    tree.clear();
-    lazy.clear();
-    R = 0;
-    depth = 0;
-    totalSize = 0;
-
-    //building the tree
-    while((1<<depth) < n){
-        R += (1<<depth);
-        depth++;
-    } 
-    totalSize = R + (1<<depth);
-    tree.assign(totalSize+1, 0);
-    lazy.assign(totalSize+1, MP(0,0));
-
-    //getting the ans
-    vector<pair<ll,ll>> poles(n+1, MP(0,0));
+    vector<PII> poles(n+1, MP(0,0));
     vector<ll> ans;
-    for(int i = 0; i<m; i++){
-        char t = get<0>(promts[i]);
-        int a = get<1>(promts[i]), b = get<2>(promts[i]), c = get<3>(promts[i]); 
-        if(t == 'P'){
-            ll len = b/c;
-            if(b%c == 0){
-                len--;
-            }
-            
-            upateTree(1,R+1, totalSize, leaf(a)-len, leaf(a), b-len*c, c);
-            upateTree(1,R+1, totalSize, leaf(a)+1, leaf(a)+len, b-c, c*(-1));
 
-            poles[a] = MP(b,c);
-        }
-        if(t == 'U'){
-            b = poles[a].first, c = poles[a].second; 
-            ll len = b/c;
-            if(b%c == 0){
-                len--;
+    for(int i =0 ; i<m; i++){
+        char type = get<0>(promts[i]);
+        if(type == 'P'){
+            int x = get<1>(promts[i]), s = get<2>(promts[i]), a = get<3>(promts[i]);
+            poles[x] = MP(s,a);
+            int left = x-s/a, right = x+s/a;
+            if(s%a != 0){
+                left--;
+                right++;
             }
-            upateTree(1,R+1, totalSize, leaf(a)-len, leaf(a), (b-len*c)*(-1), c*(-1));
-            upateTree(1,R+1, totalSize, leaf(a)+1, leaf(a)+len, b*(-1) + c, c);
 
-            poles[a] = MP(0,0);
+            updateSeq(left, x, a, a);
+            updateSeq(x+1, right, s-a, (-1)*a);
         }
-        if(t == 'Z'){
-            ll temp = query(1,R+1, totalSize, leaf(a), leaf(b));
-            ans.PB(temp/(b-a+1));
+        if(type == 'U'){
+            int x = get<1>(promts[i]);
+            int s = poles[x].first, a = poles[x].second;
+
+            int left = x-s/a, right = x+s/a;
+            if(s%a != 0){
+                left--;
+                right++;
+            }
+
+            updateSeq(left, x, (-1)*a, (-1)*a);
+            updateSeq(x+1, right, (-1)*(s-a), a);
+        }
+        if(type =='Z'){
+            int x1 = get<1>(promts[i]), x2 = get<2>(promts[i]);
+            int sum = query(x1,x2);
+            ans.PB(sum/(x2-x1+1));
         }
     }
-
     return ans;
 }
 
