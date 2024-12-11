@@ -120,31 +120,21 @@ PII solve(){
     for(int i = 1; i< dp.back().size(); i++){
         dp.back()[i] += dp.back()[i-1];
     }
-    
 
     for(int i = groups.size()-2; i>=0; i--){
-        dp[i].PB(0);
-        for(int j = 0; j<groups[i].size()-1; j++){
-            // if(i == 0 && j <groups[i].size()-1){
-            //     if(reduced[groups[i][j][1]].second < reduced[groups[i+1].front()[0]].first){
-            //         dp[i].PB(0 + dp[i].back());
-            //     }else{
-            //         int next = dp[i+1][g[groups[i][j][1]].second];
-            //         dp[i].PB(next*groups[i][j][2] + dp[i].back());
-            //     }
-            // }else{
-                if(reduced[groups[i][j][1]].second <= reduced[groups[i+1].front()[0]].first){
-                    // int next = dp[i+1].back();
-                    // dp[i].PB(next*groups[i][j][2] + dp[i].back());
-                    dp[i].PB(0 + dp[i].back());
-                }else{
-                    int next = dp[i+1][g[groups[i][j][1]].second];
-                    dp[i].PB(next*groups[i][j][2] + dp[i].back());
-                }
-            // }
+        for(int j =0 ; j<=groups[i].size(); j++){
+            dp[i].PB(0);
         }
-        int next = dp[i+1].back();
-        dp[i].PB(next*groups[i].back()[2] + dp[i].back());
+        dp[i].back() = groups[i].back()[2]*dp[i+1].back();
+        for(int j = groups[i].size()-2; j>=0; j--){
+            if(reduceA[groups[i][j][1]] != i+1 && reduced[groups[i][j][1]].second > reduced[groups[i+1].front().front()].first){
+                int next = dp[i+1][g[groups[i][j][1]].second];
+                dp[i][j+1] = groups[i][j][2]*next;
+            }
+        }
+        for(int j = 1; j< dp.back().size(); j++){
+            dp.back()[j] += dp.back()[j-1];
+        }
     }
 
     int comb = dp.front().back();
