@@ -77,8 +77,8 @@ void buildTree(){
         R += 1<<depth;
         depth++;
     }
-    tree.assign(R+(1<<depth), 0);
-    seq.assign(R+(1<<depth), MP(0,0));
+    tree.assign(R+(1<<depth)+1, 0);
+    seq.assign(R+(1<<depth)+1, MP(0,0));
 }
 
 ll updateReq(int v, int l, int r, int mL, int mR, int s, int a){
@@ -91,18 +91,16 @@ ll updateReq(int v, int l, int r, int mL, int mR, int s, int a){
         ll start = s + a*(mL-l), end = s + a*(mR-l);
         ll change = ((start + end)*len/2);
         tree[v] += change;
-        if(v < R){
+        if(v <= R){
             seq[left(v)] += MP(start,a);
             ll temp = start+a*(len/2);
-            if(temp > 0){
-                seq[right(v)] += MP(s+a*(len/2), a);
-            }
+            seq[right(v)] += MP(temp, a);
         }
         return change;
     }else{
         int len = mR-mL+1;
         ll change = 0;
-        if(v < R){
+        if(v <= R){
             int mid = mL+len/2-1;
             change += updateReq(left(v), l, r, mL, mid, s, a);
             change += updateReq(right(v), l, r, mid+1, mR, s, a);
@@ -126,7 +124,7 @@ ll queryRec(int v, int l, int r, int mL, int mR){
     ll start = s, end = s + a*(len-1);
     ll change = ((start + end)*len/2);
     tree[v] += change;
-    if(v < R){
+    if(v <= R){
         seq[left(v)] += MP(s,a);
         seq[right(v)] += MP(s+a*(len/2), a);
     }
@@ -136,7 +134,7 @@ ll queryRec(int v, int l, int r, int mL, int mR){
         return tree[v];
     }else{
         change = 0;
-        if(v < R){
+        if(v <= R){
             int mid = mL+len/2-1;
             change += queryRec(left(v), l, r, mL, mid);
             change += queryRec(right(v), l, r, mid+1, mR);
@@ -159,26 +157,22 @@ vector<ll> solve(){
         if(type == 'P'){
             int x = get<1>(promts[i]), s = get<2>(promts[i]), a = get<3>(promts[i]);
             poles[x] = MP(s,a);
-            int left = x-s/a, right = x+s/a;
-            if(s%a != 0){
-                left--;
-                right++;
-            }
+            int left = max(x-s/a,1), right = x+s/a;
+            right = min(right,n);
+            ll leftVal = s-(x-left)*a;
 
-            updateSeq(left, x, 0, a);
+            updateSeq(left, x, leftVal, a);
             updateSeq(x+1, right, s-a, (-1)*a);
         }
         if(type == 'U'){
             int x = get<1>(promts[i]);
             int s = poles[x].first, a = poles[x].second;
 
-            int left = x-s/a, right = x+s/a;
-            if(s%a != 0){
-                left--;
-                right++;
-            }
+            int left = max(x-s/a,1), right = x+s/a;
+            right = min(right,n);
+            ll leftVal = s-(x-left)*a;
 
-            updateSeq(left, x, 0, (-1)*a);
+            updateSeq(left, x, leftVal*(-1), (-1)*a);
             updateSeq(x+1, right, (-1)*(s-a), a);
         }
         if(type =='Z'){

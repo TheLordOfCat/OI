@@ -49,8 +49,8 @@ void getRandom(){
     
     srand(time(0));
 
-    n = rand()%10+2;
-    m = rand()%5+1;
+    n = rand()%14+2;
+    m = rand()%10+1;
     vector<bool> stations(n+1, false);
     int curStations = 0;
     for(int i = 0; i<m; i++){
@@ -62,9 +62,10 @@ void getRandom(){
                 t = 'U';
                 a = rand()%n+1;
                 while(!stations[a]){
-                    stations[a] = false;
-                    curStations--;
+                    a = rand()%n+1;
                 }
+                stations[a] = false;
+                curStations--;
                 b = -1;
                 c = -1;
             }else{
@@ -78,6 +79,7 @@ void getRandom(){
             while(stations[a]){
                 a = rand()%n+1;
             }
+            stations[a] = true;
             b = rand()%20+5;
             c = rand()%5+5;
             curStations++;
@@ -87,7 +89,7 @@ void getRandom(){
             t = 'Z';
             a = -1;
             b = -1;
-            while(a != b){
+            while(a == b){
                 a = rand()%n+1;
                 b = rand()%n+1;
             }
@@ -204,8 +206,8 @@ void buildTree(){
         R += 1<<depth;
         depth++;
     }
-    tree.assign(R+(1<<depth), 0);
-    seq.assign(R+(1<<depth), MP(0,0));
+    tree.assign(R+(1<<depth)+1, 0);
+    seq.assign(R+(1<<depth)+1, MP(0,0));
 }
 
 ll updateReq(int v, int l, int r, int mL, int mR, int s, int a){
@@ -213,25 +215,32 @@ ll updateReq(int v, int l, int r, int mL, int mR, int s, int a){
         return 0;
     }
 
-    if(l >= mL && mR <= r){
-        int len = mR-mL+1;
-        ll change = ((s + (s+a*(len-1)))/2)*len;
+    if(l <= mL && mR <= r){
+        ll len = mR-mL+1;
+        ll start = s + a*(mL-l), end = s + a*(mR-l);
+        ll change = ((start + end)*len/2);
         tree[v] += change;
-        seq[left(v)] = MP(s,a);
-        seq[right(v)] = MP(s+a*(len-1), a);
+        if(v <= R){
+            seq[left(v)] += MP(start,a);
+            ll temp = start+a*(len/2);
+            seq[right(v)] += MP(temp, a);
+        }
         return change;
     }else{
         int len = mR-mL+1;
         ll change = 0;
-        change += updateReq(left(v), l, r, mL, mL+len/2, s, a);
-        change += updateReq(right(v), l, r, mL+len/2+1, mR, s+a*(len/2+1), a);
+        if(v <= R){
+            int mid = mL+len/2-1;
+            change += updateReq(left(v), l, r, mL, mid, s, a);
+            change += updateReq(right(v), l, r, mid+1, mR, s, a);
+        }
         tree[v] += change;
         return change;
     }
 }
 
 void updateSeq(int l, int r, int s, int a){
-    updateReq(1, l, r, 1, n, s, a);
+    updateReq(1, l, r, 1, R+1, s, a);
 }
 
 ll queryRec(int v, int l, int r, int mL, int mR){
@@ -240,76 +249,77 @@ ll queryRec(int v, int l, int r, int mL, int mR){
     }
 
     int s = seq[v].first, a = seq[v].second;
-    int len = mR-mL+1;
-    tree[v] += ((s + (s+a*(len-1)))/2)*len;
-    if(v < R){
-        seq[left(v)] += seq[v];
-        seq[right(v)] += seq[v];
-        seq[v] = MP(0,0);
+    ll len = mR-mL+1;
+    ll start = s, end = s + a*(len-1);
+    ll change = ((start + end)*len/2);
+    tree[v] += change;
+    if(v <= R){
+        seq[left(v)] += MP(s,a);
+        seq[right(v)] += MP(s+a*(len/2), a);
     }
+    seq[v] = MP(0,0);
 
     if(l <= mL && mR <= r){
         return tree[v];
     }else{
-        ll change = 0;
-        change += queryRec(left(v), l, r, mL, mL+len/2);
-        change += queryRec(right(v), l, r, mL+len/2+1, mR);
+        change = 0;
+        if(v <= R){
+            int mid = mL+len/2-1;
+            change += queryRec(left(v), l, r, mL, mid);
+            change += queryRec(right(v), l, r, mid+1, mR);
+        }
         return change;
     }
 }
 
 ll query(int l, int r){
-    return queryRec(1,l,r,1,n);
+    return queryRec(1,l,r,1,R+1);
 }
 
 vector<ll> solve(){
     vector<PII> poles(n+1, MP(0,0));
     vector<ll> ans;
+    buildTree();
 
     for(int i =0 ; i<m; i++){
         char type = get<0>(promts[i]);
         if(type == 'P'){
             int x = get<1>(promts[i]), s = get<2>(promts[i]), a = get<3>(promts[i]);
             poles[x] = MP(s,a);
-            int left = x-s/a, right = x+s/a;
-            if(s%a != 0){
-                left--;
-                right++;
-            }
+            int left = max(x-s/a,1), right = x+s/a;
+            right = min(right,n);
+            ll leftVal = s-(x-left)*a;
 
-            updateSeq(left, x, a, a);
+            updateSeq(left, x, leftVal, a);
             updateSeq(x+1, right, s-a, (-1)*a);
         }
         if(type == 'U'){
             int x = get<1>(promts[i]);
             int s = poles[x].first, a = poles[x].second;
 
-            int left = x-s/a, right = x+s/a;
-            if(s%a != 0){
-                left--;
-                right++;
-            }
+            int left = max(x-s/a,1), right = x+s/a;
+            right = min(right,n);
+            ll leftVal = s-(x-left)*a;
 
-            updateSeq(left, x, (-1)*a, (-1)*a);
+            updateSeq(left, x, leftVal*(-1), (-1)*a);
             updateSeq(x+1, right, (-1)*(s-a), a);
         }
         if(type =='Z'){
             int x1 = get<1>(promts[i]), x2 = get<2>(promts[i]);
-            int sum = query(x1,x2);
+            ll sum = query(x1,x2);
             ans.PB(sum/(x2-x1+1));
         }
     }
     return ans;
 }
 
-
 int main()
 {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
-    for(int test = 1; test <= 1; test++){
+    int op = 0;
+    for(int test = 1; test <= 1000000; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
