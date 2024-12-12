@@ -86,21 +86,26 @@ ll updateReq(int v, int l, int r, int mL, int mR, int s, int a){
         return 0;
     }
 
-    if(l >= mL && mR <= r){
-        int len = mR-mL+1;
-        ll change = ((s + (s+a*(len-1)))/2)*len;
+    if(l <= mL && mR <= r){
+        ll len = mR-mL+1;
+        ll start = s + a*(mL-l), end = s + a*(mR-l);
+        ll change = ((start + end)*len/2);
         tree[v] += change;
         if(v < R){
-            seq[left(v)] = MP(s,a);
-            seq[right(v)] = MP(s+a*(len-1), a);
+            seq[left(v)] += MP(start,a);
+            ll temp = start+a*(len/2);
+            if(temp > 0){
+                seq[right(v)] += MP(s+a*(len/2), a);
+            }
         }
         return change;
     }else{
         int len = mR-mL+1;
         ll change = 0;
         if(v < R){
-            change += updateReq(left(v), l, r, mL, mL+len/2, s, a);
-            change += updateReq(right(v), l, r, mL+len/2+1, mR, s+a*(len/2+1), a);
+            int mid = mL+len/2-1;
+            change += updateReq(left(v), l, r, mL, mid, s, a);
+            change += updateReq(right(v), l, r, mid+1, mR, s, a);
         }
         tree[v] += change;
         return change;
@@ -108,7 +113,7 @@ ll updateReq(int v, int l, int r, int mL, int mR, int s, int a){
 }
 
 void updateSeq(int l, int r, int s, int a){
-    updateReq(1, l, r, 1, n, s, a);
+    updateReq(1, l, r, 1, R+1, s, a);
 }
 
 ll queryRec(int v, int l, int r, int mL, int mR){
@@ -117,28 +122,31 @@ ll queryRec(int v, int l, int r, int mL, int mR){
     }
 
     int s = seq[v].first, a = seq[v].second;
-    int len = mR-mL+1;
-    tree[v] += ((s + (s+a*(len-1)))/2)*len;
+    ll len = mR-mL+1;
+    ll start = s, end = s + a*(len-1);
+    ll change = ((start + end)*len/2);
+    tree[v] += change;
     if(v < R){
-        seq[left(v)] += seq[v];
-        seq[right(v)] += seq[v];
+        seq[left(v)] += MP(s,a);
+        seq[right(v)] += MP(s+a*(len/2), a);
     }
     seq[v] = MP(0,0);
 
     if(l <= mL && mR <= r){
         return tree[v];
     }else{
-        ll change = 0;
+        change = 0;
         if(v < R){
-            change += queryRec(left(v), l, r, mL, mL+len/2);
-            change += queryRec(right(v), l, r, mL+len/2+1, mR);
+            int mid = mL+len/2-1;
+            change += queryRec(left(v), l, r, mL, mid);
+            change += queryRec(right(v), l, r, mid+1, mR);
         }
         return change;
     }
 }
 
 ll query(int l, int r){
-    return queryRec(1,l,r,1,n);
+    return queryRec(1,l,r,1,R+1);
 }
 
 vector<ll> solve(){
@@ -157,7 +165,7 @@ vector<ll> solve(){
                 right++;
             }
 
-            updateSeq(left, x, a, a);
+            updateSeq(left, x, 0, a);
             updateSeq(x+1, right, s-a, (-1)*a);
         }
         if(type == 'U'){
@@ -170,12 +178,12 @@ vector<ll> solve(){
                 right++;
             }
 
-            updateSeq(left, x, (-1)*a, (-1)*a);
+            updateSeq(left, x, 0, (-1)*a);
             updateSeq(x+1, right, (-1)*(s-a), a);
         }
         if(type =='Z'){
             int x1 = get<1>(promts[i]), x2 = get<2>(promts[i]);
-            int sum = query(x1,x2);
+            ll sum = query(x1,x2);
             ans.PB(sum/(x2-x1+1));
         }
     }
