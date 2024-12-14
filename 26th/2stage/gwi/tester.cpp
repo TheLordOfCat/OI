@@ -36,12 +36,12 @@ void getRandom(){
 
     srand(time(0));
 
-    n = rand()%10+1;
+    n = rand()%10+5;
     s = rand()%n+1;
     for(int i = 0; i<n-1; i++){
         int a, b;
-        a = rand()%10+1;
-        b = rand()%10+1;
+        a = rand()%150+1;
+        b = rand()%150+1;
         opsCost.PB(MP(a,b));
     }
 }
@@ -132,9 +132,13 @@ PIV checkBrute(vector<int> ops){
             con.second++;
         }else{
             ok = getMovesBrute(ans, firstOps, con, Q);
+            if(!ok){
+                return MP(INF,vector<int>());
+            }
             con = MP(ops[i],1);
         }
     }
+    
     ok = getMovesBrute(ans, firstOps, con, Q);
 
     if(!ok){
@@ -175,8 +179,144 @@ PIV brute(){
     return ans;
 }
 
-PULLV solve(){
+void correctOps(vector<int>& ops, PII con){
+    if(con.first == 0){
+        PII minOps = MP(-1, INF);
+        for(int i = 0; i <= s-1; i++){
+            if(minOps.second > opsCost[i].second){
+                minOps = MP(i,opsCost[i].second);
+            }
+            if(opsCost[i].first == opsCost[i].second){
+                minOps = MP(i,opsCost[i].second);
+                break;
+            }
+        }        
+        ops[minOps.first] = 1;
+    }else{
+        PII minOps = MP(-1, INF);
+        for(int i = 0; i <= n-s; i++){
+            if(minOps.second > opsCost[i].first){
+                minOps = MP(i,opsCost[i].first);
+            }
+            if(opsCost[i].first == opsCost[i].second){
+                minOps = MP(i,opsCost[i].second);
+                break;
+            }
+        }        
+        ops[minOps.first] = 0;
+    }
+}
 
+void updateMoves(PII con, PULLV& ans, deque<int>& Q){
+    vector<int> moves;
+    if(con.first == 0){
+        for(int i = 0; i<con.second; i++){
+            if(Q.front() == s){
+                i--;
+            }else{
+                moves.PB(Q.front());
+            }
+            Q.pop_front();
+        }
+    }else{
+        for(int i = 0; i<con.second; i++){
+            if(Q.back() == s){
+                i--;
+            }else{
+                moves.PB(Q.back());
+            }
+            Q.pop_back();
+        }
+    }
+
+    while(moves.size() > 0){
+        ans.second.PB(moves.back());
+        moves.pop_back();
+    }
+}
+
+PULLV process(vector<int>& ops){
+    //first consecutive
+    PII firstCon = MP(ops.front(), 1);
+    for(int i = 1; i<ops.size(); i++){
+        if(ops[i] == firstCon.first){
+            firstCon.second++;
+        }else{
+            break;
+        }
+    }
+
+    //correct if needed
+    if(firstCon.first == 0){
+        if(firstCon.second > s-1){
+            correctOps(ops, firstCon);
+        }
+    }else{
+        if(firstCon.second > n-s){
+            correctOps(ops, firstCon);            
+        }
+    }
+
+    //finish
+    PULLV ans = MP(0, vector<int>());
+    ans.second.PB(s);
+    PII con = MP(ops.front(), 1);
+    deque<int> Q;
+    for(int i = 1; i<=n; i++) Q.PB(i);
+
+    for(int i = 1; i<ops.size(); i++){
+        if(ops[i] == con.first){
+            con.second++;
+        }else{
+            updateMoves(con,ans,Q);
+            con = MP(ops[i],1);
+        }
+    }
+    updateMoves(con,ans,Q);
+
+    for(int i = 0; i<ops.size(); i++){
+        if(ops[i] == 0){
+            ans.first += opsCost[i].first;
+        }else{
+            ans.first += opsCost[i].second;
+        }
+    }
+
+    return ans;
+}
+
+PULLV solve(){
+    vector<int> ops;
+    for(int i = 0; i<opsCost.size(); i++){
+        if(opsCost[i].first <= opsCost[i].second){
+            ops.PB(0);
+        }else{
+            ops.PB(1);
+        }
+    }
+
+    bool twoType = true;
+    for(int i = 0; i<min(s, n-s); i++){
+        if(opsCost[i].first != opsCost[i].second){
+            twoType = false;
+        }
+    }
+
+    PULLV ans;
+    if(twoType){
+        ans = process(ops);
+        for(int i =0; i< min(s,n-s); i++){
+            ops[i] = 1;
+        }
+        PULLV temp = process(ops);
+        if(temp.first < ans.first){
+            ans = temp;
+        }
+    }else{
+        ans = process(ops);
+    }
+
+    return ans;
 }
 
 int main()
@@ -184,9 +324,9 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
-    for(int test = 1; test<=1; test++){
-        cout<<"TEST nr."<<test<<"\n";
+    int op = 0;
+    for(int test = 1; test<=100000; test++){
+        cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
         }else{
