@@ -4,6 +4,7 @@
 #include <stack>
 #include <queue>
 #include <tuple>
+#include <cmath>
 
 using ll = long long int;
 using ull = unsigned long long int;
@@ -69,7 +70,7 @@ void printData(){
     return ;
 }
 
-vector<int> numerate(vector<vector<PII>>& graph){
+vector<int> numerate(vector<vector<pair<int,ll>>>& graph){
     stack<int> S;
     S.push(1);
 
@@ -94,6 +95,28 @@ vector<int> numerate(vector<vector<PII>>& graph){
     return order;
 }
 
+vector<ll> getLenD(vector<vector<pair<int,ll>>>& graph){
+    stack<int> S;
+    S.push(1);
+    vector<ll> ans(n+1, -1);
+    ans[1] = 0;
+
+    while(!S.empty()){
+        int v = S.top();
+        S.pop();
+
+        for(int i = 0; i<graph[v].size(); i++){
+            PII cur = graph[v][i];
+            if(ans[cur.first] == -1){
+                ans[cur.first] = ans[v]+cur.second;
+                S.push(cur.first);
+            }
+        }
+    }
+
+    return ans;
+}
+
 bool customPairComp(PII a, PII b){
     if(a.first == b.first){
         return a.second < b.second;
@@ -101,13 +124,208 @@ bool customPairComp(PII a, PII b){
     return a.first < b.first;
 }
 
-void process(PII con, vector<bool>& used, vector<int>& poi, vector<ll>& ans, vector<int>& order){
+vector<int> tin, tout;
+vector<vector<int>> up;
+int l;
 
+bool isAncestor(int v, int u){
+    return tin[u] <= tin[v] && tout[u] >= tout[v];
+}
+
+int lca(int v, int u){
+    if(isAncestor(v, u)){
+        return u;
+    }
+    if(isAncestor(u,v)){
+        return v;
+    }
+    for(int i = l; i>=0; i--){
+        if(!isAncestor(up[u][i], v)){
+            u = up[u][i];
+        }
+    }
+    return up[u][0];
+}
+
+void dfs(vector<vector<pair<int,ll>>> &graph){
+    stack<pair<int,bool>> S;
+    int timer = 0;
+    vector<bool> used(n+1, false);
+
+    S.push(MP(1,false));
+    while(!S.empty()){
+        pair<int,bool> v = S.top();
+        S.pop();
+        if(v.second){
+            tout[v.first] = timer;
+            timer++;
+            continue;
+        }
+
+        tin[v.first] = timer;
+        timer++;
+
+        up[v.first][0] = 1;
+        for(int i = 1; i<=l; i++){
+            up[1][i] = up[up[1][i-1]][i-1];
+        }
+
+        S.push(MP(v.first,true));
+        for(int i =0; i<graph[v.first].size(); i++){
+            int cur = graph[v.first][i].first;
+            if(!used[cur]){
+                S.push(MP(cur,false));
+                used[cur] = true;
+            }
+        }
+    }
+}
+
+void preprocessLCA(vector<vector<pair<int,ll>>> &graph){
+    tin.clear();
+    tout.clear();
+    tin.assign(n+1, 0);
+    tout.assign(n+1, 0);
+    l = ceil(log2(n));
+    up.assign(n+1, vector<int>(l + 1));
+    dfs(graph);
+}
+
+vector<vector<ll>> getMind(vector<vector<pair<int,ll>>>& graph, vector<ll>& dist){
+    tin.clear();
+    tout.clear();
+    tin.assign(n+1, 0);
+    tout.assign(n+1, 0);
+    l = ceil(log2(n));
+    vector<vector<ll>> mind(n+1, vector<ll>(l + 1));
+
+    stack<int> S;
+    int timer = 0;
+    vector<bool> used(n+1, false);
+
+    S.push(1);
+    while(!S.empty()){
+        int v = S.top();
+        S.pop();
+
+        tin[v] = timer;
+        timer++;
+
+        mind[v][0] = dist[v];
+        for(int i = 1; i<=l; i++){
+            mind[1][i] = mind[up[1][i-1]][i-1];
+        }
+
+        for(int i =0; i<graph[v].size(); i++){
+            int cur = graph[v][i].first;
+            if(!used[cur]){
+                S.push(cur);
+                used[cur] = true;
+            }
+        }
+    }
+}
+
+ll lcaMind(int v, int u, vector<vector<ll>> mind){
+    ll ans = mind[v][0];
+    if(isAncestor(v, u)){
+        return u;
+    }
+    if(isAncestor(u,v)){
+        return v;
+    }
+    for(int i = l; i>=0; i--){
+        if(!isAncestor(up[u][i], v)){
+            u = up[u][i];
+            ans = min(ans, mind[u][i]);
+        }
+    }
+    return ans;
+}
+
+vector<ll> getDist(int c, vector<vector<pair<int,ll>>>& graph){
+    queue<int> Q;
+    vector<ll> ans(n+1, -1);
+    for(int i = 1; i<=n; i++){
+        if(t[i] == c){
+            Q.push(i);
+            ans[i] = 0;
+        }
+    }
+
+    while(!Q.empty()){
+        int v = Q.front();
+        Q.pop();
+
+        for(int i = 0; i<graph[v].size(); i++){
+            pair<int,ll> cur = graph[v][i];
+            if(ans[cur.first] == -1){
+                ans[cur.first] = ans[v]+cur.second;
+                Q.push(cur.first);
+            }else if(ans[cur.first] > ans[v]+cur.second){
+                ans[cur.first] = ans[v]+cur.second;
+                Q.push(cur.first);
+            }
+        }
+    }
+
+    return ans;
+}
+
+void process(int ind, PII con, vector<bool>& used, vector<int>& poi, vector<ll>& ans, vector<int>& order, vector<ll>& lenD, vector<PII>& qS){
+    //get the compressed graph
+    if(!used[1]) poi.PB(1);
+
+    vector<PII> pointsOfIntrest;
+    for(int i = 0; i<poi.size(); i++){
+        pointsOfIntrest.PB(MP(poi[i], order[poi[i]]));
+    }
+
+    sort(pointsOfIntrest.begin(), pointsOfIntrest.end(), customPairComp);
+    vector<int> next;
+    for(int i =0; i<pointsOfIntrest.size()-1; i++){
+        int l = lca(pointsOfIntrest[i].first, pointsOfIntrest[i+1].first);
+        if(!used[l]){
+            next.PB(l);
+            used[l] = true;
+        }
+    }
+
+    for(int i = 0; i<next.size(); i++){
+        pointsOfIntrest.PB(MP(next[i], order[next[i]]));
+    }
+    sort(pointsOfIntrest.begin(), pointsOfIntrest.end(), customPairComp);
+
+    vector<vector<pair<int,ll>>> compGraph(n+1, vector<pair<int,ll>>());
+
+    for(int i =0; i<pointsOfIntrest.size()-1; i++){
+        int a = pointsOfIntrest[i].first, b = pointsOfIntrest[i+1].first;
+        int l = lca(a, b);
+        compGraph[l].PB(MP(b, lenD[b]-lenD[l]));
+        compGraph[b].PB(MP(l, lenD[b]-lenD[l]));
+    }
+
+    //get dp
+    vector<ll> dist;
+    vector<vector<ll>> mind = getMind(compGraph, dist);
+    preprocessLCA(compGraph);
+    
+    for(int i = ind-con.second; i<ind; i++){
+        int a = get<0>(query[qS[i].first]), b = get<1>(query[qS[i].first]), c = get<2>(query[qS[i].first]); 
+        ll len = lcaMind(a,b, mind);
+        if(len == -1){
+            ans[qS[i].first] = -1;
+            continue;
+        }
+        int l = lca(a,b);
+        ll temp = len + lenD[a] + lenD[b] - 2*lenD[l];
+        ans[qS[i].first] = temp;
+    }
 }
 
 vector<ll> solve(){
     //create graph
-    vector<vector<PII>> graph(n+1, vector<PII>());
+    vector<vector<pair<int,ll>>> graph(n+1, vector<pair<int,ll>>());
     for(int i =0 ; i<edges.size(); i++){
         int a = get<0>(edges[i]), b = get<1>(edges[i]), c = get<2>(edges[i]);
         graph[a].PB(MP(b,c));
@@ -116,6 +334,7 @@ vector<ll> solve(){
 
     //numerate
     vector<int> order = numerate(graph);
+    vector<ll> lenD = getLenD(graph);
 
     vector<ll> ans(q, -1);
 
@@ -127,6 +346,7 @@ vector<ll> solve(){
     sort(qS.begin(), qS.end(), customPairComp);
 
     //process query
+    preprocessLCA(graph);
     PII con = MP(qS.front().second, 1);
     vector<bool> used(n+1, false);
     vector<int> pointsOfInterst; 
@@ -134,10 +354,10 @@ vector<ll> solve(){
         if(qS[i].second == con.first){
             con.second++;
         }else{
-            process(con,used,pointsOfInterst,ans, order);
+            process(i, con,used,pointsOfInterst,ans, order, lenD, qS);
         }
     }
-    process(con,used,pointsOfInterst,ans, order);    
+    process(qS.size()-1, con,used,pointsOfInterst,ans, order, lenD, qS);    
 
     return ans;
 }
