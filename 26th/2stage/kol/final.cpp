@@ -74,19 +74,21 @@ vector<int> numerate(vector<vector<pair<int,ll>>>& graph){
     stack<int> S;
     S.push(1);
 
-    int totalOrder = 2;
+    int totalOrder = 1;
 
     vector<int> order(n+1, -1);
-    order[1] = 1;
     while(!S.empty()){
         int v = S.top();
         S.pop();
+        if(order[v] != -1){
+            continue;;
+        }
+        order[v] = totalOrder;
+        totalOrder++;
 
         for(int i = 0; i<graph[v].size(); i++){
             PII cur = graph[v][i];
             if(order[cur.first] == -1){
-                order[cur.first] = totalOrder;
-                totalOrder++;
                 S.push(cur.first);
             }
         }
@@ -118,10 +120,10 @@ vector<ll> getLenD(vector<vector<pair<int,ll>>>& graph){
 }
 
 bool customPairComp(PII a, PII b){
-    if(a.first == b.first){
-        return a.second < b.second;
+    if(a.second == b.second){
+        return a.first < b.first;
     }
-    return a.first < b.first;
+    return a.second < b.second;
 }
 
 vector<int> tin, tout;
@@ -153,6 +155,7 @@ void dfs(vector<vector<pair<int,ll>>> &graph){
     vector<bool> used(n+1, false);
 
     S.push(MP(1,false));
+    used[1] = true;
     while(!S.empty()){
         pair<int,bool> v = S.top();
         S.pop();
@@ -204,6 +207,7 @@ vector<vector<ll>> getMind(vector<vector<pair<int,ll>>>& graph, vector<ll>& dist
     vector<bool> used(n+1, false);
 
     S.push(1);
+    used[1] = true;
     while(!S.empty()){
         int v = S.top();
         S.pop();
@@ -224,6 +228,8 @@ vector<vector<ll>> getMind(vector<vector<pair<int,ll>>>& graph, vector<ll>& dist
             }
         }
     }
+
+    return mind;
 }
 
 ll lcaMind(int v, int u, vector<vector<ll>> mind){
@@ -306,7 +312,7 @@ void process(int ind, PII con, vector<bool>& used, vector<int>& poi, vector<ll>&
     }
 
     //get dp
-    vector<ll> dist;
+    vector<ll> dist = getDist(con.first, compGraph);
     vector<vector<ll>> mind = getMind(compGraph, dist);
     preprocessLCA(compGraph);
     
@@ -362,7 +368,7 @@ vector<ll> solve(){
     return ans;
 }
 
-int main(){
+int main(){    
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
