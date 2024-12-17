@@ -130,16 +130,18 @@ vector<int> tin, tout;
 vector<vector<int>> up;
 int l;
 
+vector<vector<int>> colorSplit;
+
 bool isAncestor(int v, int u){
-    return tin[u] <= tin[v] && tout[u] >= tout[v];
+    return tin[v] <= tin[u] && tout[v] >= tout[u];
 }
 
 int lca(int v, int u){
     if(isAncestor(v, u)){
-        return u;
+        return v;
     }
     if(isAncestor(u,v)){
-        return v;
+        return u;
     }
     for(int i = l; i>=0; i--){
         if(!isAncestor(up[u][i], v)){
@@ -168,18 +170,20 @@ void dfs(vector<vector<pair<int,ll>>> &graph){
         tin[v.first] = timer;
         timer++;
 
-        up[v.first][0] = 1;
-        for(int i = 1; i<=l; i++){
-            up[1][i] = up[up[1][i-1]][i-1];
-        }
-
         S.push(MP(v.first,true));
+        int p = v.first;
         for(int i =0; i<graph[v.first].size(); i++){
             int cur = graph[v.first][i].first;
             if(!used[cur]){
                 S.push(MP(cur,false));
                 used[cur] = true;
+            }else{
+                p = cur;
             }
+        }
+        up[v.first][0] = p;
+        for(int i = 1; i<=l; i++){
+            up[v.first][i] = up[up[v.first][i-1]][i-1];
         }
     }
 }
@@ -215,17 +219,20 @@ vector<vector<ll>> getMind(vector<vector<pair<int,ll>>>& graph, vector<ll>& dist
         tin[v] = timer;
         timer++;
 
-        mind[v][0] = dist[v];
-        for(int i = 1; i<=l; i++){
-            mind[1][i] = mind[up[1][i-1]][i-1];
-        }
-
+        int p = v;
         for(int i =0; i<graph[v].size(); i++){
             int cur = graph[v][i].first;
             if(!used[cur]){
                 S.push(cur);
                 used[cur] = true;
+            }else{
+                p = cur;
             }
+        }
+
+        mind[v][0] = dist[p];
+        for(int i = 1; i<=l; i++){
+            mind[v][i] = mind[up[v][i-1]][i-1];
         }
     }
 
@@ -235,10 +242,10 @@ vector<vector<ll>> getMind(vector<vector<pair<int,ll>>>& graph, vector<ll>& dist
 ll lcaMind(int v, int u, vector<vector<ll>> mind){
     ll ans = mind[v][0];
     if(isAncestor(v, u)){
-        return u;
+        return 0;
     }
     if(isAncestor(u,v)){
-        return v;
+        return 0;
     }
     for(int i = l; i>=0; i--){
         if(!isAncestor(up[u][i], v)){
@@ -278,7 +285,29 @@ vector<ll> getDist(int c, vector<vector<pair<int,ll>>>& graph){
     return ans;
 }
 
-void process(int ind, PII con, vector<bool>& used, vector<int>& poi, vector<ll>& ans, vector<int>& order, vector<ll>& lenD, vector<PII>& qS){
+void process(int ind, PII con, vector<ll>& ans, vector<int>& order, vector<ll>& lenD, vector<PII>& qS){
+    //fill points of interest
+    vector<bool> used(n+1, false);
+    vector<int> poi; 
+    for(int i = ind-con.second; i<ind; i++){
+        int a = get<0>(query[qS[i].first]), b = get<1>(query[qS[i].first]), c = get<2>(query[qS[i].first]); 
+        if(!used[a]){
+            poi.PB(a);
+            used[a] = true;
+        }
+        if(!used[b]){
+            poi.PB(b);
+            used[b] = true;
+        }
+    }
+    for(int i = 0; i<colorSplit[con.first].size(); i++){
+        int a = colorSplit[con.first][i];
+        if(!used[a]){
+            poi.PB(a);
+            used[a] = true;
+        }
+    }   
+
     //get the compressed graph
     if(!used[1]) poi.PB(1);
 
@@ -330,6 +359,12 @@ void process(int ind, PII con, vector<bool>& used, vector<int>& poi, vector<ll>&
 }
 
 vector<ll> solve(){
+    //split by color
+    colorSplit.assign(r+1, vector<int>());
+    for(int i =1; i<=n; i++){
+        colorSplit[t[i]].PB(i);
+    }
+
     //create graph
     vector<vector<pair<int,ll>>> graph(n+1, vector<pair<int,ll>>());
     for(int i =0 ; i<edges.size(); i++){
@@ -354,16 +389,14 @@ vector<ll> solve(){
     //process query
     preprocessLCA(graph);
     PII con = MP(qS.front().second, 1);
-    vector<bool> used(n+1, false);
-    vector<int> pointsOfInterst; 
     for(int i = 1; i<qS.size(); i++){
         if(qS[i].second == con.first){
             con.second++;
         }else{
-            process(i, con,used,pointsOfInterst,ans, order, lenD, qS);
+            process(i, con,ans, order, lenD, qS);
         }
     }
-    process(qS.size()-1, con,used,pointsOfInterst,ans, order, lenD, qS);    
+    process(qS.size()-1, con,ans, order, lenD, qS);    
 
     return ans;
 }
