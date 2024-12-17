@@ -394,9 +394,10 @@ vector<ll> solve(){
             con.second++;
         }else{
             process(i, con,ans, order, lenD, qS);
+            con = MP(qS[i].second, 1);
         }
     }
-    process(qS.size()-1, con,ans, order, lenD, qS);    
+    process(qS.size(), con,ans, order, lenD, qS);    
 
     return ans;
 }
