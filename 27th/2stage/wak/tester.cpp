@@ -176,9 +176,121 @@ vector<int> getParent(vector<vector<int>> &graph) {
     return parent;
 }
 
-pair<vector<ll>, vector<int>> getDpDown() {}
+pair<vector<ll>, vector<int>> getDpDown(vector<int>& parent, vector<vector<int>>& graph) {
+    vector<ll> dp(n+1, 0);
+    vector<int> dep(n+1, 0);
+    stack<pair<int, bool>> S;
+    S.push(MP(1, false));
 
-pair<vector<ll>, vector<int>> getDpUp() {}
+    while(!S.empty()){
+        int v = S.top().first;
+        bool b = S.top().second;
+        S.pop();
+
+        if(b){
+            ll temp = 0;
+            int best = 0;
+
+            for(int i = 0; i<graph[v].size(); i++){
+                int cur = graph[v][i];
+                for(int j = 0; j<graph[cur][j]; j++){
+                    int m = graph[v][j];
+                    if(dp[m] > temp){
+                        dp[m] = temp;
+                        best = cur;
+                    }
+                }
+            }
+            
+            dp[v] = temp + w[v];
+            dep[v] = best;
+        }
+
+        S.push(MP(v,true));
+        for(int i = 0; i<graph[v].size(); i++){
+            int cur = graph[v][i];
+            if(cur != parent[v]){
+                S.push(MP(cur,false));
+            }
+        }
+    }
+
+    return MP(dp,dep);
+}
+
+pair<vector<ll>, vector<PII>> getDpUp(vector<int>& parent, vector<vector<int>>& graph, vector<ll> dpDown) {
+    vector<ll> dp(n+1, 0);
+    vector<PII> dep(n+1, MP(0,0));
+    stack<int> S;
+
+    S.push(1);
+    dp[1] = w[1];
+    while(!S.empty()){
+        int v = S.top();
+        S.pop();
+
+        //get two best
+        vector<pair<ll,int>> best;
+        for(int i = 0; i<graph[v].size(); i++){
+            int cur = graph[v][i];
+            if(cur != parent[v]){
+                if(best.size() < 2){
+                    best.PB(MP(dpDown[cur], cur));
+                }else if(best.back().first < dpDown[cur]){
+                    best.back().first = dpDown[cur];
+                    best.back().second = cur;
+                    if(best.back().first > best.front().first){
+                        swap(best.front(), best.back());
+                    }
+                }
+            }
+        }
+
+        //adding the up
+        if(best.size() < 2){
+            best.PB(MP(dp[parent[v]], parent[v]));
+        }else if(best.back().first < dp[parent[v]]){
+            best.back().first = dp[parent[v]];
+            best.back().second = parent[v];
+            if(best.back().first > best.front().first){
+                swap(best.front(), best.back());
+            }
+        }
+
+        //sum neighbours
+        ll sum = 0;
+        for(int i = 0; i< graph[v].size(); i++){
+            int cur = graph[v][i];
+            sum += w[cur];
+        }
+
+        //assing best
+        for(int i = 0; i<graph[v].size(); i++){
+            int cur = graph[v][i];
+            if(cur != parent[v]){
+                if(cur == best.front().second){
+                    dp[cur] = best.back().first;
+                    dep[cur].first = best.back().second;
+                    if(best.back().second == parent[v]){
+                        dep[cur].second = 1;
+                    }else{
+                        dep[cur].second = 0;
+                    }
+                }else{
+                    dp[cur] = best.front().first;
+                    dep[cur].first = best.front().second;
+                    if(best.front().second == parent[v]){
+                        dep[cur].second = 1;
+                    }else{
+                        dep[cur].second = 0;
+                    }
+                }
+            }
+        }
+    }
+
+    return MP(dp,dep);
+}
 
 tuple<ll, int, vector<int>> solve() {
     // create graph
@@ -191,61 +303,91 @@ tuple<ll, int, vector<int>> solve() {
 
     vector<int> parent = getParent(graph);
 
-    pair<vector<ll>, vector<int>> dpDown = getDpDown();
-    pair<vector<ll>, vector<int>> dpUp = getDpUp();
+    pair<vector<ll>, vector<int>> dpDown = getDpDown(parent, graph);
+    pair<vector<ll>, vector<PII>> dpUp = getDpUp(parent, graph, dpDown.first);
 
     ll answ = -1;
     int ansVis = 0;
+    vector<int> bestVec;
     vector<int> ansTown;
-    bool upTypeAns = false;
-    pair<int, int> marked;
-    for (int i = 1; i <= n; i++) {
-        ll sumNeigh = 0;
-        for (int j = 0; j < graph[i].size(); j++) {
+    for(int i = 1; i<=n; i++){
+        vector<pair<ll,int>> best;
+        for(int j = 0; j<graph[i].size(); j++){
             int cur = graph[i][j];
-            sumNeigh += w[cur];
-        }
-
-        vector<int> best;
-        ll tempAns = 0;
-        for (int j = 0; j < graph[i].size(); j++) {
-            int cur = graph[i][j];
-            if (cur != parent[i]) {
-                if (best.size() < 2) {
-                    best.PB(cur);
-                } else {
-                    if (dpDown.first[best.back()] < dpDown.first[cur]) {
-                        dpDown.first.back() = cur;
+            if(cur != parent[i]){
+                if(best.size() < 2){
+                    best.PB(MP(dpDown.first[cur], cur));
+                }else if(best.back().first < dpDown.first[cur]){
+                    best.back().first = dpDown.first[cur];
+                    best.back().second = cur;
+                    if(best.back().first > best.front().first){
+                        swap(best.front(), best.back());
                     }
-                    if (best.front() < best.back()) {
+                }
+            }else{
+                if(best.size() < 2){
+                    best.PB(MP(dpUp.first[cur], cur));
+                }else if(best.back().first < dpUp.first[cur]){
+                    best.back().first = dpUp.first[cur];
+                    best.back().second = cur;
+                    if(best.back().first > best.front().first){
                         swap(best.front(), best.back());
                     }
                 }
             }
+        }
 
-            bool upType = false;
-            if (best.back() < dpUp.first[parent[i]]) {
-                upType = true;
-                dpDown.first.back() = parent[i];
-            }
-
-            ll temp = sumNeigh - w[best.front()] - w[best.back()];
-            temp += dpDown.first[best.front()];
-            if (upType) {
-                temp += dpUp.first[best.back()];
-            } else {
-                temp += dpDown.first[best.back()];
-            }
-
-            if (temp > answ) {
-                answ = temp;
-                upTypeAns = upType;
-                marked = MP(best.front(), best.back());
-            }
+        if(answ < best.front().first + best.back().first){
+            answ = best.front().first + best.back().first;
+            bestVec.clear();
+            bestVec.PB(i);
+            bestVec.PB(best.front().second);
+            bestVec.PB(best.back().second);
         }
     }
 
     // recreate the path
+    for(int i = 1; i<bestVec.size(); i++){
+        vector<int> temp;
+        bool upType = false;  
+        if(bestVec[i] == parent[bestVec[0]]) upType = true;
+
+        PII con = MP(bestVec[i],0);
+        while(con.first != -1){
+            temp.PB(con.first);
+            for(int j =0 ; j< graph[con.first].size(); j++){
+                int cur = graph[con.first][j];
+                if(upType){
+                    if(dpUp.second[con.first].second == 0){
+                        
+                    }else if(dpUp.second[con.first].second == 1){
+
+                    }
+                }else{
+                    if(dpDown.second[con.first] != cur){
+                        temp.PB(cur);
+                        temp.PB(con.first);
+                    }
+                }
+            }
+            if(upType){ 
+                if(){
+
+                }
+            }else{
+                temp.PB(dpDown.second[con.first]);
+                temp.PB(con.first);
+            }
+        }
+
+        reverse(temp.begin(), temp.end());
+        for(int i =0 ; i< temp.size(); i++){
+            ansTown.PB(temp[i]);
+        }
+        ansTown.PB(bestVec[0]);
+    }
+
+    return MT(answ, ansVis, ansTown);
 }
 
 int main() {
