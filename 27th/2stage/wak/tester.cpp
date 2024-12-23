@@ -79,30 +79,54 @@ void printData() {
     }
 }
 
-pair<ll, vector<int>> bruteRecDfs(int v, int type, vector<bool> used, vector<int> moves, vector<vector<int>>& graph) {
-    moves.PB(v);
-    used[v] = true;
-
+pair<ll, vector<int>> bruteRecDfs(int v, int p, int type, vector<vector<int>>& graph) {
     pair<ll, vector<int>> ans = MP(0, vector<int>());
     if (type == 0) {
-        for (int i = 0; i < graph[v].size(); i++) {
+        for(int i = 0; i<graph[v].size(); i++){
             int cur = graph[v][i];
-            if (!used[cur]) {
-                pair<ll, vector<int>> temp = bruteRecDfs(cur, 1, used, moves, graph);
-                if (temp.first > ans.first) {
-                ans = temp;
+            if(cur != p){
+                pair<ll,vector<int>> temp = bruteRecDfs(cur, v, 1, graph);
+                if(temp.first > ans.first){
+                    ans.first = temp.first;
+                    ans.second = temp.second;
                 }
             }
         }
+        
+        ans.first += w[v];
+        ans.second.PB(v);
     } else {
-        for (int i = 0; i < graph[v].size(); i++) {
+        ll sum = 0;
+        for(int i = 0; i<graph[v].size(); i++){
             int cur = graph[v][i];
-            pair<ll, vector<int>> temp = bruteRecDfs(cur, 0, used, moves, graph);
+            if(cur != p){
+                sum += w[cur];
+            }
         }
-    }
 
-    ans.first += w[v];
-    ans.second.PB(v);
+        int best = -1;
+        for(int i = 0; i<graph[v].size(); i++){
+            int cur = graph[v][i];
+            if(cur != p){
+                pair<ll,vector<int>> temp = bruteRecDfs(cur, v, 0, graph);
+                if(temp.first + sum - w[cur] > ans.first){
+                    ans.first = temp.first + sum - w[cur];
+                    ans.second = temp.second;
+                    best = cur;
+                }
+            }
+        }
+
+        //fill up
+        for(int i = 0; i<graph[v].size(); i++){
+            int cur = graph[v][i];
+            if(cur != p && cur != best){
+                ans.second.PB(v);
+                ans.second.PB(cur);
+            }
+        }
+        ans.second.PB(v);
+    }
 
     return ans;
 }
@@ -120,8 +144,7 @@ tuple<ll, int, vector<int>> brute() {
     int ansVis = 0;
     vector<int> ansTown;
     for (int i = 1; i <= n; i++) {
-        vector<bool> used(n + 1, false);
-        pair<ll, vector<int>> temp = bruteRecDfs(i, 1, used, vector<int>(), graph);
+        pair<ll, vector<int>> temp = bruteRecDfs(i, -1, 0, graph);
         if (temp.first > answ) {
             answ = temp.first;
             ansTown = temp.second;
