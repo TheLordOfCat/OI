@@ -23,79 +23,51 @@ const ull ullINF = 18'000'000'000'000'000'000;
 
 int m;
 vector<int> code;
-vector<vector<int>> graph;
-vector<int> colour;
-
-const int MOD = 1'000'000'007;
-
-void input(int v, int &gloInd){
-    int num = code[v];
-
-    colour.PB(num);
-    if(num == 4){
-        for(int i = 0; i<4; i++){
-            graph.PB(vector<int>());
-            graph[v].PB(gloInd);
-            gloInd++;
-            input(gloInd-1, gloInd);
-        }
-    }
-}
-
-void inputRand(int v, int depth, int &gloInd){
-    int num;
-    int type = rand()%3;
-    if(type == 0){
-        num = 0;
-    }else if(type == 1){
-        num = 1;
-    }else if(depth != m){
-        num = 4;
-    }else{
-        num = 0;
-    }
-
-    colour.PB(num);
-    code.PB(num);
-
-    if(num == 4){
-        for(int i = 0; i<4; i++){
-            graph.PB(vector<int>());
-            graph[v].PB(gloInd);
-            gloInd++;
-            input(gloInd-1, gloInd);
-        }
-    }
-}
 
 void getData(){
-    graph.clear();
     code.clear();
-    colour.clear();
 
     cin>>m;
 
     string temp;
     cin>>temp;
-    for(int i = 0; i<temp.size(); i++){
-        code.PB(temp[i] - '0');
+    for(int i =0 ; i<temp.size(); i++){
+        code.PB(temp[i]-'0');
     }
-
-    graph.PB(vector<int>());
-    int gloInd = 1;
-    input(0, gloInd);
 }
 
 void getRandom(){
-    graph.clear();
     code.clear();
-    colour.clear();
 
-    m = rand()%2+3;
+    m = rand()%2+1;
 
-    graph.PB(vector<int>());
-    int gloInd = 1;
-    inputRand(0, 0, gloInd);
+    stack<PII> S;
+    S.push(MP(1, 0));
+    int ind = 2;
+    while(!S.empty()){
+        PII v = S.top();
+        S.pop();
+
+        if(v.second == m){
+            for(int i = 0; i<4; i++){
+                code.PB(rand()%2);
+            }
+            continue;
+        }
+
+        int con = rand()%3;
+        if(con == 0){
+            code.PB(0);            
+        }else if(con == 1){
+            code.PB(1);
+        }else if(con == 2){
+            code.PB(4);
+            for(int i = 0; i<4; i++){
+                S.push(MP(ind, v.second+1));
+                ind++;
+            }
+        }
+    }
 }
 
 void printData(){
@@ -108,203 +80,77 @@ void printData(){
 }
 
 PII brute(){
-    vector<vector<int>> plane(1<<m, vector<int>(1<<m, -1));
+    vector<vector<int>> plane((1<<m), vector<int>((1<<m), 0));
 
     //fill the plane
-    stack<tuple<int,int, PII>> S;
-    S.push(MT(0,0,MP(0,0)));
+    stack<pair<PII,int>> S;
+    S.push(MP(MP(0,0), 0));
+    int ind = 0;
 
     while(!S.empty()){
-        int v = get<0>(S.top());
-        int d = get<1>(S.top());
-        PII cord = get<2>(S.top());
+        PII pos = S.top().first;
+        int depth = S.top().second;
         S.pop();
 
-        int c = colour[v];
-
-        if(c == 4){
-            S.push(MT(graph[v][0], d+1, MP(cord.first, cord.second + (1<<(m-d-1)))));
-            S.push(MT(graph[v][1], d+1, MP(cord.first + (1<<(m-d-1)), cord.second + (1<<(m-d-1)))));
-            S.push(MT(graph[v][2], d+1, MP(cord.first, cord.second)));
-            S.push(MT(graph[v][3], d+1, MP(cord.first + (1<<(m-d-1)), cord.second)));
-        }else{
-            for(int i = cord.first; i<cord.first + (1<<(m-d)); i++){
-                for(int j = cord.second; j<cord.second + (1<<(m-d)); j++){
-                    plane[i][j] = c;
-                }                
+        if(code[ind] == 1){
+            int len = (1<<(m-depth));
+            for(int i = pos.first; i<pos.first + len; i++){
+                for(int j = pos.second; j<pos.second+len; j++){
+                    plane[i][j] = 1;
+                }
             }
+        }else if(code[ind] == 4){
+            int len = (1<<(m-depth-1));
+            S.push(MP(pos, depth+1));
+            S.push(MP(MP(pos.first, pos.second+len), depth+1));
+            S.push(MP(MP(pos.first+len, pos.second), depth+1));
+            S.push(MP(MP(pos.first+len, pos.second+len), depth+1));
         }
+        ind++;
     }
 
-    //check for connected parts
+    //get ans
     PII ans = MP(0,0);
-
-    vector<vector<bool>> vis(1<<m, vector<bool>(1<<m, false));
+    vector<vector<bool>> used((1<<m), vector<bool>((1<<m), false));
     for(int i = 0; i<(1<<m); i++){
         for(int j = 0; j<(1<<m); j++){
-            if(!vis[i][j] && plane[i][j] == 1){
-                int size = 0;
-                stack<PII> St;
-                St.push(MP(i,j));
-                vis[i][j] = true;
+            if(used[i][j] || plane[i][j] == 0){
+                continue;
+            }
+            stack<PII> S;
+            S.push(MP(i,j));
+            used[i][j] = true;
+            int area = 1;
+            while(!S.empty()){
+                PII v = S.top();
+                S.pop();
 
-                while(!St.empty()){
-                    PII v = St.top();
-                    St.pop();
-                    size++;
-
-                    int a = v.first, b = v.second;
-                    if(a >= 1){
-                        if(!vis[a-1][b] && plane[a-1][b] == 1){
-                            St.push(MP(a-1,b));
-                            vis[a-1][b] = true;
-                        }
-                    }
-                    if(a < (1<<m)-1){
-                        if(!vis[a+1][b] && plane[a+1][b] == 1){
-                            St.push(MP(a+1,b));
-                            vis[a+1][b] = true;
-                        }
-                    }
-                    if(b >= 1){
-                        if(!vis[a][b-1] && plane[a][b-1] == 1){
-                            St.push(MP(a,b-1));
-                            vis[a][b-1] = true;
-                        }
-                    }
-                    if(b < (1<<m)-1){
-                        if(!vis[a][b+1] && plane[a][b+1] == 1){
-                            St.push(MP(a,b+1));
-                            vis[a][b+1] = true;
-                        }
+                if(v.first > 0){
+                    if(!used[v.first-1][v.second] && plane[v.first-1][v.second] == 1){
+                        used[v.first-1][v.second] = true;
+                        area++;
+                        S.push(MP(v.first-1, v.second));
                     }
                 }
-
-                ans.first++;
-                ans.second = max(ans.second, size);
-            }
-        }
-    }
-
-    return ans;
-}
-
-pair<int,ll> solve(){
-    pair<int,ll> ans = MP(0,0);
-
-    ll totalSize = (1<<m)*2;
-
-    vector<int> blocks(graph.size() + 1, -1);
-    vector<PII> blockCord(graph.size()+ 1, MP(-1,-1));
-    vector<map<ll,int>> rows(totalSize, map<ll,int>());
-    vector<map<ll,int>> cols(totalSize, map<ll,int>());
-
-    stack<tuple<int,int,PII>> S;
-    S.push(MT(0,0, MP(0,0)));
-
-    //traversing graph
-    while(!S.empty()){
-        int v = get<0>(S.top());
-        int d = get<1>(S.top());
-        PII cord = get<2>(S.top());
-        S.pop();
-        ll len = (1<<(m-d-1));
-
-        if(colour[v] == 1){
-            blocks[v] = d;
-            blockCord[v] = cord;
-            rows[cord.second + len].insert(MP(cord.first + len/2, v));
-            cols[cord.first + len].insert(MP(cord.second + len/2, v));
-        }
-        if(colour[v] == 4){
-            S.push(MT(graph[v][0], d+1, MP(cord.first, cord.second + len)));
-            S.push(MT(graph[v][1], d+1, MP(cord.first + len, cord.second + len)));
-            S.push(MT(graph[v][2], d+1, MP(cord.first, cord.second)));
-            S.push(MT(graph[v][3], d+1, MP(cord.first + len, cord.second)));
-        }
-    }
-
-    //joining sets
-    vector<vector<int>> graphPlane(graph.size()+1, vector<int>());
-    stack<int> St;
-
-    while(!St.empty()){
-        int v = St.top();
-        S.pop();
-
-        if(colour[v] == 1){
-            ll len = (1<<(m-blocks[v]-1));
-            //left
-            auto l = cols[blockCord[v].first].lower_bound(blockCord[v].second);
-            while(l->first < blockCord[v].second + len && l != cols[blockCord[v].first].end()){
-                if(l->second != v){
-                    graph[l->second].PB(v);
-                    graph[v].PB(l->second);
+                if(v.second > 0){
+                    if(!used[v.first][v.second-1] && plane[v.first][v.second-1] == 1){
+                        used[v.first][v.second-1] = true;
+                        area++;
+                        S.push(MP(v.first, v.second-1));
+                    }
                 }
-                l++;
-            }
-
-            //top
-            auto t = rows[blockCord[v].second + len].lower_bound(blockCord[v].first);
-            while(t->first < blockCord[v].first + len){
-                if(t->second != v){
-                    graph[t->second].PB(v);
-                    graph[v].PB(t->second);
+                if(v.first+1 < (1<<m)){
+                    if(!used[v.first+1][v.second] && plane[v.first+1][v.second] == 1){
+                        used[v.first+1][v.second] = true;
+                        area++;
+                        S.push(MP(v.first+1, v.second));
+                    }
                 }
-                t++;
-            }
-
-            //right 
-            auto r = cols[blockCord[v].first + len].lower_bound(blockCord[v].second);
-            while(r->first < blockCord[v].second + len){
-                if(r->second != v){
-                    graph[r->second].PB(v);
-                    graph[v].PB(r->second);
-                }
-                r++;
-            }
-
-            //bottom
-            auto b = rows[blockCord[v].second].lower_bound(blockCord[v].first);
-            while(b->first < blockCord[v].first + len){
-                if(b->second != v){
-                    graph[b->second].PB(v);
-                    graph[v].PB(b->second);
-                }
-                b++;
-            }
-
-
-        }
-        if(colour[v] == 4){
-            St.push(graph[v][0]);
-            St.push(graph[v][1]);
-            St.push(graph[v][2]);
-            St.push(graph[v][3]);
-        }
-    }
-
-    //counting size
-    vector<bool> vis(blocks.size(), false);
-    for(int i = 0; i<blocks.size(); i++){
-        if(!vis[i] && blocks[i] != -1){
-            stack<int> Sd;
-            Sd.push(i);
-
-            int size = 1;
-            ll area = (1<<(m-blocks[i]-1))%MOD;
-
-            while(!Sd.empty()){
-                int v = Sd.top();
-                Sd.pop();
-
-                for(int  j =0 ; j<graphPlane[v].size(); j++){
-                    int cur = graphPlane[v][j];
-                    if(!vis[cur]){
-                        size++;
-                        area = (area + (1<<(m-blocks[v]-1)))%MOD;
-                        vis[cur] = true;
-                        Sd.push(cur);
+                if(v.second+1 < (1<<m)){
+                    if(!used[v.first][v.second+1] && plane[v.first][v.second+1] == 1){
+                        used[v.first][v.second+1] = true;
+                        area++;
+                        S.push(MP(v.first, v.second+1));
                     }
                 }
             }
@@ -315,6 +161,10 @@ pair<int,ll> solve(){
     }
 
     return ans;
+}
+
+PII solve(){
+    
 }
 
 int main()
@@ -331,7 +181,7 @@ int main()
             getRandom();
         }
         PII ansB = brute();
-        pair<int,ll> ansS = solve();
+        PII ansS = solve();
         if(ansB.first != ansS.first || ansB.second != ansS.second){
             cout<<"ERROR\n";
             cout<<"BRUTE: \n";
@@ -343,7 +193,6 @@ int main()
         }
         cout<<"CORRECT\n";
     }
-
 
     return 0;
 }
