@@ -48,18 +48,18 @@ void printData(){
 }
 
 struct xDominant {
-    bool operator()(const pair<PII,int>& a, const pair<PII,int>& b) const {
-        if (a.first.first != b.first.first)
-            return a.first.first < b.first.first;
-        return a.first.second < b.first.second;
+    bool operator()(const PII& a, const PII& b) const {
+        if (a.first != b.first)
+            return a.first < b.first;
+        return a.second < b.second;
     }
 };
 
 struct yDominant {
-    bool operator()(const pair<PII,int>& a, const pair<PII,int>& b) const {
-        if (a.first.second != b.first.second)
-            return a.first.second < b.first.second;
-        return a.first.first < b.first.first;
+    bool operator()(const PII& a, const PII& b) const {
+        if (a.second != b.second)
+            return a.second < b.second;
+        return a.first < b.first;
     }
 };
 
@@ -89,19 +89,21 @@ vector<PII> getPosBlock(vector<vector<int>> &graphBlock, int& globalInd){
                     posBlockX[v] = posBlockX[v-1];
                 }
             }
+            continue;
         }
 
         S.push(MT(v,type, true));
         if(graphBlock[v].size() == 4){
-            S.push(MT(graphBlock[v][0], 0, false));
-            S.push(MT(graphBlock[v][1], 1, false));
-            S.push(MT(graphBlock[v][2], 2, false));
             S.push(MT(graphBlock[v][3], 3, false));
+            S.push(MT(graphBlock[v][2], 2, false));
+            S.push(MT(graphBlock[v][1], 1, false));
+            S.push(MT(graphBlock[v][0], 0, false));
         }
     }
+    return posBlockX;
 }
 
-vector<int> getDepth(int& maxDepth){
+vector<int> getDepth(int& maxDepth, vector<vector<int>>& graph){
     vector<int> depth(code.size(), -1);
     stack<PII> Q;
     Q.push(MP(0,0));
@@ -111,11 +113,9 @@ vector<int> getDepth(int& maxDepth){
         depth[v.first] = v.second;
         maxDepth = max(maxDepth, v.second);
 
-        if(code[v.first] == 4){
-            Q.push(MP(v.first+1, v.second+1));
-            Q.push(MP(v.first+2, v.second+1));
-            Q.push(MP(v.first+3, v.second+1));
-            Q.push(MP(v.first+4, v.second+1));
+        for(int i = 0; i < graph[v.first].size(); i++){
+            int cur = graph[v.first][i];
+            Q.push(MP(cur, v.second+1));
         }
     }
 
@@ -190,26 +190,36 @@ vector<int> getArea(vector<int>& depth, int maxDepth){
     return area;
 }
 
+void recGraph(int p, vector<vector<int>>& graph, int& ind){
+    if(p != -1){
+        graph[p].PB(ind);
+    }
+    
+    int temp = ind;
+    ind++;
+
+    if(code[temp] == 4){
+        recGraph(temp, graph, ind);
+        recGraph(temp, graph, ind);
+        recGraph(temp, graph, ind);
+        recGraph(temp, graph, ind);
+    }
+}
+
 PII solve(){
     int maxDepth = 0;
 
-    //fill the plane
+    //get basic graph
     vector<vector<int>> graphBlock(code.size(), vector<int>());
-    for(int i = 0; i<code.size(); i++){
-        if(code[i] == 4){
-            graphBlock[i].PB(i+1);
-            graphBlock[i].PB(i+2);
-            graphBlock[i].PB(i+3);
-            graphBlock[i].PB(i+4);
-        }
-    }
+    int itrCode = 0;
+    recGraph(-1, graphBlock, itrCode);
     
     //get posBlock
     int globalInd = 0;
     vector<PII> posBlockX = getPosBlock(graphBlock, globalInd);
 
     //get max Depth size
-    vector<int> depth = getDepth(maxDepth);
+    vector<int> depth = getDepth(maxDepth, graphBlock);
    
     //rotate
     vector<PII> posBlockY(code.size(), MP(-1,-1));
