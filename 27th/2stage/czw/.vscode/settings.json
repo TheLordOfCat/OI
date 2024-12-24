@@ -5,6 +5,9 @@
         "utility": "cpp",
         "set": "cpp",
         "xtree": "cpp",
-        "xlocale": "cpp"
+        "xlocale": "cpp",
+        "map": "cpp",
+        "tuple": "cpp",
+        "iostream": "cpp"
     }
 }
