@@ -10,6 +10,7 @@
         "ios": "cpp",
         "xiosbase": "cpp",
         "xtree": "cpp",
-        "queue": "cpp"
+        "queue": "cpp",
+        "deque": "cpp"
     }
 }
