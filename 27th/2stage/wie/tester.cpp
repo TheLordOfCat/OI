@@ -14,27 +14,30 @@ const ull ullINF = 18'000'000'000'000'000'000;
 
 #define PII pair<int, int>
 #define PULLI pair<ull,int>
+#define PLL pair<ll,ll>
 #define MP make_pair
 #define PB push_back
 
 int n;
-vector<PULLI> col;
-PULLI shortCol, tallCol;
+vector<PLL> col;
+PLL shortCol, tallCol;
 
 void getData() {
+    col.clear();
+
     cin >> n;
     for (int i = 0; i < n; i++) {
-        int a, b;
+        ll a, b;
         cin >> a >> b;
         col.PB(MP(a, b));
     }
-    int a, b, c, d;
+    ll a, b, c, d;
     cin >> a >> b >> c >> d;
     shortCol = MP(a, b);
     tallCol = MP(c, d);
 }
 
-bool pairCompare(PII a, PII b) {
+bool pairCompare(PLL a, PLL b) {
     if (a.first == b.first) {
         return a.second > b.second;
     }
@@ -42,19 +45,20 @@ bool pairCompare(PII a, PII b) {
 }
 
 void getRandom() {
+    col.clear();
+
     srand(time(0));
 
     n = rand() % 10 + 1;
 
     for (int i = 0; i < n; i++) {
-        int a = rand() % n + 1, b = rand() % 3 + 2;
+        ll a = rand() % n + 1, b = rand() % 3 + 2;
         col.PB(MP(a, b));
     }
 
     sort(col.begin(), col.end(), pairCompare);
 
-    int a = rand() % n + 1, b = rand() % 5 + 3, c = rand() % n + 1,
-    d = rand() % 5 + 3;
+    ll a = rand() % n + 1, b = rand() % 5 + 3, c = rand() % n + 1, d = rand() % 5 + 3;
     shortCol = MP(a, b);
     tallCol = MP(c, d);
 }
@@ -69,138 +73,73 @@ void printData() {
     cout << tallCol.first << " " << tallCol.second << "\n";
 }
 
-int brute() {
-    int ans = 0;
-    vector<int> dist;
-    
-    // distance to next collumn
-    for(int i = 0; i<col.size()-1; i++){
-        int dif = col[i+1].first - col[i].first + col[i].second;
-        dist.PB(dif);
-    }
+int brutePush(ll v, vector<PLL>& plane){
+    ll multi = tallCol.first/shortCol.first;
+    ll shortCount = shortCol.second, tallCount = tallCol.second;
 
-    //right = left 
-    for(int i = 0; i<n; i++){
-        int countS = shortCol.first, countT = tallCol.first;
-
-        int con = countS + countT;
-        int ind = i;
-        while(countS > 0 || countT > 0){
-            if(ind >= n-1){
-                break;
+    int ans = 1 + shortCount + tallCount;
+    ll cur = v;
+    while(cur <plane.size()){
+        ll len = plane[cur+1].first - (plane[cur].first + plane[cur].second);
+        ll div = len/tallCol.first;
+        ll r = len - div*tallCol.first;
+        if(r <= shortCol.first){
+            if(shortCount > 0){
+                shortCount--;
+            }else  if(tallCount > 0){
+                tallCount--;
+            }else{
+                return ans;
             }
-            int len = dist[ind];
-            while(len > 0){
-                //want to fill tall first
-                if(len > tallCol.second){
-                    if(countT > 0){
-                        len -= tallCol.second;
-                        countT--;
-                    }else{
-                        len -= shortCol.second;
-                        countS--;
-                    }
-                }else{
-                    if(countS > 0){
-                        len -= shortCol.second;
-                        countS--;
-                    }else{
-                        len -= tallCol.second;
-                        countT--;
-                    }
-                }
-                if(countS == 0 && countT == 0){
-                    break;
-                }
+        }else{
+            if(tallCount > 0){
+                tallCount--;
+            }else if(shortCount > 0){
+                shortCount--;
+            }else{
+                return ans;
             }
-            if(len <= 0) con++;
-            ind++;
         }
-        ans = max(ans,con);
+        for(int i = 0; i<div; i++){
+            if(tallCount > 0){
+                tallCount--;
+            }else if(shortCount>=multi){
+                shortCount-= multi;
+            }else{
+                return ans;
+            }
+        }
+        ans++;
+        cur++;
     }
 
     return ans;
 }
 
-ull solve() {
-    ull ans = 0;
-    vector<ull> dist;
-    
-    // distance to next collumn
-    for(int i = 0; i<col.size()-1; i++){
-        ll dif = col[i+1].first - col[i].first + col[i].second;
-        dist.PB(dif);
+int brute() {
+    int ans = 0;
+
+    vector<PLL> colCopy = col;
+    for(int i =0 ; i<col.size()-1; i++){
+        int temp = brutePush(i,colCopy);
+        ans = max(ans, temp);
     }
 
-    //processing catapilar method
-    ull left = 0; ull right = 0;
-    set<pair<ull,ull>> S;
-    
-    ull countT = tallCol.first;
-    ull countS = shortCol.first;
+    ll last = colCopy.back().first; 
+    for(int i = colCopy.size()-1; i>=0; i--){
 
-    vector<pair<ull,ull>> reduceSeg(n+1, MP(0,0));
-
-    while(right != n-1){
-        bool opti = false;
-        do{
-            ull reduceT = 0;
-            ull reduceS = 0;
-            opti = false;
-
-            ull len = dist[right + 1];
-
-            //use tall
-            ull use = len / tallCol.second;
-            if(len % tallCol.second != 0){
-                use++;
-            }
-
-            if(use < countT){
-                reduceT += countT;
-                len %= tallCol.second;
-            }else{
-                len -= tallCol.second * (countT-reduceT);
-                reduceT += countT-reduceT;
-            }
-
-            //minimize short
-
-
-            //use short 
-            ull use = len / shortCol.second;
-            if(len % shortCol.second != 0){
-                use++;
-            }
-
-            if(use < countS){
-                reduceS += countS;
-                len %= shortCol.second;
-            }else{
-                len -= shortCol.second * (countS-reduceS);
-                reduceS += countS-reduceS;
-            }
-
-            if(len != 0){
-                opti = true;
-                ans = max(ans, right - left + 1 + shortCol.first + tallCol.first);
-                countS += reduceSeg[left].first;
-                countT += reduceSeg[left].second;
-                left++;
-            }else{
-                reduceSeg[right] = MP(reduceS, reduceT);
-                right++;
-            }
-
-        }while(opti);
-        ans = max(ans, right- left + 1 + shortCol.first + tallCol.first);
-
-        right++;
     }
 
-    ans = max(ans, right- left + 1 + shortCol.first + tallCol.first);
+    for(int i =0 ; i<col.size()-1; i++){
+        int temp = brutePush(i,colCopy);
+        ans = max(ans, temp);
+    }
 
     return ans;
+}
+
+ll solve() {
+    
 }
 
 int main() {
@@ -216,7 +155,7 @@ int main() {
             getRandom();
         }
         int ansB = brute();
-        ull ansS = solve();
+        ll ansS = solve();
         if (ansB != ansS) {
             cout << "ERROR\n";
             cout << "BRUTE: " << ansB << "\n";
