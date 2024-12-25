@@ -38,6 +38,13 @@ void getData() {
     shortCol = MP(c, d);
 }
 
+bool customE(PII a, PII b){
+    if(a.second == b.second){
+        return a.first < b.first;
+    }
+    return a.second < b.second;
+}
+
 ll solvePush(vector<PLL> c){
     ll ans = shortCol.first + tallCol.first + 1;
 
@@ -49,11 +56,13 @@ ll solvePush(vector<PLL> c){
     }
 
     int beg = 0, end = 0;
-    queue<PLL> Q;
-    queue<bool> E;
-    ll den = 0;
-    ll excessive = 0;
+    vector<PLL> gapsUse(c.size()+1, MP(0,0));
+    vector<bool> used(n+1, false);
+    priority_queue<PII> E;
+    queue<int> Q;
     ll shortCount = shortCol.first, tallCount = tallCol.first;
+
+
     while(end != c.size()-1){
         ll len = gaps[end];
 
@@ -70,52 +79,49 @@ ll solvePush(vector<PLL> c){
             div++;
         }
 
-        if(div <= shortCount + tallCount){ //add gap
-            ll t = div/2;
+        ll multi = tallCol.first/shortCol.first;
+        if(div <= shortCount + tallCount*multi){ //add gap
+            ll t = div/multi;
             if(t > tallCount){
                 t = tallCount;
             }
             tallCount -= t;
-            div -= t*2;
-            PLL g;
-            if(shortCount == 0){
-                tallCount -= 1;
-                g = MP(t+1, 0);
-                E.push(true);
-                excessive++;
-            }else{
-                shortCount -= div;
-                g = MP(t, div);
-                E.push(false);
+            div -= multi*t;
+
+            if(div > 0){
+                if(shortCount > div){
+                    shortCount -= div;
+                    gapsUse[end] = MP(t, div);
+                }else{ //excessive tall
+                    tallCount--;
+                    gapsUse[end] = MP(t+1, 0);
+                    E.push(MP(end, div));
+                }
+                Q.push(end);
             }
-            Q.push(g);
-            end++;
         }else{ // remove gap
             if(Q.size() != 0){
-                PLL v = Q.front();
+                int v = Q.front();
+                PLL p = gapsUse[v];
+                used[v] = true;
                 Q.pop();
 
-                bool b = E.front();
-                E.pop();
-                
-                if(b){
-                    if(den > 0){
-                        v.first--;
-                        v.second++;
-                        den--;
+                shortCount += p.first;
+                tallCount += p.second;
+
+                if(E.empty() > 0){
+                    PII e = E.top();
+                    E.pop();
+
+                    if(shortCount >= e.second){
+                        shortCount -= e.second;
+                        gapsUse[e.first].first--;
+                        gapsUse[e.first].second += e.second;
                     }
-                    excessive--;
-                }
 
-                beg++;
-                shortCount += v.first;
-                tallCount += v.second;
-
-                while(den != excessive){
-                    shortCount--;
-                    den++;
-                    tallCount++;
+                    E.push(e);
                 }
+                
             }else{
                 beg++;
                 end++;

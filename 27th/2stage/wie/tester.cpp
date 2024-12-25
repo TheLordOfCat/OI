@@ -50,11 +50,11 @@ void getRandom() {
 
     srand(time(0));
 
-    int len = 20;
-    n = rand() % 10 + 1;
+    int len = 100;
+    n = rand() % 10 + 3;
     vector<bool> used(len, false);
     for (int i = 0; i < n; i++) {
-        ll a = rand() % len + 1, b = rand() % 5 + 2;
+        ll a = rand() % len + 1, b = rand() % 20 + 10;
         while(used[a]){
             a = rand() % len + 1;
         }
@@ -64,7 +64,7 @@ void getRandom() {
 
     sort(col.begin(), col.end(), pairCompare);
 
-    ll a = rand() % n + 1, b = rand() % 5 + 3, c = rand() % n + 1, d = rand() % 2 + 1;
+    ll a = rand() % n + 1, b = rand() % 10 + 5, c = rand() % n + 1, d = rand() % 4 + 1;
     shortCol = MP(a, b);
     tallCol = MP(c, d*b);
 }
@@ -88,32 +88,34 @@ int brutePush(ll v, vector<PLL>& plane){
         ll len = plane[cur+1].first - (plane[cur].first + plane[cur].second);
         ll div = len/tallCol.second;
         ll r = len - div*tallCol.second;
-        if(r != 0){
-            if(r <= shortCol.first){
-                if(shortCount > 0){
-                    shortCount--;
-                }else  if(tallCount > 0){
-                    tallCount--;
+        if(len > 0){
+            if(r != 0){
+                if(r <= shortCol.first){
+                    if(shortCount > 0){
+                        shortCount--;
+                    }else  if(tallCount > 0){
+                        tallCount--;
+                    }else{
+                        return ans;
+                    }
                 }else{
-                    return ans;
-                }
-            }else{
-                if(tallCount > 0){
-                    tallCount--;
-                }else if(shortCount > 0){
-                    shortCount--;
-                }else{
-                    return ans;
+                    if(tallCount > 0){
+                        tallCount--;
+                    }else if(shortCount > 0){
+                        shortCount--;
+                    }else{
+                        return ans;
+                    }
                 }
             }
-        }
-        for(int i = 0; i<div; i++){
-            if(tallCount > 0){
-                tallCount--;
-            }else if(shortCount>=multi){
-                shortCount-= multi;
-            }else{
-                return ans;
+            for(int i = 0; i<div; i++){
+                if(tallCount > 0){
+                    tallCount--;
+                }else if(shortCount>=multi){
+                    shortCount-= multi;
+                }else{
+                    return ans;
+                }
             }
         }
         ans++;
@@ -264,7 +266,7 @@ int main() {
     cin.tie(NULL);
 
     int op = 1;
-    for (int test = 1; test <= 1; test++) {
+    for (int test = 1; test <= 1000000; test++) {
         cout << "TEST nr." << test << " = ";
         if (op == 1) {
             getData();
