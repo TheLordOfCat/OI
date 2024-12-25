@@ -75,7 +75,7 @@ void printData() {
     for (int i = 0; i < col.size(); i++) {
         cout << col[i].first << " " << col[i].second << "\n";
     }
-    cout << shortCol.first << " " << shortCol.second << " " << tallCol.first << " " << tallCol.second << "\n";
+    cout << tallCol.first << " " << tallCol.second << " " << shortCol.first << " " << shortCol.second << "\n";
 }
 
 int brutePush(ll v, vector<PLL>& plane){
@@ -86,8 +86,8 @@ int brutePush(ll v, vector<PLL>& plane){
     ll cur = v;
     while(cur <plane.size()-1){
         ll len = plane[cur+1].first - (plane[cur].first + plane[cur].second);
-        ll div = len/tallCol.first;
-        ll r = len - div*tallCol.first;
+        ll div = len/tallCol.second;
+        ll r = len - div*tallCol.second;
         if(r != 0){
             if(r <= shortCol.first){
                 if(shortCount > 0){
