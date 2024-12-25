@@ -75,29 +75,31 @@ void printData() {
 
 int brutePush(ll v, vector<PLL>& plane){
     ll multi = tallCol.first/shortCol.first;
-    ll shortCount = shortCol.second, tallCount = tallCol.second;
+    ll shortCount = shortCol.first, tallCount = tallCol.first;
 
     int ans = 1 + shortCount + tallCount;
     ll cur = v;
-    while(cur <plane.size()){
+    while(cur <plane.size()-1){
         ll len = plane[cur+1].first - (plane[cur].first + plane[cur].second);
         ll div = len/tallCol.first;
         ll r = len - div*tallCol.first;
-        if(r <= shortCol.first){
-            if(shortCount > 0){
-                shortCount--;
-            }else  if(tallCount > 0){
-                tallCount--;
+        if(r != 0){
+            if(r <= shortCol.first){
+                if(shortCount > 0){
+                    shortCount--;
+                }else  if(tallCount > 0){
+                    tallCount--;
+                }else{
+                    return ans;
+                }
             }else{
-                return ans;
-            }
-        }else{
-            if(tallCount > 0){
-                tallCount--;
-            }else if(shortCount > 0){
-                shortCount--;
-            }else{
-                return ans;
+                if(tallCount > 0){
+                    tallCount--;
+                }else if(shortCount > 0){
+                    shortCount--;
+                }else{
+                    return ans;
+                }
             }
         }
         for(int i = 0; i<div; i++){
@@ -127,8 +129,10 @@ int brute() {
 
     ll last = colCopy.back().first; 
     for(int i = colCopy.size()-1; i>=0; i--){
-
+        colCopy[i].first = last - colCopy[i].first;
     }
+
+    reverse(colCopy.begin(), colCopy.end());
 
     for(int i =0 ; i<col.size()-1; i++){
         int temp = brutePush(i,colCopy);
