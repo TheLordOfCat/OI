@@ -51,10 +51,10 @@ void getRandom() {
     srand(time(0));
 
     int len = 100;
-    n = rand() % 10 + 3;
+    n = rand() % 3 + 3;
     vector<bool> used(len, false);
     for (int i = 0; i < n; i++) {
-        ll a = rand() % len + 1, b = rand() % 20 + 10;
+        ll a = rand() % len + 1, b = rand() % 10 + 10;
         while(used[a]){
             a = rand() % len + 1;
         }
@@ -79,7 +79,7 @@ void printData() {
 }
 
 int brutePush(ll v, vector<PLL>& plane){
-    ll multi = tallCol.first/shortCol.first;
+    ll multi = tallCol.second/shortCol.second;
     ll shortCount = shortCol.first, tallCount = tallCol.first;
 
     int ans = 1 + shortCount + tallCount;
@@ -112,7 +112,7 @@ int brutePush(ll v, vector<PLL>& plane){
                 if(tallCount > 0){
                     tallCount--;
                 }else if(shortCount>=multi){
-                    shortCount-= multi;
+                    shortCount-= multi*div;
                 }else{
                     return ans;
                 }
@@ -161,11 +161,13 @@ ll solvePush(vector<PLL> c){
     }
 
     int beg = 0, end = 0;
-    queue<PLL> Q;
-    queue<bool> E;
-    ll den = 0;
-    ll excessive = 0;
+    vector<PLL> gapsUse(c.size()+1, MP(0,0));
+    vector<bool> used(n+1, false);
+    priority_queue<PII> E;
+    queue<int> Q;
     ll shortCount = shortCol.first, tallCount = tallCol.first;
+
+
     while(end != c.size()-1){
         ll len = gaps[end];
 
@@ -182,52 +184,52 @@ ll solvePush(vector<PLL> c){
             div++;
         }
 
-        if(div <= shortCount + tallCount){ //add gap
-            ll t = div/2;
+        ll multi = tallCol.second/shortCol.second;
+        if(div <= shortCount + tallCount*multi){ //add gap
+            ll t = div/multi;
             if(t > tallCount){
                 t = tallCount;
             }
             tallCount -= t;
-            div -= t*2;
-            PLL g;
-            if(shortCount == 0){
-                tallCount -= 1;
-                g = MP(t+1, 0);
-                E.push(true);
-                excessive++;
-            }else{
-                shortCount -= div;
-                g = MP(t, div);
-                E.push(false);
+            div -= multi*t;
+
+            gapsUse[end].second = t;
+            if(div > 0){
+                if(shortCount > div){
+                    shortCount -= div;
+                    gapsUse[end].first = div;
+                }else{ //excessive tall
+                    tallCount--;
+                    gapsUse[end] = MP(0, t+1);
+                    E.push(MP(end, div));
+                }
             }
-            Q.push(g);
+            Q.push(end);
             end++;
         }else{ // remove gap
             if(Q.size() != 0){
-                PLL v = Q.front();
+                int v = Q.front();
+                PLL p = gapsUse[v];
+                used[v] = true;
                 Q.pop();
 
-                bool b = E.front();
-                E.pop();
-                
-                if(b){
-                    if(den > 0){
-                        v.first--;
-                        v.second++;
-                        den--;
+                shortCount += p.first;
+                tallCount += p.second;
+
+                if(!E.empty()){
+                    PII e = E.top();
+                    E.pop();
+
+                    if(shortCount >= e.second){
+                        shortCount -= e.second;
+                        gapsUse[e.first].first--;
+                        gapsUse[e.first].second += e.second;
                     }
-                    excessive--;
+
+                    E.push(e);
                 }
 
                 beg++;
-                shortCount += v.first;
-                tallCount += v.second;
-
-                while(den != excessive){
-                    shortCount--;
-                    den++;
-                    tallCount++;
-                }
             }else{
                 beg++;
                 end++;
@@ -265,7 +267,7 @@ int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
+    int op = 0;
     for (int test = 1; test <= 1000000; test++) {
         cout << "TEST nr." << test << " = ";
         if (op == 1) {

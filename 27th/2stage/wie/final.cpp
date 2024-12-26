@@ -79,7 +79,7 @@ ll solvePush(vector<PLL> c){
             div++;
         }
 
-        ll multi = tallCol.first/shortCol.first;
+        ll multi = tallCol.second/shortCol.second;
         if(div <= shortCount + tallCount*multi){ //add gap
             ll t = div/multi;
             if(t > tallCount){
@@ -88,17 +88,19 @@ ll solvePush(vector<PLL> c){
             tallCount -= t;
             div -= multi*t;
 
+            gapsUse[end].second = t;
             if(div > 0){
                 if(shortCount > div){
                     shortCount -= div;
-                    gapsUse[end] = MP(t, div);
+                    gapsUse[end].first = div;
                 }else{ //excessive tall
                     tallCount--;
-                    gapsUse[end] = MP(t+1, 0);
+                    gapsUse[end] = MP(0, t+1);
                     E.push(MP(end, div));
                 }
-                Q.push(end);
             }
+            Q.push(end);
+            end++;
         }else{ // remove gap
             if(Q.size() != 0){
                 int v = Q.front();
@@ -109,7 +111,7 @@ ll solvePush(vector<PLL> c){
                 shortCount += p.first;
                 tallCount += p.second;
 
-                if(E.empty() > 0){
+                if(!E.empty()){
                     PII e = E.top();
                     E.pop();
 
@@ -121,7 +123,8 @@ ll solvePush(vector<PLL> c){
 
                     E.push(e);
                 }
-                
+
+                beg++;
             }else{
                 beg++;
                 end++;
