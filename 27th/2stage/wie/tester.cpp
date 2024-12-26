@@ -64,7 +64,13 @@ void getRandom() {
 
     sort(col.begin(), col.end(), pairCompare);
 
-    ll a = rand() % n + 1, b = rand() % 10 + 5, c = rand() % n + 1, d = rand() % 4 + 1;
+    ll minHeight = INF;
+    for(int i =0; i<col.size(); i++){
+        minHeight = min(minHeight, col[i].second);
+    }
+
+    ll a = rand() % n + 1, b = rand() % minHeight + 1, c = rand() % n + 1, d = rand() % 4 + 1;
+    if(d*b > minHeight) d = 1;
     shortCol = MP(a, b);
     tallCol = MP(c, d*b);
 }
@@ -231,8 +237,12 @@ ll solvePush(vector<PLL> c){
 
                 beg++;
             }else{
-                beg++;
-                end++;
+                if(beg == end){
+                    beg++;
+                    end++;
+                }else{
+                    beg++;
+                }
             }
         }
 

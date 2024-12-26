@@ -126,8 +126,12 @@ ll solvePush(vector<PLL> c){
 
                 beg++;
             }else{
-                beg++;
-                end++;
+                if(beg == end){
+                    beg++;
+                    end++;
+                }else{
+                    beg++;
+                }
             }
         }
 
