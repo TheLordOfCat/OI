@@ -78,8 +78,12 @@ bool customComparePLL(PLL a, PLL b){
     return a.first < b.first;
 }
 
+tuple<ll,ll,ll> getRange(){
+    
+}
+
 tuple<ll, ll, ll> solve() {
-    if(n<=48){
+    if(n<=48){ // to litlle to be anitPimred 
         tuple<ll, ll, ll> ans = MT(0, 0, 0);
         for(int i = 1; i<=n; i++){
             for(int j = 1; j<=n; j++){
@@ -115,7 +119,10 @@ tuple<ll, ll, ll> solve() {
     //get range
     vector<tuple<ll, ll, ll>> range;
 
-
+    for(int i = 7; i<antiPrimes.size(); i++){
+        tuple<ll,ll,ll> temp = getRange();
+        range.PB(temp);
+    }
 
 
     //get ans;
