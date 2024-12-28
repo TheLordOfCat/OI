@@ -33,6 +33,7 @@ void getData() {
 }
 
 ll R;
+ll depth;
 vector<PLL> segTree;
 vector<ll> lazy;
 
@@ -52,15 +53,34 @@ ll leaf(ll v){
     return R+v+1;
 }
 
+void updateLazy(ll v){
+    if(lazy[v] != 0){
+        segTree[v].first += lazy[v];
+        if(v < R){
+            lazy[left(v)] += lazy[v];
+            lazy[right(v)] += lazy[v];
+        }
+        lazy[v] = 0;
+    }
+}
+
 void updateVer(ll v){
     if(v > R){
         return;
     }
 
-    if(segTree[left(v)].first < segTree[right(v)].first){
+    updateLazy(v);
+    updateLazy(left(v));
+    updateLazy(right(v));
+
+    if(segTree[left(v)].first <= 0){
+        if(segTree[left(v)].first >= segTree[right(v)].first){
+            segTree[v] = segTree[left(v)];
+        }else{
+            segTree[v] = segTree[right(v)];
+        }
+    }else if(segTree[left(v)].first > 0){
         segTree[v] = segTree[left(v)];
-    }else{
-        segTree[v] = segTree[right(v)];
     }
 }
 
@@ -68,18 +88,22 @@ void buildTree(){
     segTree.clear();
     lazy.clear();
 
-    int depth = 0;
+    R = 0;
+    depth = 0;
+
     while(1<<depth < n){
         R += (1<<depth);
         depth++;
     }
 
-    segTree.assign(R+(1<<depth)+1, MP(0,0));
+    segTree.assign(R+(1<<depth)+1, MP(-llINF, -1));
     lazy.assign(R+(1<<depth)+1, 0);
 
-    for(int i = 0; i<w.size(); i++){
+    ll sum = 0;
+    for(int i = w.size()-1; i>=0; i--){
         ll v = leaf(i);
-        segTree[v] = MP(w[i],i);
+        segTree[v] = MP(w[i]-sum,i);
+        sum += w[i];
     }
 
     for(int i = R; i>=1; i--){
@@ -87,54 +111,55 @@ void buildTree(){
     }
 }
 
-void updateLazy(ll v){
-    if(lazy[v] != 0){
-        segTree[v].first += lazy[v];
-        if(v < R){
-            segTree[left(v)].first += lazy[v];
-            segTree[right(v)].first += lazy[v];
-        }
-        lazy[v] = 0;
-    }
-}
-
-void recAdd(ll v, ll l, ll r, ll L, ll R, ll val){
-    if(r < L || l > R || r < l){
+void recAdd(ll v, ll l, ll r, ll tL, ll tR, ll val){
+    if(r < tL || l > tR || r < l){
         return;
     }
 
     updateLazy(v);
 
-    if(L <= l && r <= R){
+    if(tL <= l && r <= tR){
         segTree[v].first += val;
         if(v < R){
             lazy[left(v)] += val;
             lazy[right(v)] += val;
         }
-    }else{
-        recAdd(left(v), l, r/2, L, R, val);
-        recAdd(right(v), r/2+1, r, L, R, val);
-        updateVer(v);
+    }else if(v <= R){
+        ll mid = (l+r)/2;
+        recAdd(left(v), l, mid, tL, tR, val);
+        recAdd(right(v), mid+1, r, tL, tR, val);
     }
+    updateVer(v);
 }
 
-void addRange(ll L, ll R, ll val){
-    recAdd(1, 1, n, L, R, val);
+void addRange(ll vL, ll vR, ll val){
+    recAdd(1, 0, (1<<depth)-1, vL, vR, val);
 }
 
-void updateSingle(ll v){
+void updateSingle(ll v, ll val){
     ll V = leaf(v);
 
     if(lazy[V] != 0){
         segTree[V].first += lazy[V];
         lazy[V] = 0;
     }
-    segTree[V].first = -llINF;
+    segTree[V].first += val;
     V = parent(V);
     while(V >= 1){
         updateVer(V);
-        updateLazy(V);
         V = parent(V);
+    }
+}
+
+PLL findBest(ll v){
+    if(v > R){
+        return segTree[v];
+    }
+    updateVer(v);
+    if(segTree[left(v)].first > 0){
+        return findBest(left(v));
+    }else{
+        return findBest(right(v));
     }
 }
 
@@ -148,12 +173,18 @@ vector<ll> solve(){
         sum += w[i];
     }
 
+    buildTree();
+
     for(int i = 0; i<w.size(); i++){
-        PLL v = segTree[1];
+        PLL v = findBest(1);
         ans.PB(sum);
         sum -= w[v.second];
         solveUsed.PB(v.second);
+        updateSingle(v.second, -llINF);
+        addRange(0, v.second-1, w[v.second]);
     }
+
+    reverse(ans.begin(), ans.end());
 
     return ans;
 }
@@ -169,7 +200,6 @@ int main() {
         cout << ansS[j] << " ";
     }
     cout << "\n";
-
 
     return 0;
 }
