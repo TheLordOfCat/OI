@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <tuple>
+#include <queue>
 
 using namespace std;
 
@@ -19,6 +20,7 @@ const ull ullINF = 18'000'000'000'000'000'000;
 #define PLL pair<ll,ll>
 #define PB push_back
 #define MT make_tuple
+#define PIC pair<int,char>
 
 int n;
 vector<tuple<int,int,char>> edges;
@@ -42,7 +44,7 @@ void getRandom(){
     for(int i = 1; i<n-1; i++){
         int con = rand()%3+1;
         for(int j = 0; j<con; j++){
-            char c = rand()%2 + 'a';
+            char c = rand()%2 + 'A';
             edges.PB(MT(i,ind,c));
             ind++;
             if(ind>n){
@@ -63,8 +65,97 @@ void printData(){
     }
 }
 
-vector<string> brute(){
+void genOpsBrute(vector<string>& ops){
+    stack<string> S;
+    while(!S.empty()){
+        string s = S.top();
+        S.pop();
+        
+        ops.PB(s);
+        for(int i = 1; i>=0; i--){
+            string temp = s;
+            temp.PB('A' + i);
 
+            S.push(temp);
+        }
+    }
+}
+
+void bfsBrute(string s, vector<bool>& marked, vector<vector<PIC>> &graph){
+    for(int i = 1; i<=n; i++){
+        vector<int> pr(n+1, 0);
+        stack<PII> S;
+        pr[i] = -1;
+        for(int j = 0; j<graph[i].size(); j++){
+            PIC cur = graph[i][j];
+            if(cur.second == s.front()){
+                S.push(MP(cur.first, 1));
+                pr[cur.first] = i;
+            }
+        }
+
+        while(!S.empty()){
+            PII v = S.top();
+            S.pop();
+
+            if(v.second == s.size()){
+                //backtrack
+                int p = v.first;
+                while(p != i){
+                    marked[p] = true;
+                    p = pr[p];
+                }
+                marked[i] = true;
+            }else{
+                for(int j = 0; j<graph[v.first].size(); j++){
+                    PIC cur = graph[v.first][j];
+                    if(pr[cur.first] == 0){
+                        if(s[v.second] == cur.second){
+                            S.push(MP(cur.first, v.second+1));
+                            pr[cur.first] = v.first;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+vector<string> brute(){
+    //create graph
+    vector<vector<pair<int,char>>> graph(n+1, vector<pair<int,char>>());
+    for(int i =0 ; i<edges.size(); i++){
+        int a = get<0>(edges[i]), b = get<1>(edges[i]);
+        char c = get<2>(edges[i]);
+        graph[a].PB(MP(b,c));
+        graph[b].PB(MP(a,c));
+    }
+
+    //get ops
+    vector<string> ops;
+    genOpsBrute(ops);
+
+    //vefrify
+    vector<string> ans;
+
+    for(int i = 0; i< ops.size(); i++){
+        string s = ops[i];
+
+        vector<bool> marked(n+1, false);
+        bfsBrute(s, marked, graph);
+
+        bool ok = true;
+        for(int j = 1; j<=n; j++){
+            if(!marked[j]){
+                ok = false;
+            }
+        }
+        if(ok){
+            ans.PB(s);
+        }
+    }
+
+    return ans;
 }
 
 vector<string> solve(){
