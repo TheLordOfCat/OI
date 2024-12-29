@@ -32,6 +32,7 @@ void getData(){
     for(int i = 0; i<n-1; i++){
         int a, b;
         char c;
+        cin>>a>>b>>c;
         edges.PB(MT(a,b,c));
     }
 }
@@ -67,16 +68,21 @@ void printData(){
 
 void genOpsBrute(vector<string>& ops){
     stack<string> S;
+    S.push(string());
     while(!S.empty()){
         string s = S.top();
         S.pop();
         
-        ops.PB(s);
-        for(int i = 1; i>=0; i--){
-            string temp = s;
-            temp.PB('A' + i);
+        if(!s.empty()){
+            ops.PB(s);
+        }
+        if(s.size() < n){
+            for(int i = 1; i>=0; i--){
+                string temp = s;
+                temp.PB('A' + i);
 
-            S.push(temp);
+                S.push(temp);
+            }
         }
     }
 }
