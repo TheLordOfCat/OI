@@ -37,39 +37,43 @@ void getData(){
     }
 }
 
-void bfsSolve(int v, vector<vector<int>>& tree, vector<vector<PIC>>& graph){
+void bfsSolve(int vS, vector<vector<int>>& tree, vector<vector<PIC>>& graph){
+    vector<int> temp(26, -1);
+
     vector<bool> used(n+1, false);
-    stack<pair<int, string>> S;
-    S.push(MP(v,string()));
-    used[v] = true;
+    stack<tuple<PII, string>> S;
+    S.push(MT(MP(vS, 0),string()));
+    used[vS] = true;
 
     while(!S.empty()){
-        int v = S.top().first;
-        string s = S.top().second;
+        PII v = get<0>(S.top());
+        string s = get<1>(S.top());
+        S.pop();
 
         bool moved = false;
 
-        for(int i =0 ; i<graph[v].size(); i++){
-            PIC cur = graph[v][i];
+        for(int i =0 ; i<graph[v.first].size(); i++){
+            PIC cur = graph[v.first][i];
             if(!used[cur.first]){
                 used[cur.first] = true;
-                S.push(MP(cur.first, s+cur.second));
-                moved = true;
-                if(tree[s.size()][cur.second-'a'] == -1){
-                    vector<int> temp(26, -1);
+                if(tree[v.second][cur.second-'A'] == -1){
                     tree.PB(temp);
-                    tree[s.size()][cur.second-'a'] = tree.size()-1;
+                    tree[v.second][cur.second-'A'] = tree.size()-1;
                 }
+                S.push(MT(MP(cur.first, tree[v.second][cur.second-'A']), s+cur.second));
+                moved = true;
             }
         }
 
         if(!moved){
+            int p = 0;
             for(int i = s.size(); i>0; i--){
-                if(tree[s.size()-i][s[i-1]-'a'] == -1){
+                if(tree[0][s[i-1]-'A'] == -1){
                     vector<int> temp(26, -1);
                     tree.PB(temp);
-                    tree[s.size()][s[i-1]-'a'] = tree.size()-1;
+                    tree[0][s[i-1]-'A'] = tree.size()-1;
                 }
+                p = tree[0][s[i-1]-'A'];
             }
         }
     }
@@ -85,7 +89,6 @@ vector<vector<int>> getTree(vector<vector<PIC>>& graph){
 }
 
 void mark(int v, vector<int>& depth, vector<vector<PIC>>& graph, vector<vector<int>>& tree, vector<vector<tuple<int,int,int>>> &trio){
-
     stack<tuple<PII, tuple<int,int,int>>> S;
     S.push(MT(MP(v,0), MT(v,v,v)));
 
@@ -98,8 +101,8 @@ void mark(int v, vector<int>& depth, vector<vector<PIC>>& graph, vector<vector<i
 
         for(int j = 0; j<graph[v.first].size(); j++){
             PIC cur = graph[v.first][j];
-            if(tree[v.second][cur.second-'a'] != -1){
-                int nextT = tree[v.second][cur.second-'a'];
+            if(tree[v.second][cur.second-'A'] != -1){
+                int nextT = tree[v.second][cur.second-'A'];
                 tuple<int,int,int> tc = t;
                 if(depth[get<1>(tc)] > depth[cur.first]){
                     get<1>(tc) = cur.first;
@@ -132,6 +135,7 @@ vector<int> getDepth(vector<vector<PIC>>& graph){
 
     while(!S.empty()){
         int v = S.top();
+        S.pop();
 
         for(int i =0; i< graph[v].size(); i++){
             int cur = graph[v][i].first;
@@ -145,10 +149,10 @@ vector<int> getDepth(vector<vector<PIC>>& graph){
     return ans;
 }
 
-bool verifyPattern(int v, vector<vector<pair<int,char>>>& graph,  vector<vector<tuple<int,int,int>>> &trio, vector<int>& leafs){
+bool verifyPattern(int vS, vector<vector<pair<int,char>>>& graph,  vector<vector<tuple<int,int,int>>> &trio, vector<int>& leafs){
     vector<int> dp(n+1, 0);
-    for(int i = 0; i<trio[v].size(); i++){
-        int a = get<0>(trio[v][i]), b = get<1>(trio[v][i]), c = get<2>(trio[v][i]);
+    for(int i = 0; i<trio[vS].size(); i++){
+        int a = get<0>(trio[vS][i]), b = get<1>(trio[vS][i]), c = get<2>(trio[vS][i]);
         dp[a] += 1;
         dp[b] -= 2;
         dp[c] += 1;
@@ -171,12 +175,17 @@ bool verifyPattern(int v, vector<vector<pair<int,char>>>& graph,  vector<vector<
         for(int i = 0; i < graph[v].size(); i++){
             int cur = graph[v][i].first;
             t[cur]--;
-            if(t[cur] == 0){
+            if(t[cur] == 0 && cur != 1){
                 S.push(cur);
-            }else if(t[cur] < 0){
+            }else if(t[cur] < 0 && cur != 1){
                 dp[v] += dp[cur];
             }
         }
+    }
+
+    for(int i = 0; i < graph[1].size(); i++){
+        int cur = graph[1][i].first;
+        dp[1] += dp[cur];
     }
 
     bool ans = true;
@@ -203,18 +212,18 @@ vector<string> solve(){
     //generate trie
     vector<vector<int>> tree = getTree(graph);
 
+    //get depth
+    vector<int> depth = getDepth(graph);
+
     //get ops
-    vector<vector<tuple<int,int,int>>> trio;
+    vector<vector<tuple<int,int,int>>> trio(tree.size(), vector<tuple<int,int,int>>());
 
     for(int i = 1; i<=n; i++){
-        mark(i, trio);
+        mark(i, depth, graph, tree, trio);
     }
 
     //get leafs
     vector<int> leafs = getLeafs(graph);
-
-    //get depth
-    vector<int> depth = getDepth(graph);
 
     //get ans
     vector<string> ans;
@@ -235,7 +244,7 @@ vector<string> solve(){
         for(int i = 25; i>=0; i--){
             int cur = tree[v][i];
             if(cur != -1){
-                char temp = 'a'+i;
+                char temp = 'A'+i;
                 S.push(MP(cur, s+temp));
             }
         }
