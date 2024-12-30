@@ -195,12 +195,12 @@ void bfsSolve(int vS, vector<vector<int>>& tree, vector<vector<PIC>>& graph){
         if(!moved){
             int p = 0;
             for(int i = s.size(); i>0; i--){
-                if(tree[0][s[i-1]-'A'] == -1){
+                if(tree[p][s[i-1]-'A'] == -1){
                     vector<int> temp(26, -1);
                     tree.PB(temp);
-                    tree[0][s[i-1]-'A'] = tree.size()-1;
+                    tree[p][s[i-1]-'A'] = tree.size()-1;
                 }
-                p = tree[0][s[i-1]-'A'];
+                p = tree[p][s[i-1]-'A'];
             }
         }
     }
@@ -215,12 +215,14 @@ vector<vector<int>> getTree(vector<vector<PIC>>& graph){
     return tree;
 }
 
-void mark(int v, vector<int>& depth, vector<vector<PIC>>& graph, vector<vector<int>>& tree, vector<vector<tuple<int,int,int>>> &trio){
+void mark(int vS, vector<int>& depth, vector<vector<PIC>>& graph, vector<vector<int>>& tree, vector<vector<tuple<int,int,int>>> &trio){
     stack<tuple<PII, tuple<int,int,int>>> S;
-    S.push(MT(MP(v,0), MT(v,v,v)));
+    S.push(MT(MP(vS,0), MT(vS,vS,vS)));
+    vector<bool> used(n+1, false);
 
     while(!S.empty()){
         PII v = get<0>(S.top());
+        used[v.first] = true;
         tuple<int,int,int> t = get<1>(S.top());
         S.pop();
 
@@ -228,16 +230,19 @@ void mark(int v, vector<int>& depth, vector<vector<PIC>>& graph, vector<vector<i
 
         for(int j = 0; j<graph[v.first].size(); j++){
             PIC cur = graph[v.first][j];
-            if(tree[v.second][cur.second-'A'] != -1){
-                int nextT = tree[v.second][cur.second-'A'];
-                tuple<int,int,int> tc = t;
-                if(depth[get<1>(tc)] > depth[cur.first]){
-                    get<1>(tc) = cur.first;
+            if(!used[cur.first]){
+                used[cur.first] = true;
+                if(tree[v.second][cur.second-'A'] != -1){
+                    int nextT = tree[v.second][cur.second-'A'];
+                    tuple<int,int,int> tc = t;
+                    if(depth[get<1>(tc)] > depth[cur.first]){
+                        get<1>(tc) = cur.first;
+                    }
+                    if(depth[get<2>(tc)] <= depth[cur.first]){
+                        get<2>(tc) = cur.first;
+                    }
+                    S.push(MT(MP(cur.first, nextT), tc));
                 }
-                if(depth[get<2>(tc)] < depth[cur.first]){
-                    get<2>(tc) = cur.first;
-                }
-                S.push(MT(MP(cur.first, nextT), tc));
             }
         }
     }
@@ -385,8 +390,8 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
-    for(int test = 1; test<=1; test++){
+    int op = 0;
+    for(int test = 1; test<=1000; test++){
         cout<<"Test nr."<<test<<" = ";
         if(op == 1){
             getData();
