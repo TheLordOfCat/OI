@@ -33,14 +33,28 @@ void getData(){
     }
 }
 
-vector<int> getGroup(int type){
+vector<int> getGroup(int type, int maxVer){
     vector<int> ans;
+    vector<bool> part(maxVer, false);
+    if(type == 0){
+        part[1] = true;
+        ans.PB(1);
+    }else{
+        part[2] = true;
+        ans.PB(2);
+    }
+    int ind = 3;
     for(int i = 0; i<input.size(); i++){
-        if(input[i].first != '?'){
-            if(type == 0){
-                ans.PB(input[i].second);       
+        if(input[i].first == 'W'){
+            if(!part[input[i].second]){
+                ans.PB(ind);
             }
-            type = (type+1)%2;
+            ind++;
+        }else if(input[i].first == 'Z'){
+            if(part[input[i].second]){
+                ans.PB(ind);
+            }
+            ind++;
         }
     }
 
@@ -56,9 +70,11 @@ pair<vector<PII>, vector<vector<PII>>> getGraph(vector<int>& mainGroup, int &max
     if(mainGroup.front() == 1){
         graph[0].PB(MP(1,2));
         point[1] = MP(0,1);
+        loc[2] = MP(0,1);
     }else{
         graph[0].PB(MP(1,1));
         point[2] = MP(0,1);
+        loc[1] = MP(0,1);
     }
 
     vector<bool> part(maxVer+1, false);
@@ -78,6 +94,7 @@ pair<vector<PII>, vector<vector<PII>>> getGraph(vector<int>& mainGroup, int &max
                 graph.PB(vector<PII>());
                 graph[point[x].second].PB(MP(graph.size()-1, ind));
                 point[x].second = graph.size()-1;
+                loc[ind] = MP(point[x].second, graph.size()-1);
             }else{
                 point[ind] = point[x];
             }
@@ -94,8 +111,11 @@ pair<vector<PII>, vector<vector<PII>>> getGraph(vector<int>& mainGroup, int &max
                         break;
                     }
                 }
-                graph.back().PB(MP(graph[loc[x].first][cur].first, ind));
-                graph[loc[x].first][cur].first = graph.size()-1;
+
+                graph.back().PB(MP(loc[x].second, x));
+                graph[loc[x].first][cur] = MP(graph.size()-1,ind);
+                loc[ind] = MP(loc[x].first, graph.size()-1);
+                loc[x].first = graph.size()-1;
             }
         }
         ind++;
@@ -103,29 +123,34 @@ pair<vector<PII>, vector<vector<PII>>> getGraph(vector<int>& mainGroup, int &max
     return MP(point, graph);
 }
 
-pair<vector<int>, vector<PII>> getPath(vector<vector<PII>> &graph){
+pair<vector<int>, vector<PII>> getPath(vector<vector<PII>> &graph, int maxVer, vector<PII>& convert){
     vector<int> ans1;
-    vector<PII> ans2;
+    vector<PII> ans2(maxVer+1, MP(-1,-1));
 
-    stack<pair<int,bool>> S;
-    S.push(MP(0,false));
+    stack<pair<PII,bool>> S;
+    S.push(MP(MP(0,-1),false));
 
     while(!S.empty()){
-        int v = S.top().first;
+        PII v = S.top().first;
         bool b = S.top().second;
         S.pop();
         if(b){
-            ans1.PB((-1)*v);
-            ans2[v].second = ans1.size()-1;
+            ans1.PB((-1)*v.second);
+            ans2[v.second].second = ans1.size()-1;
+            convert[v.first].second = ans1.size()-1;
             continue;
         }
 
-        S.push(MP(v, true));
-        for(int i = 0; i<graph[v].size(); i++){
-            PII cur = graph[v][i];
-            ans1.PB(cur.second);
-            ans2[v].first = ans1.size()-1;
-            S.push(MP(cur.first, false));
+        if(v.second != -1){
+            ans1.PB(v.second);
+            ans2[v.second].first = ans1.size()-1;
+            convert[v.first].first = ans1.size()-1;
+        }
+
+        for(int i = 0; i<graph[v.first].size(); i++){
+            PII cur = graph[v.first][i];
+            S.push(MP(cur, true));
+            S.push(MP(cur, false));
         }
     }
 
@@ -141,7 +166,7 @@ int right(int v){
 }
 
 int leaf(int v, int R){
-    return R+v;
+    return R+v+1;
 }
 
 int parent(int v){
@@ -150,13 +175,13 @@ int parent(int v){
 
 vector<int> buildTree(int &R, vector<int>& base){
     int depth = 0;
-    int R = 0;
+    R = 0;
     while((1<<depth) < base.size()){
         R += (1<<depth);
         depth++;
     }
 
-    vector<int> tree(R+(1<<depth)+1, 0);
+    vector<int> tree(R+(1<<depth)+2, 0);
     return tree;
 }   
 
@@ -202,16 +227,17 @@ vector<int> solve(){
     }
 
     //split into groups
-    vector<int> X = getGroup(0);
-    vector<int> Y = getGroup(1);
+    vector<int> X = getGroup(0, maxVer);
+    vector<int> Y = getGroup(1, maxVer);
 
     //get graphs
     pair<vector<PII>, vector<vector<PII>>> graphX = getGraph(X, maxVer);
     pair<vector<PII>, vector<vector<PII>>> graphY = getGraph(Y, maxVer);
 
     //get traversal
-    pair<vector<int>,vector<PII>> pathX = getPath(graphX.second);
-    pair<vector<int>,vector<PII>> pathY = getPath(graphY.second);
+    vector<PII> convertX(maxVer, MP(-1,-1)), convertY(maxVer, MP(-1,-1));
+    pair<vector<int>,vector<PII>> pathX = getPath(graphX.second, maxVer, convertX);
+    pair<vector<int>,vector<PII>> pathY = getPath(graphY.second, maxVer, convertY);
 
     //create segTree
     int RX, RY;
@@ -225,14 +251,21 @@ vector<int> solve(){
         part[X[i]] = true;
     }
     int ind = 3;
+
+    //initialilize
+    updateSingle(pathX.second[2].first, RX, treeX, 1);
+    updateSingle(pathX.second[2].second, RX, treeX, -1);
+    updateSingle(pathY.second[1].first, RY, treeY, 1);
+    updateSingle(pathY.second[1].second, RY, treeY, -1);
+
     for(int i = 0; i<input.size(); i++){
         int x = input[i].second;
         if(input[i].first == '?'){
             int temp;
             if(part[x]){
-                temp = query(pathX.second[x].first, pathX.second[x].first, RX, treeX);
+                temp = query(convertX[graphX.first[x].first].first, convertX[graphX.first[x].second].first-1, RX, treeX);
             }else{
-                temp = query(pathY.second[x].first, pathY.second[x].first, RY, treeY);
+                temp = query(pathY.second[x].first, pathY.second[x].second, RY, treeY);
             }
             ans.PB(temp);
         }else{
