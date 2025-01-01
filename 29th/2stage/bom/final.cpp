@@ -54,16 +54,18 @@ vector<vector<int>> getDist(PII start){
 
         for(int i = -1; i<=1; i++){
             if(v.first + i <=n && v.first + i>=1){
-                if(ans[start.first+i][start.second] == INF){
-                    ans[start.first+i][start.second] = ans[start.first][start.second] + 1;
+                if(ans[v.first+i][v.second] == INF && (plane[v.first+i][v.second] == '.' || plane[v.first+i][v.second] == '#' || plane[v.first+i][v.second] == 'P' || plane[v.first+i][v.second] == 'K')){
+                    ans[v.first+i][v.second] = ans[v.first][v.second] + 1;
+                    if(plane[v.first+i][v.second] == '.') Q.push(MP(v.first+i, v.second));
                 }
             }
         }
 
         for(int i = -1; i<=1; i++){
             if(v.second + i <=n && v.second + i>=1){
-                if(ans[start.first][start.second+i] == INF){
-                    ans[start.first][start.second+i] = ans[start.first][start.second] + 1;
+                if(ans[v.first][v.second+i] == INF && (plane[v.first][v.second+i] == '.' || plane[v.first][v.second+i] == '#' || plane[v.first][v.second+i] == 'P' || plane[v.first][v.second+i] == 'K')){
+                    ans[v.first][v.second+i] = ans[v.first][v.second] + 1;
+                    if(plane[v.first][v.second+i] == '.') Q.push(MP(v.first, v.second+i));
                 }
             }
         }
@@ -73,56 +75,80 @@ vector<vector<int>> getDist(PII start){
 }
 
 void processRow(int r, vector<char> &row, vector<int>& dist, vector<vector<vector<int>>>& proposed, int in){
+    vector<int> prop(n+1, INF);
     for(int i = 1; i<=n; i++){
-        if(row[i] != '#'){
+        if(row[i] != 'X'){
             int temp = dist[i];
             if(i > 1){
-                temp = min(dist[i], proposed[r][i-1].back()+1);
+                if(in == 0){
+                    temp = min(dist[i], prop[i-1]+1);
+                }else{
+                    temp = min(dist[i], prop[n-i+2]+1);
+                }
             }
             if(in == 0){
-                proposed[r][i].back() = min(proposed[r][i].back(), temp);
+                prop[i] = min(prop[i], temp);
             }else{
-                proposed[r][n-i+1].back() = min(proposed[r][i].back(), temp);
+                prop[n-i+1] = min(prop[n-i+1], temp);
             }
         }else{
             if(in == 0){
-                proposed[r][i].back() = INF;
+                prop[i] = INF;
             }else{
-                proposed[r][n-i+1].back() = INF;
+                prop[n-i+1] = INF;
             }
         }
+    }
+
+    for(int i =0; i<=n; i++){
+        proposed[r][i].back() = min(proposed[r][i].back(), prop[i]);
     }
 }
 
 void processCol(int c, vector<char> &col, vector<int>& dist, vector<vector<vector<int>>>& proposed, int in){
+    vector<int> prop(n+1, INF);
     for(int i = 1; i<=n; i++){
         int temp = dist[i];
-        if(col[i] != '#'){
+        if(col[i] != 'X'){
             if(i > 1){
-                temp = min(dist[i], proposed[i-1][c].back()+1);
+                if(in == 0){
+                    temp = min(dist[i], prop[i-1]+1);
+                }else{
+                    temp = min(dist[i], prop[n-i+2]+1);
+                }
             }
             if(in == 0){
-                proposed[i][c].back() = min(proposed[i][c].back(), temp);
+                prop[i] = min(prop[i], temp);
             }else{
-                proposed[n-i+1][c].back() = min(proposed[i][n-i+1].back(), temp);
+                prop[n-i+1] = min(prop[n-i+1], temp);
             }
         }else{
             if(in == 0){
-                proposed[i][c].back() = INF;
+                prop[i] = INF;
             }else{
-                proposed[n-i+1][c].back() = INF;
+                prop[n-i+1] = INF;
             }
         }
+    }
+
+    for(int i = 0; i<prop.size(); i++){
+        proposed[i][c].back() = min(proposed[i][c].back(), prop[i]);
     }
 }
 
 void getProposedRow(int row, vector<vector<vector<int>>>& proposed, vector<vector<int>>& dist){
     processRow(row, plane[row], dist[row], proposed, 0);
-    vector<char> pC = plane[row];
-    reverse(pC.begin(), pC.end());
-    vector<int> d = dist[row];
-    reverse(d.begin(), d.end());
-    processRow(row, pC,d, proposed, 1);
+    vector<char> pC;
+    pC.PB('0');
+    for(int i = n; i>=1; i--){
+        pC.PB(plane[row][i]);
+    }
+    
+    vector<int> d = {INF};
+    for(int i = n; i>=1; i--){
+        d.PB(dist[row][i]);
+    }
+    processRow(row, pC, d, proposed, 1);
 }
 
 void getProposedCol(int col, vector<vector<vector<int>>>& proposed, vector<vector<int>>& dist){
@@ -135,28 +161,61 @@ void getProposedCol(int col, vector<vector<vector<int>>>& proposed, vector<vecto
         d.PB(dist[i][col]);
     }
 
-    processRow(col, pC, d, proposed, 0);
-    reverse(pC.begin(), pC.end());
-    reverse(d.begin(), d.end());
-    processRow(col, pC,d, proposed, 1);
+    processCol(col, pC, d, proposed, 0);
+    pC.clear();
+    pC.PB('0');
+    for(int i = n; i>=1; i--){
+        pC.PB(plane[i][col]);
+    }
+    d.clear();
+    d.PB(INF);
+    for(int i = n; i>=1; i--){
+        d.PB(dist[i][col]);
+    }
+    processCol(col, pC,d, proposed, 1);
 }
 
 vector<vector<int>> getDp(vector<vector<int>> &distP, vector<vector<int>> &distK){
     vector<vector<int>> dp(n+1, vector<int>(n+1, 00));
 
     //get proposed
-    vector<int> temp = {INF,INF};
+    vector<int> temp = {INF};
     vector<vector<vector<int>>> proposed(n+1, vector<vector<int>>(n+1, temp));
     for(int i = 1; i<=n; i++){
         getProposedRow(i, proposed, distP);
-        getProposedCol(i, proposed, distK);
+        getProposedCol(i, proposed, distP);
+    }
+    for(int i = 0; i<=n; i++){
+        for(int j = 0; j<=n; j++){
+            proposed[i][j].PB(INF);
+        }
     }
     for(int i = 1; i<=n; i++){
-        getProposedCol(i, proposed, distP);
+        getProposedRow(i, proposed, distK);
         getProposedCol(i, proposed, distK);
     }
 
-    //ge dp
+    // for(int i = 0; i<proposed.size(); i++){
+    //     for(int j =0 ;j <proposed[i].size(); j++){
+    //         cout<<"(";
+    //         if(proposed[i][j][0] != INF){
+    //             cout<<proposed[i][j][0];
+    //         }else{
+    //             cout<<"-1";
+    //         }
+    //         cout<<", ";
+            
+    //         if(proposed[i][j][1] != INF){
+    //             cout<<proposed[i][j][1];
+    //         }else{
+    //             cout<<"-1";
+    //         }
+    //         cout<<") ";
+    //     }
+    //     cout<<"\n";
+    // }
+
+    //get dp
     for(int i = 1; i<=n; i++){
         for(int j = 1; j<=n; j++){
             if(proposed[i][j][0] != INF && proposed[i][j][1] != INF){
@@ -234,8 +293,8 @@ vector<char> getPath(PII start){
 
     vector<char> ans;
     PII n = K;
-    while(n.first != P.first && n.second != P.second){
-        PII p = previous[p.first][p.second];
+    while(n.first != P.first || n.second != P.second){
+        PII p = previous[n.first][n.second];
         if(p.first < n.first){
             ans.PB('D');
         }else if(p.first > n.first){
@@ -245,7 +304,10 @@ vector<char> getPath(PII start){
         }else{
             ans.PB('L');
         }
+        n = p;
     }
+
+    reverse(ans.begin(), ans.end());
 
     return ans;
 }
@@ -292,7 +354,7 @@ int main()
     // }
     for(int i = 0; i<get<2>(ansS).size(); i++){
         char move = get<2>(ansS)[i];
-        cout<<move<<"\n";
+        cout<<move<<" ";
     }
 
     return 0;
