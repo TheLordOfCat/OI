@@ -43,7 +43,7 @@ void getData(){
 }
 
 vector<vector<int>> getDist(PII start){
-    vector<vector<int>> ans(n+1, vector<int>(n+1, -1));
+    vector<vector<int>> ans(n+1, vector<int>(n+1, INF));
     queue<PII> Q;
     Q.push(start);
 
@@ -54,7 +54,7 @@ vector<vector<int>> getDist(PII start){
 
         for(int i = -1; i<=1; i++){
             if(v.first + i <=n && v.first + i>=1){
-                if(ans[start.first+i][start.second] == -1){
+                if(ans[start.first+i][start.second] == INF){
                     ans[start.first+i][start.second] = ans[start.first][start.second] + 1;
                 }
             }
@@ -62,7 +62,7 @@ vector<vector<int>> getDist(PII start){
 
         for(int i = -1; i<=1; i++){
             if(v.second + i <=n && v.second + i>=1){
-                if(ans[start.first][start.second+i] == -1){
+                if(ans[start.first][start.second+i] == INF){
                     ans[start.first][start.second+i] = ans[start.first][start.second] + 1;
                 }
             }
@@ -72,11 +72,100 @@ vector<vector<int>> getDist(PII start){
     return ans;
 }
 
+void processRow(int r, vector<char> &row, vector<int>& dist, vector<vector<vector<int>>>& proposed, int in){
+    for(int i = 1; i<=n; i++){
+        if(row[i] != '#'){
+            int temp = dist[i];
+            if(i > 1){
+                temp = min(dist[i], proposed[r][i-1].back()+1);
+            }
+            if(in == 0){
+                proposed[r][i].back() = min(proposed[r][i].back(), temp);
+            }else{
+                proposed[r][n-i+1].back() = min(proposed[r][i].back(), temp);
+            }
+        }else{
+            if(in == 0){
+                proposed[r][i].back() = INF;
+            }else{
+                proposed[r][n-i+1].back() = INF;
+            }
+        }
+    }
+}
+
+void processCol(int c, vector<char> &col, vector<int>& dist, vector<vector<vector<int>>>& proposed, int in){
+    for(int i = 1; i<=n; i++){
+        int temp = dist[i];
+        if(col[i] != '#'){
+            if(i > 1){
+                temp = min(dist[i], proposed[i-1][c].back()+1);
+            }
+            if(in == 0){
+                proposed[i][c].back() = min(proposed[i][c].back(), temp);
+            }else{
+                proposed[n-i+1][c].back() = min(proposed[i][n-i+1].back(), temp);
+            }
+        }else{
+            if(in == 0){
+                proposed[i][c].back() = INF;
+            }else{
+                proposed[n-i+1][c].back() = INF;
+            }
+        }
+    }
+}
+
+void getProposedRow(int row, vector<vector<vector<int>>>& proposed, vector<vector<int>>& dist){
+    processRow(row, plane[row], dist[row], proposed, 0);
+    vector<char> pC = plane[row];
+    reverse(pC.begin(), pC.end());
+    vector<int> d = dist[row];
+    reverse(d.begin(), d.end());
+    processRow(row, pC,d, proposed, 1);
+}
+
+void getProposedCol(int col, vector<vector<vector<int>>>& proposed, vector<vector<int>>& dist){
+    vector<char> pC;
+    for(int i =0 ; i<=n; i++){
+        pC.PB(plane[i][col]);
+    }
+    vector<int> d;
+    for(int i =0 ; i<=n; i++){
+        d.PB(dist[i][col]);
+    }
+
+    processRow(col, pC, d, proposed, 0);
+    reverse(pC.begin(), pC.end());
+    reverse(d.begin(), d.end());
+    processRow(col, pC,d, proposed, 1);
+}
+
 vector<vector<int>> getDp(vector<vector<int>> &distP, vector<vector<int>> &distK){
     vector<vector<int>> dp(n+1, vector<int>(n+1, 00));
 
-    for(int i  = 0; i)
+    //get proposed
+    vector<int> temp = {INF,INF};
+    vector<vector<vector<int>>> proposed(n+1, vector<vector<int>>(n+1, temp));
+    for(int i = 1; i<=n; i++){
+        getProposedRow(i, proposed, distP);
+        getProposedCol(i, proposed, distK);
+    }
+    for(int i = 1; i<=n; i++){
+        getProposedCol(i, proposed, distP);
+        getProposedCol(i, proposed, distK);
+    }
 
+    //ge dp
+    for(int i = 1; i<=n; i++){
+        for(int j = 1; j<=n; j++){
+            if(proposed[i][j][0] != INF && proposed[i][j][1] != INF){
+                dp[i][j] = proposed[i][j][0] + proposed[i][j][1];
+            }else{
+                dp[i][j] = INF;
+            }   
+        }
+    }
 
     return dp;
 }
@@ -167,7 +256,7 @@ tuple<int, PII, vector<char>> solve(){
     vector<vector<int>> distP = getDist(P);
     vector<vector<int>> distK = getDist(K);
 
-    vector<vector<int>> dp = getDp(); 
+    vector<vector<int>> dp = getDp(distP, distK); 
 
     for(int i = 1; i<=n; i++){
         for(int j  = 1; j<=n; j++){
@@ -178,8 +267,8 @@ tuple<int, PII, vector<char>> solve(){
         }
     }
 
-    if(get<0>(ans) == -1){
-        return MT(-1,MP(-1,-1), vector<char>());
+    if(get<0>(ans) == INF){
+        return MT(-1, MP(-1,-1), vector<char>());
     }
 
     vector<char> previous = getPath(get<1>(ans));
