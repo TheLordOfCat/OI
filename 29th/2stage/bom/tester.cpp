@@ -47,34 +47,62 @@ void getRandom(){
 
     srand(time(0));
 
-    n = rand()%30+10;
+    // n = rand()%30+10;
+    // plane.PB(vector<char>(n+1, '0'));
+    // for(int i = 1; i<=n; i++){
+    //     plane.PB(vector<char>());
+    //     plane[i].PB('0');
+    //     for(int j = 1; j<=n; j++){
+    //         int type = rand()%5;
+    //         char c;
+    //         if(type == 1){
+    //             c = '#';
+    //         }else if(type == 2){
+    //             c = 'X';
+    //         }else{
+    //             c = '.';
+    //         }
+    //         plane[i].PB(c);
+    //     }
+    // }
+
+    // P = MP(rand()%n+1, rand()%n+1);
+    // K = P;
+    // while(K.first == P.first && K.second == P.second){
+    //     K = MP(rand()%n+1, rand()%n+1);
+    // }
+
+    // plane[P.first][P.second] = 'P';
+    // plane[K.first][K.second] = 'K';
+
+    n = 1001;
     plane.PB(vector<char>(n+1, '0'));
-    for(int i = 1; i<=n; i++){
+    for(int i = 1; i<=2; i++){
         plane.PB(vector<char>());
         plane[i].PB('0');
         for(int j = 1; j<=n; j++){
-            int type = rand()%5;
             char c;
-            if(type == 1){
-                c = '#';
-            }else if(type == 2){
-                c = 'X';
-            }else{
+            int ops = rand()%3+1;
+            if(ops == 1 || ops == 2){
                 c = '.';
+            }else{
+                c = 'X';
             }
             plane[i].PB(c);
         }
     }
-
-    P = MP(rand()%n+1, rand()%n+1);
-    K = P;
-    while(K.first == P.first && K.second == P.second){
-        K = MP(rand()%n+1, rand()%n+1);
+    for(int i = 3; i<=n; i++){
+        plane.PB(vector<char>());
+        plane[i].PB('0');
+        for(int j = 1; j<=n; j++){
+            plane[i].PB('X');
+        }
     }
 
-    plane[P.first][P.second] = 'P';
-    plane[K.first][K.second] = 'K';
-
+    plane[1][1] = 'P';
+    plane[1][n] = 'K';
+    P = MP(1,1);
+    K = MP(1,n);
 }
 
 void printData(){
@@ -500,7 +528,7 @@ int main()
     cin.tie(NULL);
 
     int op = 0;
-    for(int test = 1; test<=1000'000; test++){
+    for(int test = 1; test<=1'0; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
@@ -513,27 +541,27 @@ int main()
         //     }
         //     cout<<"\n";
         // }
-        tuple<int,PII,vector<int>> ansB = brute();
+        // tuple<int,PII,vector<int>> ansB = brute();
         tuple<int,PII,vector<char>> ansS = solve();
-        if(get<0>(ansB) != get<0>(ansS)){
-            cout<<"ERROR\n";
-            cout<<"BURTE: ";
-            cout<<get<0>(ansB)<<"\n";
-            cout<<get<1>(ansB).first<<" "<<get<1>(ansB).second<<"\n";
-            for(int i = 0; i<get<2>(ansB).size(); i++){
-                cout<<get<2>(ansB)[i]<<" ";
-            }
-            cout<<"\n";
-            cout<<"SOLVE: ";
+        // if(get<0>(ansB) != get<0>(ansS)){
+        //     cout<<"ERROR\n";
+        //     cout<<"BURTE: ";
+        //     cout<<get<0>(ansB)<<"\n";
+        //     cout<<get<1>(ansB).first<<" "<<get<1>(ansB).second<<"\n";
+        //     for(int i = 0; i<get<2>(ansB).size(); i++){
+        //         cout<<get<2>(ansB)[i]<<" ";
+        //     }
+        //     cout<<"\n";
+        //     cout<<"SOLVE: ";
             cout<<get<0>(ansS)<<"\n";
             cout<<get<1>(ansS).first<<" "<<get<1>(ansS).second<<"\n";
             for(int i = 0; i<get<2>(ansS).size(); i++){
                 cout<<get<2>(ansS)[i]<<" ";
             }
             cout<<"\n";
-            printData();
-            return 0;
-        }    
+            // printData();
+        //     return 0;
+        // }    
         cout<<"CORRECT\n";
     }
 

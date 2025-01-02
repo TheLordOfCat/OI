@@ -23,23 +23,51 @@ vector<vector<char>> plane;
 PII P, K;
 
 void getData(){
-    cin>>n;
+    // cin>>n;
+    // plane.PB(vector<char>(n+1, '0'));
+    // for(int i = 1; i<=n; i++){
+    //     plane.PB(vector<char>());
+    //     plane[i].PB('0');
+    //     for(int j = 1; j<=n; j++){
+    //         char c;
+    //         cin>>c;
+    //         plane[i].PB(c);
+
+    //         if(c == 'P'){
+    //             P = MP(i,j);
+    //         }else if(c == 'K'){
+    //             K = MP(i,j);
+    //         }
+    //     }
+    // }
+    n = 1001;
     plane.PB(vector<char>(n+1, '0'));
-    for(int i = 1; i<=n; i++){
+    for(int i = 1; i<=2; i++){
         plane.PB(vector<char>());
         plane[i].PB('0');
         for(int j = 1; j<=n; j++){
             char c;
-            cin>>c;
-            plane[i].PB(c);
-
-            if(c == 'P'){
-                P = MP(i,j);
-            }else if(c == 'K'){
-                K = MP(i,j);
+            int ops = rand()%3+1;
+            if(ops == 1 || ops == 2){
+                c = '.';
+            }else{
+                c = 'X';
             }
+            plane[i].PB(c);
         }
     }
+    for(int i = 3; i<=n; i++){
+        plane.PB(vector<char>());
+        plane[i].PB('0');
+        for(int j = 1; j<=n; j++){
+            plane[i].PB('X');
+        }
+    }
+
+    plane[1][1] = 'P';
+    plane[1][n] = 'K';
+    P = MP(1,1);
+    K = MP(1,n);
 }
 
 vector<vector<int>> getDist(PII start){
