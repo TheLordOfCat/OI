@@ -47,7 +47,7 @@ void getRandom(){
 
     srand(time(0));
 
-    n = rand()%10+2;
+    n = rand()%30+10;
     plane.PB(vector<char>(n+1, '0'));
     for(int i = 1; i<=n; i++){
         plane.PB(vector<char>());
@@ -188,6 +188,10 @@ tuple<int, PII, vector<int>> brute(){
                 }
             }
         }
+    }
+
+    if(get<0>(ans) == INF){
+        get<0>(ans) = -1;
     }
 
     return ans;
@@ -495,20 +499,20 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
-    for(int test = 1; test<=10'000; test++){
-        cout<<"TEST nr."<<test<<" = \n";
-        if(op == 0){
+    int op = 0;
+    for(int test = 1; test<=1000'000; test++){
+        cout<<"TEST nr."<<test<<" = ";
+        if(op == 1){
             getData();
         }else{
             getRandom();
         }
-        for(int i = 1; i<=n; i++){
-            for(int j = 1; j<=n; j++){
-                cout<<plane[i][j]<<" ";
-            }
-            cout<<"\n";
-        }
+        // for(int i = 1; i<=n; i++){
+        //     for(int j = 1; j<=n; j++){
+        //         cout<<plane[i][j]<<" ";
+        //     }
+        //     cout<<"\n";
+        // }
         tuple<int,PII,vector<int>> ansB = brute();
         tuple<int,PII,vector<char>> ansS = solve();
         if(get<0>(ansB) != get<0>(ansS)){

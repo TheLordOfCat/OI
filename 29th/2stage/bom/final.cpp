@@ -347,6 +347,10 @@ int main()
     getData();
 
     tuple<int,PII,vector<char>> ansS = solve();
+    if(get<0>(ansS) == -1){
+        cout<<"NIE\n";
+        return 0;
+    }
     cout<<get<0>(ansS)<<"\n";
     cout<<get<1>(ansS).first<<" "<<get<1>(ansS).second<<"\n";
     // for(int i = 0; i<get<2>(ansS).size(); i++){
@@ -354,7 +358,7 @@ int main()
     // }
     for(int i = 0; i<get<2>(ansS).size(); i++){
         char move = get<2>(ansS)[i];
-        cout<<move<<" ";
+        cout<<move;
     }
 
     return 0;
