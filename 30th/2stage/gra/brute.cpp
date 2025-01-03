@@ -2,6 +2,7 @@
 #include <vector>
 #include <tuple>
 #include <queue>
+#include <stack>
 
 using namespace std;
 
@@ -51,254 +52,233 @@ void getData(){
     }
 }
 
-vector<int> getPart(vector<vector<int>>& graph){
-    vector<int> con(n+1, 0);
-    for(int i = 1; i<= n; i++){
-        con[i] = graph[i].size();
-    }
+void getRandom(){
+    edges.clear(); A.clear(); B.clear(); query.clear();
 
-    vector<int> ans(n+1, 1);
-    queue<int> Q;
-    for(int i = 2; i<=n; i++){
-        if(graph[i].size() == 1){
-            Q.push(i);
-        }
-    }
-    while(!Q.empty()){
-        int v = Q.front();
-        Q.pop();
+    srand(time(0));
 
-        for(int i =0 ; i<graph[v].size(); i++){
-            int cur = graph[v][i];
-            con[cur]--;
-            if(con[cur] != 0){
-                ans[cur] += ans[v];
-            } 
-            if(con[cur] == 1 && cur != 1){
-                Q.push(cur);
-            }
-        }
-    }
+    n = rand()%10+1; 
+    Sa = rand()%n + 1;
+    Sb = rand()%n + 1;
+    // q = rand()%10+1;
+    q = 0;
 
-    for(int i =0 ; i< graph[1].size(); i++){
-        int cur = graph[1][i];
-        ans[1] += ans[cur];
-    }
-    
-    return ans;
-}
-
-vector<int> getParents(vector<vector<int>>& graph){
-    queue<int> Q;
-    Q.push(1);
-    vector<int> parents(n+1, -1);
-    parents[1] = -2;
-    while(!Q.empty()){
-        int v = Q.front();
-        Q.pop();
-
-        for(int i = 0; i<graph[v].size(); i++){
-            int cur = graph[v][i];
-            if(parents[cur] == -1){
-                Q.push(cur);
-                parents[cur] = v;
-            }
-        }
-    }
-
-    return parents;
-}
-
-ll winStrategy(int a, int b, vector<vector<int>>& graph, vector<int> &parents, vector<int>& part){
-    //get mid point
-    queue<PII> Q;
-    vector<int> previous(n+1, -1);
-    Q.push(MP(a,1));
-
-    int dist = 0;
-
-    while(!Q.empty()){
-        int v = Q.front().first;
-        int len = Q.front().second;
-        Q.pop();
-
-        if(v == b){
-            dist = len;
-            break;
-        }
-
-        for(int i = 0; i<graph[v].size(); i++){
-            int cur = graph[v][i];
-            if(previous[cur] == -1){
-                Q.push(MP(cur,len+1));
-                previous[cur] = v;
-            }
-        }
-    }
-
-    previous[1] = -1;
-
-    vector<int> center;
-    if(dist%2 == 0){
-        int v = b;
-        int moves = dist;
-        while(v != a && moves > (dist)/2 + 1){
-            v = previous[v];
-            moves--;
-        }
-        center.PB(v);
-        center.PB(previous[v]);
-    }else{
-        int v = b;
-        int moves = dist;
-        while(v != a && moves > (dist+1)/2){
-            v = previous[v];
-            moves--;
-        }
-        center.PB(v);
-    }
-
-    //get the ans
-    queue<int> P;
-    P.push(a);
-    int cA = -1;
-    while(!P.empty()){
-        int v = P.front();
-        P.pop();
-        for(int i = 0; i<center.size(); i++){
-            if(v == center[i]){
-                cA = center[i];
+    int ind = 2;
+    for(int i = 1; i<=n; i++){
+        int con = rand()%3+1;
+        for(int j = 0; j<con; j++){
+            edges.PB(MP(i,ind));
+            ind++;
+            if(ind > n){
                 break;
             }
         }
-        if(cA != -1){
+        if(ind > n){
             break;
         }
-
-        if(parents[v] != -1 && parents[v] != -2){
-            P.push(parents[v]);
-        }
     }
 
-    ll ans = 0;
-
-    if(cA == -1){
-        while(!P.empty()){
-            P.pop();
+    vector<bool> visA(n+1, false);
+    visA[0] = true;
+    for(int i = 0; i<Sa; i++){
+        int v =0;
+        while(visA[v]){
+            v = rand()%n+1;
         }
-        P.push(b);
-        int cB = -1;
-        while(!P.empty()){
-            int v = P.front();
-            P.pop();
+        visA[v] = true;
+        A.PB(v);
+    }
+    vector<bool> visB(n+1, false);
+    visB[0] = true;
+    for(int i = 0; i<Sb; i++){
+        int v =0;
+        while(visB[v]){
+            v = rand()%n+1;
+        }
+        visB[v] = true;
+        B.PB(v);
+    }
 
-            if(parents[v] != -1 && parents[v] != -2){
-                P.push(parents[v]);
-                for(int i = 0; i<center.size(); i++){
-                    if(parents[v] == center[i]){
-                        cB = v;
-                        break;
-                    }
+    int curA = A.size(), curB =  B.size();
+
+    vector<bool> bA(n+1, false), bB(n+1, false);
+    for(int i = 0; i<A.size(); i++){
+        bA[A[i]] = true;
+    }
+    for(int i = 0; i<B.size(); i++){
+        bB[B[i]] = true;
+    }
+    for(int i = 0; i<q; i++){
+        int type = rand()%2+1;
+        if((type == 1 && curA != 0 && curB != 0) || curA == n || curB == n){
+            int s = rand()%2+1;
+            if((s == 1 && curA != 0) || curB == 0){
+                int v = rand()%n+1;
+                while(!bA[v]){
+                    v = rand()%n+1;
                 }
-                if(cB != -1){
-                    break;
+                query.PB(MT('A','-',v));
+                curA--;
+                bA[v] = false;
+            }else{
+                int v = rand()%n+1;
+                while(!bB[v]){
+                    v = rand()%n+1;
                 }
+                query.PB(MT('B','-',v));
+                curB--;
+                bB[v] = false;
+            }
+        }else{
+            int s = rand()%2+1;
+            if((s == 1 && curA != n) || curB == n){
+                int v = rand()%n+1;
+                while(bA[v]){
+                    v = rand()%n+1;
+                }
+                query.PB(MT('A','+',v));
+                curA++;
+                bA[v] = true;
+            }else{
+                int v = rand()%n+1;
+                while(bB[v]){
+                    v = rand()%n+1;
+                }
+                query.PB(MT('B','+',v));
+                curB++;
+                bB[v] = true;
             }
         }
-
-        if(center.size() == 2){
-            if(part[center.front()] < n/2){
-                ans = 1;
-            } 
-        }else{
-            if(part[cB] <= n/2){
-                ans = 1;
-            } 
-        } 
-    }else{
-        if(part[cA] > n/2){
-            ans = 1;
-        }        
     }
+}
 
-    return ans;
+void printData(){
+    cout<<"DATA: \n";
+    cout<<n<<"\n";
+    for(int i = 0; i<edges.size(); i++){
+        cout<<edges[i].first<<" "<<edges[i].second<<"\n";
+    }
+    cout<<Sa<<" "<<Sb<<" "<<q<<"\n";
+    for(int i = 0; i<Sa; i++){
+        cout<<A[i]<<" ";
+    }
+    cout<<"\n";
+    for(int i = 0; i<Sb; i++){
+        cout<<B[i]<<" ";
+    }
+    cout<<"\n";
+    for(int i = 0; i<query.size(); i++){
+        cout<<get<0>(query[i])<<" "<<get<1>(query[i])<<" "<<get<2>(query[i])<<"\n";
+    }
+}
+
+vector<int> getCentroid(){
+
+}
+
+vector<int> getDist(vector<int> centorid){
+    queue<int>Q;
+    vector<int> ans(n+1, -1);
+    ans[centorid.front()] = 0;
+    ans[centorid.back()] = 0;
+    Q.push(centorid.front());
+    if(centorid.size() > 1) Q.push(centorid.back());
+    while(!Q.empty()){
+        
+    }
+}
+
+bool processQuery(int a, int b){
+
 }
 
 vector<ll> brute(){
+    //get graph
     vector<vector<int>> graph(n+1, vector<int>());
-    for(int i = 0; i<edges.size(); i++){
-        int a = edges[i].first;
-        int b = edges[i].second;
+    for(int i =0 ; i<edges.size(); i++){
+        int a = edges[i].first, b = edges[i].second;
         graph[a].PB(b);
         graph[b].PB(a);
     }
 
-    //get parts of graph
-    vector<int> part = getPart(graph);
+    //find centroid
+    vector<int> centroid = getCentroid();
 
-    //get parents
-    vector<int> parents = getParents(graph);
+    //get dist to centoid
+    vector<int> dist = getDist(centroid);
 
+    //process base request
     vector<ll> ans;
-
-    vector<int> Acopy = A, Bcopy = B; 
-    //process default
-    ll tempD = 0;
-    for(int i = 0; i<Acopy.size(); i++){
-        for(int j = 0; j<Bcopy.size(); j++){
-            if(Acopy[i] != Bcopy[i]){
-                ll temp = winStrategy(A[i], B[j], graph, parents, part);
-                tempD += temp;
-            }
+    ll firstComb =  0;
+    for(int i = 0; i<A.size(); i++){
+        for(int i = 0; i<B.size(); i++){
+            bool pos = processQuery(A[i], B[i]);
+            if(pos) firstComb++;
         }
     }
-    ans.PB(tempD);
+    ans.PB(firstComb);
 
-    //process queyrys
-    for(int o = 0; o<q; o++){
-        tempD = 0; // getting the diffrence
-        if(get<0>(query[o]) == 'A'){
-            for(int i = 0; i<Bcopy.size(); i++){
-                if(Bcopy[i] != get<2>(query[o])){
-                    ll temp = winStrategy(get<2>(query[o]), B[i], graph, parents, part);
-                    tempD += temp;   
-                }
-            }
-            if(get<1>(query[o]) == '-'){
-                tempD *= -1;
+    //process queries
+    vector<bool> usedA(n+1, false), usedB(n+1, false);
+    for(int i = 0; i<A.size(); i++) usedA[A[i]] = true;
+    for(int i = 0; i<B.size(); i++) usedB[B[i]] = true;
+
+    for(int i = 0; i<q; i++){
+        char s = get<0>(query[i]), t = get<1>(query[i]);
+        int val = get<2>(query[i]);
+        //update set
+        if(s == 'A'){
+            if(t == '+'){
+                usedA[val] = true;
+            }else{
+                usedA[val] = false;
             }
         }else{
-            for(int i = 0; i<Acopy.size(); i++){
-                if(Acopy[i] != get<2>(query[o])){
-                    ll temp = winStrategy(A[i], get<2>(query[o]), graph, parents, part);
-                    tempD += temp;
-                }
-            }
-            if(get<1>(query[o]) == '-'){
-                tempD *= -1;
+            if(t == '+'){
+                usedB[val] = true;
+            }else{
+                usedB[val] = false;
             }
         }
-        ans.PB(tempD + ans[o]);
-    }   
+
+        ll comb = 0;
+        for(int i = 0; i<A.size(); i++){
+            if(usedA[i]){
+                for(int i = 0; i<B.size(); i++){
+                    if(usedB[i]){
+                        bool pos = processQuery(A[i], B[i]);
+                        if(pos) comb++;
+                    }
+                }
+            }
+        }
+
+        ans.PB(comb);
+    }
 
     return ans;
 }
-
 
 int main()
 {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
+    int op = 1;
+    for(int test = 1; test<=1; test++){
+        cout<<"TEST nr."<<test<<" = \n";
+        if(op == 1){
+            getData();
+        }else{
+            getRandom();
+        }
+        vector<ll> ansB = brute();
 
-    getData();
-
-    vector<ll> ansB = brute();
-    for(int j = 0; j<ansB.size(); j++){
-        cout<<ansB[j]<<" ";
+        for(int j = 0; j<ansB.size(); j++){
+            cout<<ansB[j]<<" ";
+        }
+        cout<<"\n";
     }
-    cout<<"\n";
-
 
     return 0;
 }
