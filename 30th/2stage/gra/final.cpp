@@ -172,8 +172,93 @@ void printData(){
     }
 }
 
+vector<int> getCentoid(vector<vector<int>> &graph){
+
+}
+
+vector<int> getDist(vector<int> centorid, vector<vector<int>> &graph){
+    queue<int>Q;
+    vector<int> ans(n+1, -1);
+    ans[centorid.front()] = 0;
+    ans[centorid.back()] = 0;
+    Q.push(centorid.front());
+    if(centorid.size() > 1) Q.push(centorid.back());
+    while(!Q.empty()){
+        int v = Q.front();
+        Q.pop();
+
+        for(int i =0 ; i<graph[v].size(); i++){
+            int cur = graph[v][i];
+            if(ans[cur] == -1){
+                ans[cur] = ans[v] +1;
+                Q.push(cur);
+            }
+        }
+    }
+    return ans;
+}
+
+bool processQuery(int a, int b, vector<int>& dist, vector<int>& centroid){
+    if(centroid.size() == 1){
+        if(dist[a] <= dist[b]){
+            return true;
+        }
+        return false;   
+    }else{
+        if(dist[a] < dist[b]){
+            return true;
+        }
+        return false;   
+    }
+}
+
 vector<ll> solve(){
+    //get graph
+    vector<vector<int>> graph(n+1, vector<int>());
+    for(int i =0 ; i< edges.size(); i++){
+        int a=  edges[i].first, b = edges[i].second;
+        graph[a].PB(b);
+        graph[b].PB(a);
+    }
+
+    //get centorid
+    vector<int> centroid = getCentoid(graph);
+
+    //get dist
+    vector<int> dist = getDist(centroid, graph);
+
+    //process base
+    vector<ll> ans;
+    ll countWins = 0;
     
+
+    ans.PB(countWins);
+    
+    //process queries
+    for(int o =  0; o<q; o++){
+        char s = get<0>(query[o]), t = get<1>(query[o]);
+        int val = get<2>(query[o]);
+
+        //update
+
+
+        if(s == 'A'){
+            if(t == '+'){
+                
+            }else{
+
+            }
+        }else{
+            if(t == '+'){
+
+            }else{
+                
+            }
+        }
+        ans.PB(countWins);
+    }
+
+    return ans;
 }
 
 int main()

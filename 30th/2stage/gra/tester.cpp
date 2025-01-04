@@ -172,8 +172,146 @@ void printData(){
     }
 }
 
-vector<ll> brute(){
+vector<int> getCentroidBrute(vector<vector<int>> &graph){
+    vector<int> ans;
+    for(int i = 1; i<=n; i++){
+        bool ok = true;
+        for(int j = 0; j<graph[i].size(); j++){
+            int cur = graph[i][j];
 
+            int count = 1;
+            queue<int> Q;
+            Q.push(cur);
+            vector<bool>used(n+1, false);
+            used[cur] = true;
+            used[i] = true;
+
+            while(!Q.empty()){
+                int v = Q.front();
+                Q.pop();
+
+                for(int o = 0; o<graph[v].size(); o++){
+                    int c = graph[v][o];
+                    if(!used[c]){
+                        used[c] = true;
+                        count++;
+                        Q.push(c);
+                    }
+                }
+            }
+            if(count > n/2) ok = false;
+
+            if(!ok) break;
+        }
+        if(ok){
+            ans.PB(i);
+        }
+    }
+
+    return ans;
+}
+
+vector<int> getDist(vector<int> centorid, vector<vector<int>> &graph){
+    queue<int>Q;
+    vector<int> ans(n+1, -1);
+    ans[centorid.front()] = 0;
+    ans[centorid.back()] = 0;
+    Q.push(centorid.front());
+    if(centorid.size() > 1) Q.push(centorid.back());
+    while(!Q.empty()){
+        int v = Q.front();
+        Q.pop();
+
+        for(int i =0 ; i<graph[v].size(); i++){
+            int cur = graph[v][i];
+            if(ans[cur] == -1){
+                ans[cur] = ans[v] +1;
+                Q.push(cur);
+            }
+        }
+    }
+    return ans;
+}
+
+bool processQuery(int a, int b, vector<int>& dist, vector<int>& centroid){
+    if(centroid.size() == 1){
+        if(dist[a] <= dist[b]){
+            return true;
+        }
+        return false;   
+    }else{
+        if(dist[a] < dist[b]){
+            return true;
+        }
+        return false;   
+    }
+}
+
+vector<ll> brute(){
+    //get graph
+    vector<vector<int>> graph(n+1, vector<int>());
+    for(int i =0 ; i<edges.size(); i++){
+        int a = edges[i].first, b = edges[i].second;
+        graph[a].PB(b);
+        graph[b].PB(a);
+    }
+
+    //find centroid
+    vector<int> centroid = getCentroidBrute(graph);
+
+    //get dist to centoid
+    vector<int> dist = getDist(centroid, graph);
+
+    //process base request
+    vector<ll> ans;
+    ll firstComb =  0;
+    for(int i = 0; i<A.size(); i++){
+        for(int j = 0; j<B.size(); j++){
+            bool pos = processQuery(A[i], B[j], dist, centroid);
+            if(pos) firstComb++;
+        }
+    }
+    ans.PB(firstComb);
+
+    //process queries
+    vector<bool> usedA(n+1, false), usedB(n+1, false);
+    for(int i = 0; i<A.size(); i++) usedA[A[i]] = true;
+    for(int i = 0; i<B.size(); i++) usedB[B[i]] = true;
+
+    for(int o = 0; o<q; o++){
+        char s = get<0>(query[o]), t = get<1>(query[o]);
+        int val = get<2>(query[o]);
+        //update set
+        if(s == 'A'){
+            if(t == '+'){
+                usedA[val] = true;
+            }else{
+                usedA[val] = false;
+            }
+        }else{
+            if(t == '+'){
+                usedB[val] = true;
+            }else{
+                usedB[val] = false;
+            }
+        }
+
+        ll comb = 0;
+        for(int i = 1; i<=n; i++){
+            if(usedA[i]){
+                for(int j = 1; j<=n; j++){
+                    if(usedB[j]){
+                        bool pos = processQuery(i, j, dist, centroid);
+                        if(pos) comb++;
+                    }
+                }
+            }
+        }
+
+        ans.PB(comb);
+    }
+
+    return ans;
 }
 
 vector<ll> solve(){
