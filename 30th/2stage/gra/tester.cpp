@@ -320,7 +320,7 @@ vector<int> getCentoid(vector<vector<int>> &graph){
     vector<int> graphDown(n+1, 0), graphUp(n+1, 0);
     //get graphDown
     stack<pair<int,bool>> S;
-    S.push(MP(1, true));
+    S.push(MP(1, false));
 
     while(!S.empty()){
         int v = S.top().first;
@@ -350,16 +350,15 @@ vector<int> getCentoid(vector<vector<int>> &graph){
     //getGraphUp
     queue<int> Q;
     Q.push(1);
+    graphUp[1] = 1;
     while(!Q.empty()){
         int v = Q.front();
         Q.pop();
 
-        ll sum = 0;
+        ll sum = graphUp[v];
         for(int i = 0; i<graph[v].size(); i++){
             int cur = graph[v][i];
-            if(cur == parent[v]){
-                sum += graphUp[cur];
-            }else{
+            if(cur != parent[v]){
                 sum += graphDown[cur];
             }
         }
@@ -380,7 +379,7 @@ vector<int> getCentoid(vector<vector<int>> &graph){
         for(int j = 0; j<graph[i].size();j ++){
             int cur = graph[i][j];
             if(cur == parent[i]){
-                if(graphUp[cur] > n/2){
+                if(graphUp[i]-1 > n/2){
                     ok = false;
                     break;
                 }
@@ -425,9 +424,9 @@ vector<ll> solve(){
         sB.insert(dist[B[i]]);
     }
     for(int i = 0; i<A.size(); i++){
-        auto itr = sB.upper_bound(dist[A[i]]);
-        ll temp = distance(sB.begin(), itr)-1;
-        countWins += temp;
+        auto itr = sB.lower_bound(dist[A[i]]);
+            ll temp = distance(itr, sB.end());
+            countWins += temp;  
     }
 
     ans.PB(countWins);
@@ -440,25 +439,25 @@ vector<ll> solve(){
         if(s == 'A'){
             if(t == '+'){
                 sA.insert(dist[val]);
-                auto itr = sB.upper_bound(dist[val]);
-                ll temp = distance(sB.begin(), itr);
+                auto itr = sB.lower_bound(dist[val]);
+                ll temp = distance(itr, sB.end());
                 countWins += temp;  
             }else{
                 sA.erase(dist[val]);
-                auto itr = sB.upper_bound(dist[val]);
-                ll temp = distance(sB.begin(), itr);
+                auto itr = sB.lower_bound(dist[val]);
+                ll temp = distance(itr, sB.end());
                 countWins -= temp;
             }
         }else{
             if(t == '+'){
                 sB.insert(dist[val]);
-                auto itr = sA.upper_bound(dist[val]);
-                ll temp = distance(itr, sA.end())+1;
+                auto itr = sA.lower_bound(dist[val]);
+                ll temp = distance(sA.begin(), itr);
                 countWins += temp;     
             }else{
                 sB.erase(dist[val]);
-                auto itr = sA.upper_bound(dist[val]);
-                ll temp = distance(itr, sA.end())+1;
+                auto itr = sA.lower_bound(dist[val]);
+                ll temp = distance(sA.begin(), itr);
                 countWins -= temp;     
             }
         }
@@ -473,7 +472,7 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
+    int op = 0;
     for(int test = 1; test<=1; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){

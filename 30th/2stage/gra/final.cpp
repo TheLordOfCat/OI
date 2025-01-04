@@ -178,7 +178,7 @@ vector<int> getCentoid(vector<vector<int>> &graph){
     vector<int> graphDown(n+1, 0), graphUp(n+1, 0);
     //get graphDown
     stack<pair<int,bool>> S;
-    S.push(MP(1, true));
+    S.push(MP(1, false));
 
     while(!S.empty()){
         int v = S.top().first;
@@ -208,16 +208,15 @@ vector<int> getCentoid(vector<vector<int>> &graph){
     //getGraphUp
     queue<int> Q;
     Q.push(1);
+    graphUp[1] = 1;
     while(!Q.empty()){
         int v = Q.front();
         Q.pop();
 
-        ll sum = 0;
+        ll sum = graphUp[v];
         for(int i = 0; i<graph[v].size(); i++){
             int cur = graph[v][i];
-            if(cur == parent[v]){
-                sum += graphUp[cur];
-            }else{
+            if(cur != parent[v]){
                 sum += graphDown[cur];
             }
         }
@@ -238,7 +237,7 @@ vector<int> getCentoid(vector<vector<int>> &graph){
         for(int j = 0; j<graph[i].size();j ++){
             int cur = graph[i][j];
             if(cur == parent[i]){
-                if(graphUp[cur] > n/2){
+                if(graphUp[i]-1 > n/2){
                     ok = false;
                     break;
                 }
@@ -279,17 +278,64 @@ vector<int> getDist(vector<int> centorid, vector<vector<int>> &graph){
     return ans;
 }
 
-bool processQuery(int a, int b, vector<int>& dist, vector<int>& centroid){
-    if(centroid.size() == 1){
-        if(dist[a] <= dist[b]){
-            return true;
+int left(int v){
+    return v*2;
+}
+
+int right(int v){
+    return v*2+1;
+}
+
+int parent(int v){
+    return v/2;
+}
+
+int leaf(int v, ll R){
+    return v+R;
+}
+
+void buildTree(vector<ll>& tree, ll& R){
+    int depth = 0;
+    while((1<<depth) < n){
+        R += (1<<depth);
+        depth++;
+    }
+
+    tree.assign(R + (1<<depth)+1, 0);
+}
+
+ll queryTree(vector<ll>& tree, ll &R, int l, int r){
+    if(l == 0 || r == 0 || r<l){
+        return 0;
+    }
+    ll ans = 0; 
+    int vL = leaf(l,R);
+    int vR = leaf(r,R);
+
+    ans += tree[vL];
+    if(vL != vR){
+        ans += tree[vR];
+    }
+
+    while(vL != vR){
+        if(vL == left(parent(vL))){
+            ans += tree[right(parent(vL))];
         }
-        return false;   
-    }else{
-        if(dist[a] < dist[b]){
-            return true;
+        if(vR == right(parent(vR))){
+            ans += tree[left(parent(vR))];
         }
-        return false;   
+        vL = parent(vL);
+        vR = parent(vR);
+    }
+    
+    return ans;
+}
+
+void updateTree(vector<ll>& tree, ll &R, int v, int val){
+    int V = leaf(v,R);
+    while(V>=1){
+        tree[V] += val;
+        V = parent(V);
     }
 }
 
@@ -308,19 +354,26 @@ vector<ll> solve(){
     //get dist
     vector<int> dist = getDist(centroid, graph);
 
+    //create tree
+    ll Ra = 0, Rb = 0;
+    vector<ll> treeA, treeB;
+    buildTree(treeA, Ra);
+    buildTree(treeB, Rb);
+
+    for(int i = 0; i<A.size(); i++) updateTree(treeA, Ra, dist[A[i]], 1);
+    for(int i = 0; i<B.size(); i++) updateTree(treeB, Rb, dist[B[i]], 1);
+
     //process base
     vector<ll> ans;
     ll countWins = 0;
-    set<ll> sA, sB;
+
     for(int i = 0; i<A.size(); i++){
-        sA.insert(dist[A[i]]);
-    }
-    for(int i = 0; i<B.size(); i++){
-        sB.insert(dist[B[i]]);
-    }
-    for(int i = 0; i<A.size(); i++){
-        auto itr = sB.upper_bound(dist[A[i]]);
-        ll temp = distance(sB.begin(), itr)-1;
+        ll temp;
+        if(centroid.size() == 1){
+            temp = queryTree(treeB, Rb, 1, dist[A[i]]);
+        }else{
+            temp = queryTree(treeB, Rb, 1, dist[A[i]]-1);
+        }
         countWins += temp;
     }
 
@@ -333,27 +386,43 @@ vector<ll> solve(){
 
         if(s == 'A'){
             if(t == '+'){
-                sA.insert(dist[val]);
-                auto itr = sB.upper_bound(dist[val]);
-                ll temp = distance(sB.begin(), itr);
-                countWins += temp;  
+                ll temp;
+                updateTree(treeA, Ra, dist[val], 1);
+                if(centroid.size() == 1){
+                    temp = queryTree(treeB, Rb, dist[val], n);
+                }else{
+                    temp = queryTree(treeB, Rb, dist[val]+1, n);
+                }
+                countWins += temp;
             }else{
-                sA.erase(dist[val]);
-                auto itr = sB.upper_bound(dist[val]);
-                ll temp = distance(sB.begin(), itr);
+                ll temp;
+                updateTree(treeA, Ra, dist[val], -1);
+                if(centroid.size() == 1){
+                    temp = queryTree(treeB, Rb, 1, dist[val]);
+                }else{
+                    temp = queryTree(treeB, Rb, 1, dist[val]-1);
+                }
                 countWins -= temp;
             }
         }else{
             if(t == '+'){
-                sB.insert(dist[val]);
-                auto itr = sA.upper_bound(dist[val]);
-                ll temp = distance(itr, sA.end())+1;
-                countWins += temp;     
+                ll temp;
+                updateTree(treeB, Rb, dist[val], 1);
+                if(centroid.size() == 1){
+                    temp = queryTree(treeA, Ra, 1, dist[val]);
+                }else{
+                    temp = queryTree(treeA, Ra, 1, dist[val]-1);
+                }
+                countWins += temp;
             }else{
-                sB.erase(dist[val]);
-                auto itr = sA.upper_bound(dist[val]);
-                ll temp = distance(itr, sA.end())+1;
-                countWins -= temp;     
+                ll temp;
+                updateTree(treeB, Rb, dist[val], -1);
+                if(centroid.size() == 1){
+                    temp = queryTree(treeA, Ra, 1, dist[val]);
+                }else{
+                    temp = queryTree(treeA, Ra, 1, dist[val]-1);
+                }
+                countWins -= temp;
             }
         }
         ans.PB(countWins);
@@ -369,7 +438,7 @@ int main()
 
     int op = 1;
     for(int test = 1; test<=1; test++){
-        cout<<"TEST nr."<<test<<" = \n";
+        // cout<<"TEST nr."<<test<<" = \n";
         if(op == 1){
             getData();
         }else{
@@ -378,9 +447,8 @@ int main()
         vector<ll> ansS = solve();
 
         for(int j = 0; j<ansS.size(); j++){
-            cout<<ansS[j]<<" ";
+            cout<<ansS[j]<<"\n";
         }
-        cout<<"\n";
     }
 
     return 0;
