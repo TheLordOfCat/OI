@@ -173,40 +173,121 @@ void printData(){
     }
 }
 
-vector<int> getCentroidBrute(vector<vector<int>> &graph){
-    vector<int> ans;
-    for(int i = 1; i<=n; i++){
-        bool ok = true;
-        for(int j = 0; j<graph[i].size(); j++){
-            int cur = graph[i][j];
+bool queryBrute(int a, int b, vector<vector<int>> &graph){
+    //find path 
+    vector<int> previous(n+1, -1);
+    previous[a] = 0;
+    queue<int> Q;
+    Q.push(a);
+    while(!Q.empty()){
+        int v = Q.front();
+        Q.pop();
+        
+        for(int i =0 ; i< graph[v].size(); i++){
+            int cur = graph[v][i];
+            if(previous[cur] == -1){
+                previous[cur] = v;
+                Q.push(cur);
+            }
+        }
+    }
 
-            int count = 1;
-            queue<int> Q;
-            Q.push(cur);
-            vector<bool>used(n+1, false);
-            used[cur] = true;
-            used[i] = true;
+    //find ans    
+    int len = 0;
+    int p = previous[b];
+    while(p != a){
+        len++;
+        p = previous[p];
+    }
 
-            while(!Q.empty()){
-                int v = Q.front();
-                Q.pop();
+    len/=2;
+    vector<bool> usedB(n+1, false);
+    p = previous[b];
+    for(int i = 0; i<len; i++){
+        p = previous[p];
+    }
+    
+    int covert = 1;
+    Q.push(b);
+    usedB[b] = true;
+    while(!Q.empty()){
+        int v = Q.front();
+        Q.pop();
 
-                for(int o = 0; o<graph[v].size(); o++){
-                    int c = graph[v][o];
-                    if(!used[c]){
-                        used[c] = true;
-                        count++;
-                        Q.push(c);
+        for(int i =0 ; i< graph[v].size(); i++){
+            int cur= graph[v][i];
+            if(!usedB[cur] && cur != p){
+                usedB[cur] = true;
+                covert++;
+                Q.push(cur);
+            }
+        }
+    }
+
+    if(covert >= n/2){
+        return false;
+    }
+    return true;
+}
+
+vector<ll> brute(){
+    //get graph
+    vector<vector<int>> graph(n+1, vector<int>());
+    for(int i =0 ; i<edges.size(); i++){
+        int a = edges[i].first, b = edges[i].second;
+        graph[a].PB(b);
+        graph[b].PB(a);
+    }
+
+    //process base base
+    vector<ll> ans;
+    ll baseComb = 0;
+    for(int i =0 ; i<A.size(); i++){
+        for(int j = 0;j < B.size();j ++){
+            if(A[i] != B[j]){
+                bool pos = queryBrute(A[i], B[j], graph);
+                if(pos) baseComb++;
+            }
+        }
+    }
+    ans.PB(baseComb);
+
+    vector<bool> usedA(n+1, false), usedB(n+1, false);
+    for(int i =0; i<A.size(); i++) usedA[A[i]] = true;
+    for(int i =0; i<B.size(); i++) usedB[B[i]] = true;
+    
+    //process quries
+    for(int o = 0; o<q; o++){
+        char s = get<0>(query[o]), t = get<1>(query[o]);
+        int val = get<2>(query[o]);
+        //update set
+        if(s == 'A'){
+            if(t == '+'){
+                usedA[val] = true;
+            }else{
+                usedA[val] = false;
+            }
+        }else{
+            if(t == '+'){
+                usedB[val] = true;
+            }else{
+                usedB[val] = false;
+            }
+        }
+
+        ll comb = 0;
+        for(int i = 1; i<=n; i++){
+            if(usedA[i]){
+                for(int j = 1; j<=n; j++){
+                    if(usedB[j] && i != j){
+                        bool pos = queryBrute(i, j, graph);
+                        if(pos) comb++;
                     }
                 }
             }
-            if(count > n/2) ok = false;
+        }
 
-            if(!ok) break;
-        }
-        if(ok){
-            ans.PB(i);
-        }
+        ans.PB(comb);
     }
 
     return ans;
@@ -231,87 +312,6 @@ vector<int> getDist(vector<int> centorid, vector<vector<int>> &graph){
             }
         }
     }
-    return ans;
-}
-
-bool processQuery(int a, int b, vector<int>& dist, vector<int>& centroid){
-    if(centroid.size() == 1){
-        if(dist[a] <= dist[b]){
-            return true;
-        }
-        return false;   
-    }else{
-        if(dist[a] < dist[b]){
-            return true;
-        }
-        return false;   
-    }
-}
-
-vector<ll> brute(){
-    //get graph
-    vector<vector<int>> graph(n+1, vector<int>());
-    for(int i =0 ; i<edges.size(); i++){
-        int a = edges[i].first, b = edges[i].second;
-        graph[a].PB(b);
-        graph[b].PB(a);
-    }
-
-    //find centroid
-    vector<int> centroid = getCentroidBrute(graph);
-
-    //get dist to centoid
-    vector<int> dist = getDist(centroid, graph);
-
-    //process base request
-    vector<ll> ans;
-    ll firstComb =  0;
-    for(int i = 0; i<A.size(); i++){
-        for(int j = 0; j<B.size(); j++){
-            bool pos = processQuery(A[i], B[j], dist, centroid);
-            if(pos) firstComb++;
-        }
-    }
-    ans.PB(firstComb);
-
-    //process queries
-    vector<bool> usedA(n+1, false), usedB(n+1, false);
-    for(int i = 0; i<A.size(); i++) usedA[A[i]] = true;
-    for(int i = 0; i<B.size(); i++) usedB[B[i]] = true;
-
-    for(int o = 0; o<q; o++){
-        char s = get<0>(query[o]), t = get<1>(query[o]);
-        int val = get<2>(query[o]);
-        //update set
-        if(s == 'A'){
-            if(t == '+'){
-                usedA[val] = true;
-            }else{
-                usedA[val] = false;
-            }
-        }else{
-            if(t == '+'){
-                usedB[val] = true;
-            }else{
-                usedB[val] = false;
-            }
-        }
-
-        ll comb = 0;
-        for(int i = 1; i<=n; i++){
-            if(usedA[i]){
-                for(int j = 1; j<=n; j++){
-                    if(usedB[j]){
-                        bool pos = processQuery(i, j, dist, centroid);
-                        if(pos) comb++;
-                    }
-                }
-            }
-        }
-
-        ans.PB(comb);
-    }
-
     return ans;
 }
 
@@ -398,6 +398,67 @@ vector<int> getCentoid(vector<vector<int>> &graph){
     return ans;
 }
 
+int left(int v){
+    return v*2;
+}
+
+int right(int v){
+    return v*2+1;
+}
+
+int parent(int v){
+    return v/2;
+}
+
+int leaf(int v, ll R){
+    return v+R+1;
+}
+
+void buildTree(vector<ll>& tree, ll& R){
+    int depth = 0;
+    while((1<<depth) < n+1){
+        R += (1<<depth);
+        depth++;
+    }
+
+    tree.assign(R + (1<<depth)+1, 0);
+}
+
+ll queryTree(vector<ll>& tree, ll &R, int l, int r){
+    if(r<l){
+        return 0;
+    }
+    ll ans = 0; 
+    int vL = leaf(l,R);
+    int vR = leaf(r,R);
+
+    ans += tree[vL];
+    if(vL != vR){
+        ans += tree[vR];
+    }
+
+    while(parent(vL) != parent(vR)){
+        if(vL == left(parent(vL))){
+            ans += tree[right(parent(vL))];
+        }
+        if(vR == right(parent(vR))){
+            ans += tree[left(parent(vR))];
+        }
+        vL = parent(vL);
+        vR = parent(vR);
+    }
+    
+    return ans;
+}
+
+void updateTree(vector<ll>& tree, ll &R, int v, int val){
+    int V = leaf(v,R);
+    while(V>=1){
+        tree[V] += val;
+        V = parent(V);
+    }
+}
+
 vector<ll> solve(){
     //get graph
     vector<vector<int>> graph(n+1, vector<int>());
@@ -413,20 +474,31 @@ vector<ll> solve(){
     //get dist
     vector<int> dist = getDist(centroid, graph);
 
+    //create tree
+    ll Ra = 0, Rb = 0;
+    vector<ll> treeA, treeB;
+    buildTree(treeA, Ra);
+    buildTree(treeB, Rb);
+
+    for(int i = 0; i<A.size(); i++) updateTree(treeA, Ra, dist[A[i]], 1);
+    for(int i = 0; i<B.size(); i++) updateTree(treeB, Rb, dist[B[i]], 1);
+
     //process base
+    vector<bool> usedA(n+1, false), usedB(n+1,false);
+    for(int i = 0; i<A.size(); i++) usedA[A[i]] = true;
+    for(int i = 0; i<B.size(); i++) usedB[B[i]] = true;
     vector<ll> ans;
     ll countWins = 0;
-    set<ll> sA, sB;
+
     for(int i = 0; i<A.size(); i++){
-        sA.insert(dist[A[i]]);
-    }
-    for(int i = 0; i<B.size(); i++){
-        sB.insert(dist[B[i]]);
-    }
-    for(int i = 0; i<A.size(); i++){
-        auto itr = sB.lower_bound(dist[A[i]]);
-            ll temp = distance(itr, sB.end());
-            countWins += temp;  
+        ll temp;
+        if(centroid.size() == 1){
+            temp = queryTree(treeB, Rb, dist[A[i]], n);
+        }else{
+            temp = queryTree(treeB, Rb, dist[A[i]]+1, n);
+        }
+        if(usedB[A[i]]) temp--;
+        countWins += temp;
     }
 
     ans.PB(countWins);
@@ -438,27 +510,51 @@ vector<ll> solve(){
 
         if(s == 'A'){
             if(t == '+'){
-                sA.insert(dist[val]);
-                auto itr = sB.lower_bound(dist[val]);
-                ll temp = distance(itr, sB.end());
-                countWins += temp;  
+                ll temp;
+                updateTree(treeA, Ra, dist[val], 1);
+                if(centroid.size() == 1){
+                    temp = queryTree(treeB, Rb, dist[val], n);
+                }else{
+                    temp = queryTree(treeB, Rb, dist[val]+1, n);
+                }
+                usedA[val] = true;
+                if(usedB[val]) temp--;
+                countWins += temp;
             }else{
-                sA.erase(dist[val]);
-                auto itr = sB.lower_bound(dist[val]);
-                ll temp = distance(itr, sB.end());
+                ll temp;
+                updateTree(treeA, Ra, dist[val], -1);
+                if(centroid.size() == 1){
+                    temp = queryTree(treeB, Rb, 1, dist[val]);
+                }else{
+                    temp = queryTree(treeB, Rb, 1, dist[val]-1);
+                }
+                usedA[val] = false;
+                if(usedB[val]) temp--;
                 countWins -= temp;
             }
         }else{
             if(t == '+'){
-                sB.insert(dist[val]);
-                auto itr = sA.lower_bound(dist[val]);
-                ll temp = distance(sA.begin(), itr);
-                countWins += temp;     
+                ll temp;
+                updateTree(treeB, Rb, dist[val], 1);
+                if(centroid.size() == 1){
+                    temp = queryTree(treeA, Ra, 1, dist[val]);
+                }else{
+                    temp = queryTree(treeA, Ra, 1, dist[val]-1);
+                }
+                usedB[val] = true;
+                if(usedA[val]) temp--;
+                countWins += temp;
             }else{
-                sB.erase(dist[val]);
-                auto itr = sA.lower_bound(dist[val]);
-                ll temp = distance(sA.begin(), itr);
-                countWins -= temp;     
+                ll temp;
+                updateTree(treeB, Rb, dist[val], -1);
+                if(centroid.size() == 1){
+                    temp = queryTree(treeA, Ra, 1, dist[val]);
+                }else{
+                    temp = queryTree(treeA, Ra, 1, dist[val]-1);
+                }
+                usedB[val] = false;
+                if(usedA[val]) temp--;
+                countWins -= temp;
             }
         }
         ans.PB(countWins);

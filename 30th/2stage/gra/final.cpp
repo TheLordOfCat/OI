@@ -364,6 +364,9 @@ vector<ll> solve(){
     for(int i = 0; i<B.size(); i++) updateTree(treeB, Rb, dist[B[i]], 1);
 
     //process base
+    vector<bool> usedA(n+1, false), usedB(n+1,false);
+    for(int i = 0; i<A.size(); i++) usedA[A[i]] = true;
+    for(int i = 0; i<B.size(); i++) usedB[B[i]] = true;
     vector<ll> ans;
     ll countWins = 0;
 
@@ -371,6 +374,7 @@ vector<ll> solve(){
         ll temp;
         if(centroid.size() == 1){
             temp = queryTree(treeB, Rb, dist[A[i]], n);
+            if(usedB[A[i]]) temp--; //error here
         }else{
             temp = queryTree(treeB, Rb, dist[A[i]]+1, n);
         }
@@ -393,6 +397,8 @@ vector<ll> solve(){
                 }else{
                     temp = queryTree(treeB, Rb, dist[val]+1, n);
                 }
+                usedA[val] = true;
+                if(usedB[val]) temp--;
                 countWins += temp;
             }else{
                 ll temp;
@@ -402,6 +408,8 @@ vector<ll> solve(){
                 }else{
                     temp = queryTree(treeB, Rb, 1, dist[val]-1);
                 }
+                usedA[val] = false;
+                if(usedB[val]) temp--;
                 countWins -= temp;
             }
         }else{
@@ -413,6 +421,8 @@ vector<ll> solve(){
                 }else{
                     temp = queryTree(treeA, Ra, 1, dist[val]-1);
                 }
+                usedB[val] = true;
+                if(usedA[val]) temp--;
                 countWins += temp;
             }else{
                 ll temp;
@@ -422,6 +432,8 @@ vector<ll> solve(){
                 }else{
                     temp = queryTree(treeA, Ra, 1, dist[val]-1);
                 }
+                usedB[val] = false;
+                if(usedA[val]) temp--;
                 countWins -= temp;
             }
         }
