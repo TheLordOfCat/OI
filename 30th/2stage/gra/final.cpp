@@ -291,12 +291,12 @@ int parent(int v){
 }
 
 int leaf(int v, ll R){
-    return v+R;
+    return v+R+1;
 }
 
 void buildTree(vector<ll>& tree, ll& R){
     int depth = 0;
-    while((1<<depth) < n){
+    while((1<<depth) < n+1){
         R += (1<<depth);
         depth++;
     }
@@ -305,7 +305,7 @@ void buildTree(vector<ll>& tree, ll& R){
 }
 
 ll queryTree(vector<ll>& tree, ll &R, int l, int r){
-    if(l == 0 || r == 0 || r<l){
+    if(r<l){
         return 0;
     }
     ll ans = 0; 
@@ -317,7 +317,7 @@ ll queryTree(vector<ll>& tree, ll &R, int l, int r){
         ans += tree[vR];
     }
 
-    while(vL != vR){
+    while(parent(vL) != parent(vR)){
         if(vL == left(parent(vL))){
             ans += tree[right(parent(vL))];
         }
@@ -370,9 +370,9 @@ vector<ll> solve(){
     for(int i = 0; i<A.size(); i++){
         ll temp;
         if(centroid.size() == 1){
-            temp = queryTree(treeB, Rb, 1, dist[A[i]]);
+            temp = queryTree(treeB, Rb, dist[A[i]], n);
         }else{
-            temp = queryTree(treeB, Rb, 1, dist[A[i]]-1);
+            temp = queryTree(treeB, Rb, dist[A[i]]+1, n);
         }
         countWins += temp;
     }
