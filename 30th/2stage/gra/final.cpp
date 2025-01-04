@@ -3,6 +3,7 @@
 #include <tuple>
 #include <queue>
 #include <stack>
+#include <set>
 
 using namespace std;
 
@@ -173,7 +174,87 @@ void printData(){
 }
 
 vector<int> getCentoid(vector<vector<int>> &graph){
+    vector<int> parent(n+1, 0);
+    vector<int> graphDown(n+1, 0), graphUp(n+1, 0);
+    //get graphDown
+    stack<pair<int,bool>> S;
+    S.push(MP(1, true));
 
+    while(!S.empty()){
+        int v = S.top().first;
+        bool b = S.top().second;
+        S.pop();
+        if(b){
+            for(int i = 0; i<graph[v].size(); i++){
+                int cur = graph[v][i];
+                if(cur != parent[v]){
+                    graphDown[v] += graphDown[cur];
+                }
+            }
+            graphDown[v]++;
+            continue;
+        }
+
+        S.push(MP(v,true));
+        for(int i = 0 ; i<graph[v].size(); i++){
+            int cur=  graph[v][i];
+            if(cur != parent[v]){
+                S.push(MP(cur,false));
+                parent[cur] = v;
+            }
+        }
+    }
+
+    //getGraphUp
+    queue<int> Q;
+    Q.push(1);
+    while(!Q.empty()){
+        int v = Q.front();
+        Q.pop();
+
+        ll sum = 0;
+        for(int i = 0; i<graph[v].size(); i++){
+            int cur = graph[v][i];
+            if(cur == parent[v]){
+                sum += graphUp[cur];
+            }else{
+                sum += graphDown[cur];
+            }
+        }
+
+        for(int i = 0; i<graph[v].size(); i++){
+            int cur = graph[v][i];
+            if(cur != parent[v]){
+                graphUp[cur] = sum - graphDown[cur]+1;
+                Q.push(cur);
+            }
+        }
+    }
+
+    //get centroids
+    vector<int> ans;
+    for(int i = 1; i<=n; i++){
+        bool ok = true;
+        for(int j = 0; j<graph[i].size();j ++){
+            int cur = graph[i][j];
+            if(cur == parent[i]){
+                if(graphUp[cur] > n/2){
+                    ok = false;
+                    break;
+                }
+            }else{
+                if(graphDown[cur] > n/2){
+                    ok = false;
+                    break;
+                }
+            }
+            if(!ok) break;
+        }
+        if(ok){
+            ans.PB(i);
+        }
+    }
+    return ans;
 }
 
 vector<int> getDist(vector<int> centorid, vector<vector<int>> &graph){
@@ -230,7 +311,18 @@ vector<ll> solve(){
     //process base
     vector<ll> ans;
     ll countWins = 0;
-    
+    set<ll> sA, sB;
+    for(int i = 0; i<A.size(); i++){
+        sA.insert(dist[A[i]]);
+    }
+    for(int i = 0; i<B.size(); i++){
+        sB.insert(dist[B[i]]);
+    }
+    for(int i = 0; i<A.size(); i++){
+        auto itr = sB.upper_bound(dist[A[i]]);
+        ll temp = distance(sB.begin(), itr)-1;
+        countWins += temp;
+    }
 
     ans.PB(countWins);
     
@@ -239,20 +331,29 @@ vector<ll> solve(){
         char s = get<0>(query[o]), t = get<1>(query[o]);
         int val = get<2>(query[o]);
 
-        //update
-
-
         if(s == 'A'){
             if(t == '+'){
-                
+                sA.insert(dist[val]);
+                auto itr = sB.upper_bound(dist[val]);
+                ll temp = distance(sB.begin(), itr);
+                countWins += temp;  
             }else{
-
+                sA.erase(dist[val]);
+                auto itr = sB.upper_bound(dist[val]);
+                ll temp = distance(sB.begin(), itr);
+                countWins -= temp;
             }
         }else{
             if(t == '+'){
-
+                sB.insert(dist[val]);
+                auto itr = sA.upper_bound(dist[val]);
+                ll temp = distance(itr, sA.end())+1;
+                countWins += temp;     
             }else{
-                
+                sB.erase(dist[val]);
+                auto itr = sA.upper_bound(dist[val]);
+                ll temp = distance(itr, sA.end())+1;
+                countWins -= temp;     
             }
         }
         ans.PB(countWins);
