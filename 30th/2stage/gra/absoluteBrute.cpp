@@ -223,7 +223,7 @@ bool queryBrute(int a, int b, vector<vector<int>> &graph){
         }
     }
 
-    if(covert >= n/2){
+    if((n%2 == 0 && covert >= n/2) || (n%2 == 1 && covert > n/2)){
         return false;
     }
     return true;

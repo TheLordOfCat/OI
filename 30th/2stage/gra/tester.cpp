@@ -224,7 +224,7 @@ bool queryBrute(int a, int b, vector<vector<int>> &graph){
         }
     }
 
-    if(covert >= n/2){
+    if((n%2 == 0 && covert >= n/2) || (n%2 == 1 && covert > n/2)){
         return false;
     }
     return true;
@@ -290,28 +290,6 @@ vector<ll> brute(){
         ans.PB(comb);
     }
 
-    return ans;
-}
-
-vector<int> getDist(vector<int> centorid, vector<vector<int>> &graph){
-    queue<int>Q;
-    vector<int> ans(n+1, -1);
-    ans[centorid.front()] = 0;
-    ans[centorid.back()] = 0;
-    Q.push(centorid.front());
-    if(centorid.size() > 1) Q.push(centorid.back());
-    while(!Q.empty()){
-        int v = Q.front();
-        Q.pop();
-
-        for(int i =0 ; i<graph[v].size(); i++){
-            int cur = graph[v][i];
-            if(ans[cur] == -1){
-                ans[cur] = ans[v] +1;
-                Q.push(cur);
-            }
-        }
-    }
     return ans;
 }
 
@@ -393,6 +371,28 @@ vector<int> getCentoid(vector<vector<int>> &graph){
         }
         if(ok){
             ans.PB(i);
+        }
+    }
+    return ans;
+}
+
+vector<int> getDist(vector<int> centorid, vector<vector<int>> &graph){
+    queue<int>Q;
+    vector<int> ans(n+1, -1);
+    ans[centorid.front()] = 0;
+    ans[centorid.back()] = 0;
+    Q.push(centorid.front());
+    if(centorid.size() > 1) Q.push(centorid.back());
+    while(!Q.empty()){
+        int v = Q.front();
+        Q.pop();
+
+        for(int i =0 ; i<graph[v].size(); i++){
+            int cur = graph[v][i];
+            if(ans[cur] == -1){
+                ans[cur] = ans[v] +1;
+                Q.push(cur);
+            }
         }
     }
     return ans;
@@ -494,10 +494,10 @@ vector<ll> solve(){
         ll temp;
         if(centroid.size() == 1){
             temp = queryTree(treeB, Rb, dist[A[i]], n);
+            if(usedB[A[i]]) temp--; //error here
         }else{
             temp = queryTree(treeB, Rb, dist[A[i]]+1, n);
         }
-        if(usedB[A[i]]) temp--;
         countWins += temp;
     }
 
@@ -549,11 +549,11 @@ vector<ll> solve(){
                 updateTree(treeB, Rb, dist[val], -1);
                 if(centroid.size() == 1){
                     temp = queryTree(treeA, Ra, 1, dist[val]);
+                    if(usedA[val]) temp--;
                 }else{
                     temp = queryTree(treeA, Ra, 1, dist[val]-1);
                 }
                 usedB[val] = false;
-                if(usedA[val]) temp--;
                 countWins -= temp;
             }
         }
@@ -569,7 +569,7 @@ int main()
     cin.tie(NULL);
 
     int op = 0;
-    for(int test = 1; test<=1; test++){
+    for(int test = 1; test<=1'000'000; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();

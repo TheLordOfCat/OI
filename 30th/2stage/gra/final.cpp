@@ -429,11 +429,11 @@ vector<ll> solve(){
                 updateTree(treeB, Rb, dist[val], -1);
                 if(centroid.size() == 1){
                     temp = queryTree(treeA, Ra, 1, dist[val]);
+                    if(usedA[val]) temp--;
                 }else{
                     temp = queryTree(treeA, Ra, 1, dist[val]-1);
                 }
                 usedB[val] = false;
-                if(usedA[val]) temp--;
                 countWins -= temp;
             }
         }
