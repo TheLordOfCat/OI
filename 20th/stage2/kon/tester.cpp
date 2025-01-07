@@ -87,12 +87,12 @@ void getRandom(){
 
     srand(time(0));
 
-    n = rand()%32+1;
+    n = 14;
     // n = 2000;
-    k = rand()%50+15;
+    k = rand()%200+350;
     // k = 100;
     for(int i =0 ; i<n; i++){
-        int temp = rand()%100+5;
+        int temp = rand()%400+150;
         D.PB(temp);
     }
 
@@ -188,8 +188,8 @@ void updateLazy(ll v){
 }
 
 void updateTW(ll v){
+    updateLazy(v);
     if(v <= RW){
-        updateLazy(v);
         updateLazy(left(v));
         updateLazy(right(v));
         if(treeWater[left(v)].first >= treeWater[right(v)].first){
@@ -259,9 +259,7 @@ void addTW(ll v, ll l, ll r, ll vL, ll vR, ll val){
     }
 
     if(l<=vL && vR<=r){
-        treeWater[v].first += val;
-        lazy[left(v)] += val;
-        lazy[right(v)] += val;
+        lazy[v] += val;
     }else{
         ll mid = (vL+vR)/2;
         addTW(left(v), l, r, vL, mid, val);
@@ -358,7 +356,7 @@ int main(){
         vector<ll> ansS = solve();
         for(int i = 0; i< ansB.size(); i++){
             if(ansB[i] != ansS[i]){
-                cout<<"ERROR\n";
+                cout<<"ERROR - "<<i<<"\n";
                 cout<<"BRUTE: ";
                 for(int j = 0; j<ansB.size(); j++){
                     cout<<ansB[j]<<" ";
@@ -369,7 +367,7 @@ int main(){
                     cout<<ansS[j]<<" ";
                 }
                 cout<<"\n";
-                printData();
+                // printData();
                 return 0;
             }
         }

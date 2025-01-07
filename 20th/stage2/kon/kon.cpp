@@ -68,9 +68,9 @@ void updateLazy(int v){
     }
 }
 
-void updateTW(int v){
+void updateTW(ll v){
+    updateLazy(v);
     if(v <= RW){
-        updateLazy(v);
         updateLazy(left(v));
         updateLazy(right(v));
         if(treeWater[left(v)].first >= treeWater[right(v)].first){
@@ -120,9 +120,7 @@ void addTW(int v, int l, int r, int vL, int vR, int val){
     }
 
     if(l<=vL && vR<=r){
-        treeWater[v].first += val;
-        lazy[left(v)] += val;
-        lazy[right(v)] += val;
+        lazy[v] += val;
     }else{
         int mid = (vL+vR)/2;
         addTW(left(v), l, r, vL, mid, val);
