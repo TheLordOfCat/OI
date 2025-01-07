@@ -87,10 +87,10 @@ void getRandom(){
 
     srand(time(0));
 
-    // n = rand()%100+20;
-    n = 2000;
-    // k = rand()%50+15;
-    k = 100;
+    n = rand()%32+1;
+    // n = 2000;
+    k = rand()%50+15;
+    // k = 100;
     for(int i =0 ; i<n; i++){
         int temp = rand()%100+5;
         D.PB(temp);
@@ -330,7 +330,6 @@ vector<ll> solve(){
     vector<ll> ans;
     inicjuj();
     for(int i = 0; i<q; i++){
-        cout<<i<<"\n";
         char t = get<0>(query[i]);
         int a = get<1>(query[i]), b = get<2>(query[i]);
         if(t == 'p'){//podlej
@@ -347,8 +346,8 @@ int main(){
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
-    for(int test = 1; test<=1; test++){
+    int op = 0;
+    for(int test = 1; test<=1'000'000; test++){
         cout<<"TEST nr."<<test<<"=";
         if(op == 1){
             getData();
