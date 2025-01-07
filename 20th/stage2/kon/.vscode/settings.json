@@ -7,6 +7,8 @@
         "utility": "cpp",
         "vector": "cpp",
         "xstring": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "xiosbase": "cpp",
+        "iosfwd": "cpp"
     }
 }
