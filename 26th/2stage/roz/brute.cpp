@@ -79,112 +79,28 @@ void printData(){
     }
 }
 
-vector<ll> tree;
-ll R;
-ll ptrEnd;
-
-void inicjuj(int m){
-    M = m;
-
-    R = 0;
-    int depth = 0;
-    while((1<<depth) < M){
-        R += (1<<depth);
-        depth++;
-    }
-    tree.assign(R + (1<<depth)+1, 0);
-    ptrEnd = -1;
-}
-
-int left(int v){
-    return v*2;
-}
-
-int right(int v){
-    return v*2+1;
-}
-
-int parent(int v){
-    return v/2;
-}
-
-int leaf(int v){
-    return v+R+1;
-}
-
-void updateSingle(int p, int val){
-    int v = leaf(p);
-    tree[v] += val;
-    v = parent(v);
-    
-    while(v>=1){
-        tree[v] += val;
-        v = parent(v);
-    }
-}
-
-ll queryRange(int l, int r){
-    ll ans = 0;
-    int vL = leaf(l), vR = leaf(r);
-
-    ans += tree[vL];
-    if(vL != vR) ans += tree[vR];
-
-    while(parent(vL) != parent(vR)){
-        if(vL == left(parent(vL))){
-            ans += tree[right(parent(vL))];
-        }
-        if(vR == right(parent(vR))){
-            ans += tree[left(parent(vR))];
-        }
-        vL = parent(vL);
-        vR = parent(vR);
-    }
-
-    return ans;
-}
-
-void dodaj(int k){
-    ptrEnd = (ptrEnd+1)%M;
-    updateSingle(ptrEnd, tree[leaf(ptrEnd)]*(-1));
-    updateSingle(ptrEnd, k);
-}   
-
-void koryguj(int i, int k){
-    if(i <= ptrEnd+1){ // no wrapping
-        updateSingle(ptrEnd-(i-1), k);
-    }else{
-        updateSingle(M-(i-ptrEnd-1), k);
-    }
-}
-
-long long suma(int i){
-    ll ans;
-    if(i <= ptrEnd+1){
-        ans = queryRange(ptrEnd-(i-1), ptrEnd);
-    }else{
-        ll temp1 = queryRange(0, ptrEnd), temp2 = queryRange(M-(i-(ptrEnd+1)), M-1);
-        ans = temp1 + temp2;
-    }
-    return ans;
-}
-
-vector<ll> solve(){
-    inicjuj(M);
+vector<ll> brute(){
+    vector<ll> vec;
 
     vector<ll> ans;
+    int curM = -1;
     for(int i = 0; i<q; i++){
-        char t = get<0>(query[i]);
+        char t = get<0>(query[i]); 
         int a = get<1>(query[i]), b = get<2>(query[i]);
         if(t == 'd'){
-            dodaj(a);
+            vec.PB(a);
+            curM++;
         }else if(t == 'k'){
-            koryguj(a,b);
+            vec[curM-(a-1)] += b;
         }else if(t == 's'){
-            ll temp = suma(a);
-            ans.PB(temp);
+            ll count = 0;
+            for(int j = max(curM-(a-1), 0); j<=curM; j++){
+                count += vec[j];
+            }
+            ans.PB(count);
         }
     }
+
     return ans;
 }
 
@@ -201,8 +117,8 @@ int main()
         }else{
             getRandom();
         }
-        vector<ll> ansS = solve();
-        for(int j = 0; j<ansS.size(); j++) cout<<ansS[j]<<" ";
+        vector<ll> ansB = brute();
+        for(int j = 0; j<ansB.size(); j++) cout<<ansB[j]<<" ";
     }
 
     return 0;
