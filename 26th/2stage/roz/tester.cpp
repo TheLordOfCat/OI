@@ -127,14 +127,12 @@ int leaf(int v){
     return v+R+1;
 }
 
-void updateSingle(int val){
-    int v = leaf(ptrEnd);
-    int p = tree[v];
-    tree[v] = val;
+void updateSingle(int p, int val){
+    int v = leaf(p);
+    tree[v] += val;
     v = parent(v);
     
     while(v>=1){
-        tree[v] -= p;
         tree[v] += val;
         v = parent(v);
     }
@@ -162,15 +160,28 @@ ll queryRange(int l, int r){
 }
 
 void dodaj(int k){
-    updateSingle(k);
+    ptrEnd = (ptrEnd+1)%M;
+    updateSingle(ptrEnd, tree[leaf(ptrEnd)]*(-1));
+    updateSingle(ptrEnd, k);
 }   
 
 void koryguj(int i, int k){
-
+    if(i <= ptrEnd+1){ // no wrapping
+        updateSingle(ptrEnd-i, k);
+    }else{
+        updateSingle(M-(i-ptrEnd), k);
+    }
 }
 
 long long suma(int i){
-    
+    ll ans;
+    if(i <= ptrEnd+1){
+        ans = queryRange(ptrEnd-i, ptrEnd);
+    }else{
+        ll temp1 = queryRange(0, ptrEnd), temp2 = queryRange(M-(i-ptrEnd), M-1);
+        ans = temp1 + temp2;
+    }
+    return ans;
 }
 
 vector<ll> solve(){
