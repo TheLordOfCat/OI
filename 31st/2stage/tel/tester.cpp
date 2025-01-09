@@ -71,7 +71,46 @@ void printData(){
 }
 
 tuple<ll, vector<ll>, vector<PLL>> brute(){
-    
+    vector<vector<ll>> kCopy = k;
+
+    vector<vector<bool>> graph(n+1,vector<bool>(n+1, false));
+
+    tuple<ll,vector<ll>, vector<PLL>> ans = MT(0, vector<ll>(n+1, -1), vector<PLL>());
+    for(int i = 0; i< kCopy.size(); i++){
+        if(get<1>(ans)[i+1] == -1){
+            get<0>(ans)++;
+            get<1>(ans)[i+1] = get<0>(ans);
+        }
+        for(int j = i+1; j<kCopy.size(); j++){
+            
+            vector<int> con(n+1, 0);
+            for(int o = 0; o<kCopy[i].size(); o++){
+                con[kCopy[i][o]]++;  
+            }
+            for(int o = 0; o<kCopy[j].size(); o++){
+                con[kCopy[j][o]]++;  
+            }
+
+            bool ok = true;
+            for(int o = 1; o<con.size(); o++){
+                if(con[o] == 1){
+                    ok = false;
+                }
+            }
+            
+            if(!ok){
+                if(!graph[get<1>(ans)[i+1]][get<1>(ans)[j+1]]){
+                    graph[get<1>(ans)[i+1]][get<1>(ans)[j+1]] = true;
+                    graph[get<1>(ans)[j+1]][get<1>(ans)[i+1]] = true;
+                    get<2>(ans).PB(MP(get<1>(ans)[i+1], get<1>(ans)[j+1]));
+                }
+            }else{
+                get<1>(ans)[j+1] = get<1>(ans)[i+1]; 
+            }
+        }    
+    }
+
+    return ans;
 }
 
 tuple<ll, vector<ll>, vector<PLL>> solve(){
@@ -95,7 +134,7 @@ int main()
         tuple<ll, vector<ll>, vector<PLL>> ansS = solve();
         bool ok = true;
         if(get<0>(ansB) != get<0>(ansS)) ok = false;
-        for(int i = 0; i<get<1>(ansB).size(); i++){
+        for(int i = 1; i<get<1>(ansB).size(); i++){
             if(get<1>(ansB)[i] != get<1>(ansS)[i]){
                 ok = false;
                 break;
