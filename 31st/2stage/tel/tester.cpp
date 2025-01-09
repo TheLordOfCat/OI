@@ -16,6 +16,7 @@ const ull ullINF = 18'000'000'000'000'000'000;
 #define PB push_back
 #define PLL pair<ll,ll>
 #define MT make_tuple
+#define MP make_pair
 
 int n;
 vector<vector<ll>> k;
@@ -114,7 +115,61 @@ tuple<ll, vector<ll>, vector<PLL>> brute(){
 }
 
 tuple<ll, vector<ll>, vector<PLL>> solve(){
+    vector<vector<ll>> kCopy = k;
 
+    for(int i = 0; i<kCopy.size(); i++){
+        kCopy[i].PB(i+1);
+    }
+
+    sort(kCopy.begin(), kCopy.end());
+
+    //get citizen locations
+    tuple<ll,vector<ll>,vector<PLL>> ans = MT(0, vector<ll>(n+1, -1), vector<PLL>());
+    for(int i = 0; i<n; i++){
+        if(get<1>(ans)[i+1] == -1){
+            get<0>(ans)++;
+            get<1>(ans)[i+1] = get<0>(ans);
+        }   
+        if(i<n-1){
+            if(kCopy[i].size() == kCopy[i+1].size()){
+                int ptrI = 0, ptrJ = 0;
+                bool ok = true;
+                while(ptrI != kCopy[i].size() || ptrJ != kCopy[i+1].size()){
+                    if(kCopy[i][ptrI] == i+1) ptrI++;
+                    if(kCopy[i+1][ptrJ] == i+2) ptrJ++;
+                    if(kCopy[i][ptrI] != kCopy[i+1][ptrJ]){
+                        ok = false;
+                        break;
+                    }
+                    if(!ok) break;
+                }
+                if(ok){
+                    get<1>(ans)[i+1] = get<1>(ans)[i];
+                }
+            }
+        }
+    }
+
+    //get graph
+    vector<PLL> edges;
+    for(ll i = 0; i<kCopy.size(); i++){
+        for(int j = 0; j<kCopy[i].size(); j++){
+            if(get<1>(ans)[kCopy[i][j]] != get<1>(ans)[i+1]){
+                edges.PB(MP(min(kCopy[i][j], i+1), max(kCopy[i][j], i+1)));
+            }
+        }
+    }
+
+    sort(edges.begin(), edges.end());
+
+    get<2>(ans).PB(edges.front());
+    for(int i =1 ; i<edges.size(); i++){
+        if(edges[i].first != edges[i-1].first || edges[i].second != edges[i-1].second){
+            get<2>(ans).PB(edges[i]);
+        }
+    }
+
+    return ans;
 }
 
 int main()
