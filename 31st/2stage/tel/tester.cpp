@@ -42,9 +42,9 @@ void getRandom(){
     k.clear();
 
     srand(time(0));
-    n = rand()%10+3;
+    n = rand()%4+3;
     for(int i = 0; i<n; i++){
-        int s = rand()%n+1;
+        int s = rand()%(n-1)+1;
         vector<bool> used(n+1, false);
         vector<ll> vec;
         for(int j =0; j<s; j++){
@@ -74,15 +74,13 @@ void printData(){
 tuple<ll, vector<ll>, vector<PLL>> brute(){
     vector<vector<ll>> kCopy = k;
 
-    vector<vector<bool>> graph(n+1,vector<bool>(n+1, false));
-
     tuple<ll,vector<ll>, vector<PLL>> ans = MT(0, vector<ll>(n+1, -1), vector<PLL>());
     for(int i = 0; i< kCopy.size(); i++){
         if(get<1>(ans)[i+1] == -1){
             get<0>(ans)++;
             get<1>(ans)[i+1] = get<0>(ans);
         }
-        for(int j = i+1; j<kCopy.size(); j++){
+        for(int j = i+1; j<n; j++){
             
             vector<int> con(n+1, 0);
             for(int o = 0; o<kCopy[i].size(); o++){
@@ -94,57 +92,89 @@ tuple<ll, vector<ll>, vector<PLL>> brute(){
 
             bool ok = true;
             for(int o = 1; o<con.size(); o++){
-                if(con[o] == 1){
+                if(con[o] == 1 && o != i+1 && o != j+1){
                     ok = false;
+                    break;
                 }
             }
+
+            if(con[i+1] != 1 || con[j+1] != 1) ok = false;
             
-            if(!ok){
-                if(!graph[get<1>(ans)[i+1]][get<1>(ans)[j+1]]){
-                    graph[get<1>(ans)[i+1]][get<1>(ans)[j+1]] = true;
-                    graph[get<1>(ans)[j+1]][get<1>(ans)[i+1]] = true;
-                    get<2>(ans).PB(MP(get<1>(ans)[i+1], get<1>(ans)[j+1]));
-                }
-            }else{
+            if(ok){
                 get<1>(ans)[j+1] = get<1>(ans)[i+1]; 
             }
         }    
     }
 
+    //create graph
+    vector<vector<bool>> graph(n+1,vector<bool>(n+1, false));
+
+    for(int i = 0; i<kCopy.size(); i++){
+        for(int j = 0; j<kCopy[i].size(); j++){
+            int v1 = get<1>(ans)[kCopy[i][j]], v2 = get<1>(ans)[i+1];
+            if(v1 != v2){
+                if(!graph[v1][v2]){
+                    graph[v1][v2] = true;
+                    graph[v2][v1] = true;
+                    get<2>(ans).PB(MP(min(v1,v2), max(v1,v2)));
+                }
+            }
+        }
+    }
+
     return ans;
 }
 
-tuple<ll, vector<ll>, vector<PLL>> solve(){
-    vector<vector<ll>> kCopy = k;
+bool comparePLL(const PLL a, const PLL b){
+    if(a.first == b.first){
+        return a.second < b.second;
+    }
+    return a.first < b.first;
+}
 
-    for(int i = 0; i<kCopy.size(); i++){
-        kCopy[i].PB(i+1);
+bool compareLLVEC(const pair<ll,vector<ll>> a, const pair<ll,vector<ll>> b){
+    if(a.second.size() == b.second.size()){
+        for(int i = 0; i < a.second.size(); i++){
+            if(a.second[i] != b.second[i]){
+                return a.second[i]< b.second[i];
+            }
+        }
+        return a.first < b.first;
+    }
+    return a.second.size() < b.second.size();
+}
+
+tuple<ll, vector<ll>, vector<PLL>> solve(){
+    vector<pair<ll,vector<ll>>> kCopy;
+    for(int i = 0; i<k.size(); i++){
+        kCopy.PB(MP(i+1,k[i]));
     }
 
-    sort(kCopy.begin(), kCopy.end());
+    for(int i = 0; i<kCopy.size(); i++){
+        kCopy[i].second.PB(i+1);
+        sort(kCopy[i].second.begin(), kCopy[i].second.end());
+    }
+
+    sort(kCopy.begin(), kCopy.end(), compareLLVEC);
 
     //get citizen locations
     tuple<ll,vector<ll>,vector<PLL>> ans = MT(0, vector<ll>(n+1, -1), vector<PLL>());
     for(int i = 0; i<n; i++){
-        if(get<1>(ans)[i+1] == -1){
+        if(get<1>(ans)[kCopy[i].first] == -1){
             get<0>(ans)++;
-            get<1>(ans)[i+1] = get<0>(ans);
+            get<1>(ans)[kCopy[i].first] = get<0>(ans);
         }   
         if(i<n-1){
-            if(kCopy[i].size() == kCopy[i+1].size()){
-                int ptrI = 0, ptrJ = 0;
+            if(kCopy[i].second.size() == kCopy[i+1].second.size()){
                 bool ok = true;
-                while(ptrI != kCopy[i].size() || ptrJ != kCopy[i+1].size()){
-                    if(kCopy[i][ptrI] == i+1) ptrI++;
-                    if(kCopy[i+1][ptrJ] == i+2) ptrJ++;
-                    if(kCopy[i][ptrI] != kCopy[i+1][ptrJ]){
+                for(int  j =0; j<kCopy[i].second.size(); j++){
+                    if(kCopy[i].second[j] != kCopy[i+1].second[j]){
                         ok = false;
                         break;
                     }
-                    if(!ok) break;
                 }
                 if(ok){
-                    get<1>(ans)[i+1] = get<1>(ans)[i];
+                    get<1>(ans)[kCopy[i+1].first] = get<1>(ans)[kCopy[i].first];
                 }
             }
         }
@@ -153,16 +183,17 @@ tuple<ll, vector<ll>, vector<PLL>> solve(){
     //get graph
     vector<PLL> edges;
     for(ll i = 0; i<kCopy.size(); i++){
-        for(int j = 0; j<kCopy[i].size(); j++){
-            if(get<1>(ans)[kCopy[i][j]] != get<1>(ans)[i+1]){
-                edges.PB(MP(min(kCopy[i][j], i+1), max(kCopy[i][j], i+1)));
+        for(int j = 0; j<kCopy[i].second.size(); j++){
+            int v1 = get<1>(ans)[kCopy[i].second[j]], v2 = get<1>(ans)[kCopy[i].first];
+            if(v1 != v2){
+                edges.PB(MP(min(v1, v2), max(v1, v2)));
             }
         }
     }
 
-    sort(edges.begin(), edges.end());
+    sort(edges.begin(), edges.end(), comparePLL);
 
-    get<2>(ans).PB(edges.front());
+    if(edges.size() > 0) get<2>(ans).PB(edges.front());
     for(int i =1 ; i<edges.size(); i++){
         if(edges[i].first != edges[i-1].first || edges[i].second != edges[i-1].second){
             get<2>(ans).PB(edges[i]);
@@ -178,7 +209,7 @@ int main()
     cin.tie(NULL);
 
     int op = 1;
-    for(int test = 1; test<=1; test++){
+    for(int test = 1; test<=1'000'000'000; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
@@ -188,20 +219,44 @@ int main()
         tuple<ll, vector<ll>, vector<PLL>> ansB = brute();
         tuple<ll, vector<ll>, vector<PLL>> ansS = solve();
         bool ok = true;
-        if(get<0>(ansB) != get<0>(ansS)) ok = false;
-        for(int i = 1; i<get<1>(ansB).size(); i++){
-            if(get<1>(ansB)[i] != get<1>(ansS)[i]){
-                ok = false;
-                break;
-            }
-        }
-        if(get<2>(ansB).size() != get<2>(ansS).size()){
-            ok = false;
+        if(get<0>(ansB) != get<0>(ansS)){
+           ok = false; 
         }else{
-            for(int i = 0; i<get<2>(ansB).size(); i++){
-                if(get<2>(ansB)[i] != get<2>(ansS)[i]){
-                    ok = false;
-                    break;
+            vector<bool> used(n+1, false);
+            vector<int> tran(n+1, -1);
+            for(int i = 1; i<=n; i++){
+                if(!used[i]){
+                    used[i] = true;
+                    int typeB = get<1>(ansB)[i];
+                    int typeS = get<1>(ansS)[i];
+                    tran[typeB] = typeS;
+                    for(int j = 1; j<=n; j++){
+                        if(get<1>(ansB)[j] == typeB){
+                            if(get<1>(ansS)[j] != typeS){
+                                ok = false;
+                                break;
+                            }
+                        }
+                    }
+                    if(!ok) break;
+                }
+            }
+            if(!ok) break;
+            if(get<2>(ansB).size() != get<2>(ansS).size()){
+                ok = false;
+            } else{
+                vector<PLL> translated;
+                for(int i =0; i<get<2>(ansB).size(); i++){
+                    int v1 = tran[get<2>(ansB)[i].first], v2 =tran[get<2>(ansB)[i].second];
+                    translated.PB(MP(min(v1,v2), max(v1,v2)));
+                }
+                sort(translated.begin(), translated.end());
+                sort(get<2>(ansS).begin(), get<2>(ansS).end());
+                for(int i = 0; i<get<2>(ansB).size(); i++){
+                    if(translated[i].first != get<2>(ansS)[i].first || translated[i].second != get<2>(ansS)[i].second){
+                        ok = false;
+                        break;
+                    }
                 }
             }
         }
