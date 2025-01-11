@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <set>
 
 using namespace std;
 
@@ -123,8 +124,48 @@ ll brute(){
     return ans;
 }
 
-ll solve(){
+bool compareCustomPII(const PII a, const PII b){
+    if(a.first == b.first){
+        a.second < b.second;
+    }
+    return a.first < b.first;
+}
 
+ll solve(){
+    //prepare sets
+    vector<set<int>> aS(a.size(), set<int>());
+    for(int i =0 ; i<a.size(); i++){
+        for(int j = 0; j<a[i].size(); j++){
+            aS[i].insert(a[i][j]);
+        }
+    }
+    
+    //simulate
+    vector<PII> curLine;
+    for(int i = 0; i<s.size(); i++){
+        curLine.PB(MP(s[i],i));
+    }
+
+    sort(curLine.begin(), curLine.end(), compareCustomPII);
+
+    for(int i = 0; i<a.size(); i++){
+        for(int j = 0; j<curLine.size(); j++){
+            auto itr = aS[i].lower_bound(curLine[j].first);
+            if(itr == aS[i].end()){
+                return llINF;
+            }
+            curLine[j].first = *itr;
+            aS[i].erase(itr);
+        }
+    }
+
+    //answer
+    ll ans = 0;
+    for(int i = 0; i<curLine.size(); i++){
+        ans += (curLine[i].first-s[curLine[i].second])*(c[curLine[i].second]);
+    }
+    
+    return ans;
 }
 
 int main()
