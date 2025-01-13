@@ -127,14 +127,36 @@ bool check(int ind, vector<int> val, vector<vector<PIV>> &graph){
     //crate special graph
     vector<vector<int>> graphSpec((1<<ind)*(n)+1, vector<int>());
     vector<PII> vecLabel(graphSpec.size(), MP(-1,-1));
-    vector<bool> vis(n+1, false);
+    vector<vector<int>> vis(n+1, vector<int>((1<<ind), -1));
 
+    queue<PII> Q;
+    int totalGraphSize = 1;
+    while(!Q.empty()){
+        PII v = Q.front();
+        Q.pop();
+
+        for(int i = 0; i<graph[v.first].size(); i++){
+            PIV cur = graph[v.first][i];
+            int s = v.second;
+            for(int i = 0; i<cur.second.size(); i++){
+                if(cur.second[i] >= val.back()){
+                    s |= (1<<i);
+                }
+            }
+            if(vis[cur.first][s] == -1){
+                vis[cur.first][s] = totalGraphSize;
+                vecLabel[totalGraphSize] = MP(cur.first,s);
+                graphSpec[vis[v.first][v.second]].PB(totalGraphSize);
+                graphSpec[totalGraphSize].PB(vis[v.first][v.second]);
+                Q.push(MP(cur.first, s));
+            }
+        }
+    }    
 
     //traverse graph
     int exp = 0;
     for(int i = 0; i<ind; i++) exp += (1<<i);
 
-    queue<PII> Q;
     Q.push(MP(1,0));
     vector<bool> used(graphSpec.size(), false);
     while(!Q.empty()){
