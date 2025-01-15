@@ -26,13 +26,12 @@ vector<tuple<int,int,int>> query;
 
 void getData(){
     d.clear(); query.clear();
-    cin>>n;
+    cin>>n>>q;
     for(int i =0; i<n; i++){
         int temp;
         cin>>temp;
         d.PB(temp);
     }
-    cin>>q;
     for(int i =0 ; i<q; i++){
         int a, b, c;
         cin>>a>>b>>c;
@@ -93,10 +92,10 @@ vector<int> brute(){
         queue<int> Q;
         
         //get 1 sequences
-        int ind = 0;
+        int ind = l-1;
         while(seq[ind] == 1) ind++;
         int len = 0;
-        while(ind<seq.size()){
+        while(ind<r){
             if(seq[ind] == 1){
                 len++;
             }else if(len != 0){
@@ -106,37 +105,37 @@ vector<int> brute(){
             ind++;
         }
 
-        ind = 0;
+        ind = l-1;
         int lenBeg = 0;
-        while(seq[ind] == 1){
+        while(seq[ind] == 1 && ind <r){
             lenBeg++;
             ind++;
         }
 
-        ind = seq.size()-1;
+        ind = r-1;
         int lenEnd = 0;
-        while(seq[ind] == 1){
+        while(seq[ind] == 1 && ind >= l-1){
             lenEnd++;
             ind--;  
         }
 
         //process sequences
         int bestComb = 0;
-        while(k >= 0){
+        while(k > 0){
             if(Q.size() == 0 && lenBeg == 0 && lenEnd == 0) break;
             
             if(Q.size() > 0 && k >= 2){
-                if(Q.front() > lenBeg && Q.front() > lenEnd ){
-                    bestComb += Q.front();
-                    k -= 2;
-                }else if(lenBeg > Q.front() && lenBeg > lenEnd){
+                if(lenBeg >= Q.front() && lenBeg >= lenEnd){
                     bestComb += lenBeg;
                     k-=1;
                     lenBeg = 0;
-                }else{
+                }else if(lenEnd >= Q.front() && lenEnd >= lenBeg){
                     bestComb += lenEnd;
                     k-=1;
                     lenEnd = 0;
+                }else{
+                    bestComb += Q.front();
+                    k -= 2;
                 }
             }else{
                 if( lenBeg > lenEnd){
