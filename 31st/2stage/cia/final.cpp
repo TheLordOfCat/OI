@@ -125,16 +125,16 @@ void updateSingle(int v, vector<int> indToNum){
 vector<vector<PII>> verTree;
 
 int findIndex(int val, vector<int>& dIndex){
-    int l = 0, r=  dIndex.size()-1;
+    int l = 0, r = dIndex.size()-1;
 
     int ans = 0;
     while(l <=r ){
         int mid = (l+r)/2;
         if(dIndex[mid] >= val){
             ans = mid;
-            l = mid+1;
-        }else{
             r = mid-1;
+        }else{
+            l = mid+1;
         }
     }
     return ans;
@@ -201,17 +201,17 @@ int processQuery(int l, int r, int k, vector<int>& dIndex){
     //get sides
     int leftSide = 0, rightSide = 0;
     
-    if(dIndex[indL] != l){
+    if(dIndex[indL] != l && indL%2 == 0){
         int cur = l;
-        while(cur <= dIndex[indL-1] + d[indL-1]){
+        while(cur <= dIndex[indL] + d[indL]){
             leftSide++;
             cur++;
         }
     }
-    if(dIndex[indR] != r){
-        int cur = l;
-        while(cur >= dIndex[indL-1] + d[indL-1]){
-            leftSide++;
+    if(dIndex[indR] != r && indR%2 == 0){
+        int cur = r;
+        while(cur >= dIndex[indR-1]){
+            rightSide++;
             cur--;
         }
     }
@@ -229,7 +229,9 @@ vector<int> solve(){
     int type = 1;
 
     vector<int> dIndexed;
-    int cur = 0;
+    dIndexed.PB(0);
+    int cur = 1;
+    int maxVal = 0;
     for(int i = 0; i<d.size(); i++){
         if(type == 1){
             S.insert(d[i]);
@@ -237,9 +239,11 @@ vector<int> solve(){
         dIndexed.PB(cur);
         cur += d[i];
         type = (type+1)%2;
+        maxVal = max(maxVal, d[i]);
     }
+    dIndexed.PB(cur);
     
-    vector<int> indToNum, numToInd(1'000'000'000, -1);
+    vector<int> indToNum, numToInd(maxVal+1, -1);
     for(auto itr = S.begin(); itr != S.end(); itr++){
         indToNum.PB(*itr);
         numToInd[*itr] = indToNum.size()-1;
@@ -254,10 +258,11 @@ vector<int> solve(){
     for(int i =0 ; i<n; i++){
         if(type == 1){
             updateSingle(numToInd[d[i]], indToNum);
-            verTree.PB(baseTree);
         }
+        verTree.PB(baseTree);
         type = (type+1)%2;
     }
+    verTree.PB(baseTree);
 
     //process query
     vector<int> ans;
