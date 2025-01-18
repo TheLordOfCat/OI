@@ -77,7 +77,7 @@ void printData(){
 }
 
 vector<PII> baseTree;
-int R;
+int R, bottomSize;
 
 int left(int v){
     return v*2;
@@ -102,8 +102,9 @@ void buildTree(int interSize){
         R += (1<<depth);
         depth++;
     }
+    bottomSize = (1<<depth);
 
-    baseTree.assign(R+(1<<depth)+1, MP(0,0));
+    baseTree.assign(R+bottomSize+1, MP(0,0));
 }
 
 void updateVer(int v){
@@ -146,6 +147,13 @@ PII queryTree(int l, int r, int indT){
     int vL = leaf(l);
     int vR = leaf(r);
 
+    ans.first += verTree[indT][vL].first;
+    ans.second += verTree[indT][vL].second;
+    if(vL != vR){
+        ans.first += verTree[indT][vR].first;
+        ans.second += verTree[indT][vR].second;
+    }
+
     while(parent(vL) != parent(vR)){
         if(left(parent(vL)) == vL){
             ans.first += verTree[indT][right(parent(vL))].first;
@@ -162,29 +170,24 @@ PII queryTree(int l, int r, int indT){
 }
 
 int findD(int t1, int t2, int val){
-    int l = 0, r;
-    if(d.back() == 0){
-        r = (n-1)/2+1;
-    }else{
-        r = (n-2)/2+2;
-    }
+    int l = 0, r = bottomSize-1;
 
     int bestInd = 0, ans = 0, left = 0;
     while(l <= r){
         int mid = (l+r)/2;
-        PII val1 = queryTree(mid, r, t1), val2 = queryTree(mid, r, t2);
-        if(val2.first - val1.first >=val){
+        PII val1 = queryTree(mid, bottomSize-1, t1), val2 = queryTree(mid, bottomSize-1, t2);
+        if(val2.first - val1.first <= val){
             bestInd = mid;
-            ans += val2.second - val1.second;
+            ans = max(val2.second - val1.second,ans);
             left = val - (val2.first - val1.first);
 
-            l = mid-1;
-        }else{
             l = mid +1;
+        }else{
+            r = mid-1;
         }
     }
 
-    if(bestInd > 0){
+    if(bestInd-1 > t1){
         while(left > 0){
             ans += d[bestInd-1];
             left--;
@@ -197,28 +200,37 @@ int findD(int t1, int t2, int val){
 int processQuery(int l, int r, int k, vector<int>& dIndex){
     //get indexes
     int indL = findIndex(l, dIndex), indR = findIndex(r, dIndex);
+    if(dIndex[indR] != r) indR--;
+
+    if((indL == indR && ((dIndex[indL] == l) || (dIndex[indL-1] <= l && r < dIndex[indR]))) || (indL+1 == indR && dIndex[indL] == l && r < dIndex[indR])){
+        return r-l+1;
+    }
 
     //get sides
     int leftSide = 0, rightSide = 0;
     
-    if(dIndex[indL] != l && indL%2 == 0){
+    if((dIndex[indL] != l && indL%2 == 0) || (dIndex[indL] == l && indL%2 == 1)){
         int cur = l;
-        while(cur <= dIndex[indL] + d[indL]){
+        while(cur < dIndex[indL+1]){
             leftSide++;
             cur++;
         }
+        indL++;
     }
-    if(dIndex[indR] != r && indR%2 == 0){
+    if(dIndex[indR] + d[indR-1] != r && indR%2 == 1){
         int cur = r;
-        while(cur >= dIndex[indR-1]){
+        while(cur >= dIndex[indR]){
             rightSide++;
             cur--;
         }
+        indR--;
     }
 
     int temp1 = findD(indL-1, indR, k/2);
-    int temp2 = findD(indL-1, indR, (k-1)/2) + max(leftSide, rightSide);
-    int temp3 = findD(indL-1, indR, (k-2)/2) + leftSide + rightSide;
+    int temp2 = findD(indL-1, indR, (k-1)/2);
+    if(k > 0) temp2 += max(leftSide, rightSide);
+    int temp3 = findD(indL-1, indR, (k-2)/2);
+    if(k > 1) temp3 += leftSide + rightSide;
 
     return max(temp1,max(temp2,temp3));
 }
@@ -290,8 +302,7 @@ int main()
             getRandom();
         }
         vector<int> ansS = solve();
-        for(int j = 0; j<ansS.size(); j++) cout<<ansS[j]<<" ";
-        cout<<"\n";
+        for(int j = 0; j<ansS.size(); j++) cout<<ansS[j]<<"\n";
     }
 
     return 0;
