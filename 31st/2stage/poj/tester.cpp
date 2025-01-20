@@ -59,22 +59,30 @@ vector<vector<ll>> recBrute(vector<bool> used, vector<vector<ll>> cups){
     bool one = true;
     vector<vector<ll>> ans;
     for(int i = 0; i<n; i++){
-        if(used[i]){
+        if(!used[i]){
             one = false;
             vector<bool> temp = used;
             temp[i] = true;
             vector<vector<ll>> c = cups;
-            if(c.back().size() == 2){
+            if(c.size() == 0){
+                ll val = a[i];
+                while(val > 0){
+                    c.PB(vector<ll>());
+                    c.back().PB(i+1);
+                    c.back().PB(min(val,k));
+                    val -= min(val,k);
+                }
+            }else if(c.back().size() == 2){
                 ll val = a[i];
                 if(c.back()[1] < k){
-                    c.back().PB(a[i]);
-                    c.back().PB(k-c.back()[1]);
-                    val -= k-c.back()[1];
+                    c.back().PB(i+1);
+                    c.back().PB(min(k-c.back()[1], val));
+                    val -= min(k-c.back()[1],val);
                 }
                 
                 while(val > 0){
                     c.PB(vector<ll>());
-                    c.back().PB(a[i]);
+                    c.back().PB(i+1);
                     c.back().PB(min(val,k));
                     val -= min(val,k);
                 }
@@ -82,12 +90,12 @@ vector<vector<ll>> recBrute(vector<bool> used, vector<vector<ll>> cups){
                 ll val = a[i];
                 while(val > 0){
                     c.PB(vector<ll>());
-                    c.back().PB(a[i]);
+                    c.back().PB(i+1);
                     c.back().PB(min(val,k));
                     val -= min(val,k);
                 }
             }
-            vector<vector<ll>> recTemp = recBrute(used, c);
+            vector<vector<ll>> recTemp = recBrute(temp, c);
             if(ans.size() == 0 && recTemp.size() != 0){
                 ans = recTemp;
                 break;
@@ -108,7 +116,11 @@ vector<vector<ll>> recBrute(vector<bool> used, vector<vector<ll>> cups){
 
 vector<vector<ll>> brute(){
     vector<bool> used(n, false);
-    return recBrute(used, vector<vector<ll>>());
+    vector<vector<ll>> ans = recBrute(used, vector<vector<ll>>());
+    while(ans.size() < n){
+        ans.PB(vector<ll>());
+    }
+    return ans;
 }
 
 vector<vector<ll>> solve(){
@@ -161,6 +173,14 @@ int main()
                 cout<<ansB[i].size()/2<<" ";
                 for(int j = 0; j<ansB[i].size(); j++){
                     cout<<ansB[i][j]<<" ";
+                }
+                cout<<"\n";
+            }
+            cout<<"SOLVE: \n";
+            for(int i = 0; i<ansS.size(); i++){
+                cout<<ansS[i].size()/2<<" ";
+                for(int j = 0; j<ansS[i].size(); j++){
+                    cout<<ansS[i][j]<<" ";
                 }
                 cout<<"\n";
             }
