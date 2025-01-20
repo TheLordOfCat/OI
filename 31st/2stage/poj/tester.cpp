@@ -3,6 +3,7 @@
 #include <set>
 #include <algorithm>
 #include <tuple>
+#include <map>
 
 using namespace std;
 
@@ -124,7 +125,69 @@ vector<vector<ll>> brute(){
 }
 
 vector<vector<ll>> solve(){
+    vector<vector<ll>> ans;
+    vector<ll> aCopy = a;
 
+    //reduce to modulo
+    for(int i =0 ; i<aCopy.size(); i++){
+        while(aCopy[i] >= k){
+            aCopy[i] -= k;
+            ans.PB(vector<ll>());
+            ans.back().PB(i+1);
+            ans.back().PB(k);
+        }
+    }
+
+    //fill
+    multiset<ll> S;
+    multimap<ll,ll> M;
+    for(int i = 0; i<aCopy.size(); i++){
+        S.insert(aCopy[i]);
+        M.insert(MP(aCopy[i],i+1));
+    }
+
+    while(!S.empty()){
+        auto itr = S.end();
+        itr--;
+        ll left = k - *itr;
+        ll f1 = *itr;
+
+        ans.PB(vector<ll>());
+        auto itrInd = M.find(*itr);
+        ans.back().PB(itrInd->second);
+        ans.back().PB(*itr);
+
+        S.erase(itr);
+        M.erase(itrInd);
+
+        auto sec = S.lower_bound(left);
+        if(sec != S.end()){
+            if(*sec != left){
+                if(sec != S.begin()) sec--;
+            }
+            itrInd = M.find(*sec);
+
+            ans.back().PB(itrInd->second);
+            ans.back().PB(left);
+
+            if(left  < *sec){
+                S.insert(*sec - left);
+                M.insert(MP(*sec - left, itrInd->second));
+            }
+
+            M.erase(itrInd);
+            S.erase(sec);
+        }
+    }
+
+    //check
+    if(ans.size() > n){
+        return vector<vector<ll>>();
+    }
+    while(ans.size() < n){
+        ans.PB(vector<ll>());
+    }
+    return ans;
 }
 
 bool verify(vector<vector<ll>> cups){

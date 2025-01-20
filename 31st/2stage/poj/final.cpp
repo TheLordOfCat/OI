@@ -56,8 +56,6 @@ void printData(){
     }
 }
 
-
-
 vector<vector<ll>> solve(){
     vector<vector<ll>> ans;
     vector<ll> aCopy = a;
@@ -83,33 +81,43 @@ vector<vector<ll>> solve(){
     while(!S.empty()){
         auto itr = S.end();
         itr--;
-        ll val = k - *itr;
-        auto sec = S.lower_bound(val);
+        ll left = k - *itr;
+        ll f1 = *itr;
+
+        ans.PB(vector<ll>());
+        auto itrInd = M.find(*itr);
+        ans.back().PB(itrInd->second);
+        ans.back().PB(*itr);
+
+        S.erase(itr);
+        M.erase(itrInd);
+
+        auto sec = S.lower_bound(left);
         if(sec != S.end()){
-            ans.PB(vector<ll>());
-            auto temp1 = M.find(*itr);
-            auto temp2 = M.find(*sec);
-            ans.back().PB(temp1->second);
-            ans.back().PB(*itr);
-            ans.back().PB(temp2->second);
-            ans.back().PB(*sec);
-            M.erase(temp1);
-            M.erase(temp2);
-            S.erase(itr);
+            if(*sec != left){
+                if(sec != S.begin()) sec--;
+            }
+            itrInd = M.find(*sec);
+
+            ans.back().PB(itrInd->second);
+            ans.back().PB(left);
+
+            if(left  < *sec){
+                S.insert(*sec - left);
+                M.insert(MP(*sec - left, itrInd->second));
+            }
+
+            M.erase(itrInd);
             S.erase(sec);
-        }else{
-            ans.PB(vector<ll>());
-            auto temp = M.find(*itr);
-            ans.back().PB(temp->second);
-            ans.back().PB(*itr);
-            M.erase(temp);
-            S.erase(itr);
         }
     }
 
     //check
     if(ans.size() > n){
         return vector<vector<ll>>();
+    }
+    while(ans.size() < n){
+        ans.PB(vector<ll>());
     }
     return ans;
 }
@@ -152,12 +160,17 @@ int main()
         }
         vector<vector<ll>> ansS = solve();
 
-        for(int i = 0; i<ansS.size(); i++){
-            cout<<ansS[i].size()/2<<" ";
-            for(int j = 0; j<ansS[i].size(); j++){
-                cout<<ansS[i][j]<<" ";
+        if(ansS.size() == 0){
+            cout<<"NIE\n";
+        }else{
+            cout<<"TAK\n";
+            for(int i = 0; i<ansS.size(); i++){
+                cout<<ansS[i].size()/2<<" ";
+                for(int j = 0; j<ansS[i].size(); j++){
+                    cout<<ansS[i][j]<<" ";
+                }
+                cout<<"\n";
             }
-            cout<<"\n";
         }
     }
 
