@@ -39,11 +39,11 @@ void getRandom(){
 
     srand(time(0));
 
-    n = rand()%10+1;
+    n = rand()%5+5;
     k = rand()%20+1;
 
     for(int i =0 ; i<n; i++){
-        int temp = rand()%(k+10)+1;
+        int temp = rand()%(k+5)+1;
         a.PB(temp);
     }
 }
@@ -118,66 +118,64 @@ vector<vector<ll>> recBrute(vector<bool> used, vector<vector<ll>> cups){
 vector<vector<ll>> brute(){
     vector<bool> used(n, false);
     vector<vector<ll>> ans = recBrute(used, vector<vector<ll>>());
-    while(ans.size() < n){
-        ans.PB(vector<ll>());
+    if(ans.size() != 0){
+        while(ans.size() < n){
+            ans.PB(vector<ll>());
+        }
     }
     return ans;
 }
 
 vector<vector<ll>> solve(){
     vector<vector<ll>> ans;
-    vector<ll> aCopy = a;
-
-    //reduce to modulo
-    for(int i =0 ; i<aCopy.size(); i++){
-        while(aCopy[i] >= k){
-            aCopy[i] -= k;
-            ans.PB(vector<ll>());
-            ans.back().PB(i+1);
-            ans.back().PB(k);
+    
+    vector<PLL> s, b;
+    for(ll i = 0; i<a.size(); i++){
+        if(a[i] <= k){
+            s.PB(MP(a[i],i+1));
+        }else{
+            b.PB(MP(a[i], i+1));
         }
     }
 
-    //fill
-    multiset<ll> S;
-    multimap<ll,ll> M;
-    for(int i = 0; i<aCopy.size(); i++){
-        S.insert(aCopy[i]);
-        M.insert(MP(aCopy[i],i+1));
-    }
-
-    while(!S.empty()){
-        auto itr = S.end();
-        itr--;
-        ll left = k - *itr;
-        ll f1 = *itr;
-
+    while(!b.empty()){
         ans.PB(vector<ll>());
-        auto itrInd = M.find(*itr);
-        ans.back().PB(itrInd->second);
-        ans.back().PB(*itr);
+        if(!s.empty()){
+            PLL v1 = s.back(), v2 = b.back();
+            s.pop_back(); b.pop_back();
 
-        S.erase(itr);
-        M.erase(itrInd);
-
-        auto sec = S.lower_bound(left);
-        if(sec != S.end()){
-            if(*sec != left){
-                if(sec != S.begin()) sec--;
-            }
-            itrInd = M.find(*sec);
-
-            ans.back().PB(itrInd->second);
-            ans.back().PB(left);
-
-            if(left  < *sec){
-                S.insert(*sec - left);
-                M.insert(MP(*sec - left, itrInd->second));
+            ans.back().PB(v1.second);
+            ans.back().PB(v1.first);
+            if(k-v1.first != 0){
+                ans.back().PB(v2.second);
+                ans.back().PB(k-v1.first);
             }
 
-            M.erase(itrInd);
-            S.erase(sec);
+            v2.first -= k-v1.first;
+            if(v2.first <= k){
+                s.PB(v2);
+            }else{
+                b.PB(v2);
+            }
+        }else{
+            PLL v = b.back();
+            b.pop_back();
+
+            ans.back().PB(v.second);
+            ans.back().PB(k);
+            v.first -= k;
+            if(v.first <= k){
+                s.PB(v);
+            }else{
+                b.PB(v);
+            }
         }
+    }
+
+    for(int i = 0; i<s.size(); i++){
+        ans.PB(vector<ll>());
+        ans.back().PB(s[i].second);
+        ans.back().PB(s[i].first);
     }
 
     //check
@@ -198,7 +196,7 @@ bool verify(vector<vector<ll>> cups){
         if(cups[i].size() == 2){
             if(cups[i][1] > k) return false;
             levels[cups[i][0]] += cups[i][1];
-        }else{
+        }else if(cups[i].size() == 4){
             if(cups[i][1] + cups[i][3] > k) return false;
             levels[cups[i][0]] += cups[i][1];
             levels[cups[i][2]] += cups[i][3];
@@ -219,8 +217,8 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie();
 
-    int op = 1;
-    for(int test = 1; test<=1; test++){
+    int op = 0;
+    for(int test = 1; test<=100'000; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
@@ -247,6 +245,7 @@ int main()
                 }
                 cout<<"\n";
             }
+            printData();
             return 0;
         }
         cout<<"CORRECT\n";
