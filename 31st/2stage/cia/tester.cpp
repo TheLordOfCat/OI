@@ -197,18 +197,29 @@ void buildTree(int s){
     bottomLevel = (1<<depth);
 }
 
-vector<int> getDToTree(set<int>& S){
-    vector<int> ind(INF/2+1, -1);
-    int count = 0;
-    for(auto itr = S.begin(); itr != S.end(); itr++){
-        if(ind[*itr] == -1){
-            ind[*itr] = count;
-            count++;
-        }
+bool customExtDCompare(PII a, PII b){
+    if(a.first == b.first){
+        return a.second < b.second;
     }
+    return a.first < b.first;
+}
+
+vector<int> getDToTree(set<int>& S){
+    vector<PII> extD;
+    for(int i = 0; i<d.size(); i++){
+        extD.PB(MP(d[i],i));
+    }
+    sort(extD.begin(), extD.end(), customExtDCompare);
+
     vector<int> ans(n, 0);
+    int ind = 0;
     for(int i =0 ;i<n; i++){
-        ans[i] = ind[i];
+        ans[extD[i].second] = ind;
+        if(i != n-1){
+            if(extD[i].second == extD[i+1].second){
+                ind++;
+            }
+        }
     }
     return ans;
 }
@@ -223,8 +234,8 @@ void updateSingle(int v, int val, int len){
 }
 
 int realIndex(int ind, vector<int>& dInd){
-    int l = 0, r = n-1;
-    int ans = 0;
+    int l = 0, r = dInd.size()-1;
+    int ans = -1;
     while(l<=r){
         int mid = (l+r)/2;
         if(dInd[mid] > ind){
@@ -271,7 +282,7 @@ PII queryTree(int indT, int val){
 PII findTree(int indT, int val, vector<int>& treeToD){
     int l = 0, r = bottomLevel-1;
     PII ans = MP(0,0); 
-    int ind = 0;
+    int ind = treeToD.size()+1;
     while(l <= r){
         int mid = (l+r)/2;
         PII temp = queryTree(indT, mid);
@@ -285,36 +296,49 @@ PII findTree(int indT, int val, vector<int>& treeToD){
     }
 
     //enlarge
-    while(ans.first <= val && ind != 1){
-        ans.second += d[treeToD[ind-1]];
+    int count = 0;
+    while(ans.first < val && ind >= 1 && count < vecTree[indT][leaf(ind-1)].first){
+        ans.second += treeToD[ind-1];
         ans.first++;
+        count++;
     }
 
     return ans;
 }
 
 int processQuery(int l, int r, int k, vector<int>& dInd, vector<int>& treeToD){
-    int indL = realIndex(l, dInd), indR = realIndex(r, dInd)-1;
+    int indL = realIndex(l, dInd), indR = realIndex(r, dInd);
 
-    int begSeg = -1, endSeg = -1;
-    if(indL%2 == 0){
-        begSeg = indL-l; 
-    }
-    if(indR%2 == 1){
-        endSeg = r - indR;
-    }
+    int ans1 = 0, ans2 = 0, ans3 = 0;
+    
+    if(indL < indR){
+        int begSeg = -1, endSeg = -1;
+        if(indL%2 == 0){
+            begSeg = dInd[indL]-l; 
+        }
+        if(indR%2 == 0){
+            endSeg = r - dInd[indR-1]+1;
+        }
 
-    int ans1 = 0, ans2 = max(begSeg, endSeg), ans3 = begSeg + endSeg;
-    if(indL < indR-1){
-        int temp = findTree(indR-1, k/2, treeToD).second - findTree(indL, k/2, treeToD).second;
+        if(k >= 1){
+            ans2 = max(begSeg, endSeg);
+        }
+        if(k >= 2){
+            ans3 = begSeg + endSeg;
+        }
+
+        int temp = findTree(indR-2, k/2, treeToD).second - findTree(indL-1, k/2, treeToD).second;
         ans1 += temp;
         
-        temp = findTree(indR-1, (k-1)/2, treeToD).second - findTree(indL, (k-1)/2, treeToD).second;
+        temp = findTree(indR-2, (k-1)/2, treeToD).second - findTree(indL-1, (k-1)/2, treeToD).second;
         ans2 += temp;
         
-        temp = findTree(indR-1, (k-2)/2, treeToD).second - findTree(indL, (k-2)/2, treeToD).second;
+        temp = findTree(indR-2, (k-2)/2, treeToD).second - findTree(indL-1, (k-2)/2, treeToD).second;
         ans3 += temp;
+    }else if(indR == indL && indR%2 == 0){
+        ans1 = r-l+1;
     }
+
     return max(ans1, max(ans2, ans3));
 }   
 
@@ -342,17 +366,23 @@ vector<int> solve(){
     }
 
     //get real d indexse
-    vector<int> dInd(n, 0);
+    vector<int> dInd;
+    dInd.PB(0);
     int curInd = 1;
     for(int i = 0; i<n; i++){
-        dInd[i] = curInd;
+        dInd.PB(curInd);
         curInd += d[i];
     }
+    dInd.PB(curInd);
 
     //process trees
+    type = 1;
     for(int i =0; i<n; i++){
         vecTree.PB(baseTree);
-        updateSingle(dToTree[i], 1, d[i]);
+        if(type == 1){
+            updateSingle(dToTree[i], 1, d[i]);
+        }
+        type = (type+1)%2;
     }
     vecTree.PB(baseTree);
 

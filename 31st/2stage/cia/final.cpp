@@ -46,18 +46,28 @@ void getRandom(){
 
     srand(time(0));
 
-    n = rand()%10+1;
+    // n = rand()%10+1;
+    n = 1'000'0;
     int totalLen = 0;
-    for(int i =0; i<n; i++){
-        int temp = rand()%2+1;
+    for(int i =0; i<n-1; i++){
+        int temp = rand()%500+10;
         d.PB(temp);
         totalLen += temp;
     }
-    q = rand()%10+1;
+    if(totalLen < 1000000000) {
+        d.PB(1000000000-totalLen);
+    }else{
+        totalLen--;
+        d.back()--;
+        d.PB(1000000000-totalLen);        
+    }
+    // q = rand()%10+1;/
+    q = 10'000;
     for(int i = 0; i<q; i++){
-        int l = rand()%totalLen+1, r = rand()%totalLen+1;
+        // int l = rand()%totalLen+1, r = rand()%totalLen+1;
+        int l = 1, r = 1000000000, k = 1000000000;
         if(l > r) swap(l,r);
-        int k = rand()%3+1;
+        // int k = rand()%3+1;
         query.PB(MT(l,r,k));
     }
 }
@@ -108,18 +118,29 @@ void buildTree(int s){
     bottomLevel = (1<<depth);
 }
 
-vector<int> getDToTree(set<int>& S){
-    vector<int> ind(1'000'000+1, -1);
-    int count = 0;
-    for(auto itr = S.begin(); itr != S.end(); itr++){
-        if(ind[*itr] == -1){
-            ind[*itr] = count;
-            count++;
-        }
+bool customExtDCompare(PII a, PII b){
+    if(a.first == b.first){
+        return a.second < b.second;
     }
+    return a.first < b.first;
+}
+
+vector<int> getDToTree(set<int>& S){
+    vector<PII> extD;
+    for(int i = 0; i<d.size(); i++){
+        extD.PB(MP(d[i],i));
+    }
+    sort(extD.begin(), extD.end(), customExtDCompare);
+
     vector<int> ans(n, 0);
+    int ind = 0;
     for(int i =0 ;i<n; i++){
-        ans[i] = ind[i];
+        ans[extD[i].second] = ind;
+        if(i != n-1){
+            if(extD[i].second == extD[i+1].second){
+                ind++;
+            }
+        }
     }
     return ans;
 }
@@ -182,7 +203,7 @@ PII queryTree(int indT, int val){
 PII findTree(int indT, int val, vector<int>& treeToD){
     int l = 0, r = bottomLevel-1;
     PII ans = MP(0,0); 
-    int ind = treeToD.size();
+    int ind = treeToD.size()+1;
     while(l <= r){
         int mid = (l+r)/2;
         PII temp = queryTree(indT, mid);
@@ -196,25 +217,28 @@ PII findTree(int indT, int val, vector<int>& treeToD){
     }
 
     //enlarge
-    while(ans.first < val && ind >= 1){
-        ans.second += d[treeToD[ind-1]];
+    int count = 0;
+    while(ans.first < val && ind >= 1 && count < vecTree[indT][leaf(ind-1)].first){
+        ans.second += treeToD[ind-1];
         ans.first++;
+        count++;
     }
 
     return ans;
 }
 
 int processQuery(int l, int r, int k, vector<int>& dInd, vector<int>& treeToD){
-    int indL = realIndex(l, dInd), indR = realIndex(r, dInd)-1;
+    int indL = realIndex(l, dInd), indR = realIndex(r, dInd);
 
     int ans1 = 0, ans2 = 0, ans3 = 0;
-    if(indL <= indR){
+    
+    if(indL < indR){
         int begSeg = -1, endSeg = -1;
         if(indL%2 == 0){
             begSeg = dInd[indL]-l; 
         }
-        if(indR%2 == 1){
-            endSeg = r - dInd[indR]+1;
+        if(indR%2 == 0){
+            endSeg = r - dInd[indR-1]+1;
         }
 
         if(k >= 1){
@@ -224,15 +248,15 @@ int processQuery(int l, int r, int k, vector<int>& dInd, vector<int>& treeToD){
             ans3 = begSeg + endSeg;
         }
 
-        int temp = findTree(indR-1, k/2, treeToD).second - findTree(indL, k/2, treeToD).second;
+        int temp = findTree(indR-2, k/2, treeToD).second - findTree(indL-1, k/2, treeToD).second;
         ans1 += temp;
         
-        temp = findTree(indR-1, (k-1)/2, treeToD).second - findTree(indL, (k-1)/2, treeToD).second;
+        temp = findTree(indR-2, (k-1)/2, treeToD).second - findTree(indL-1, (k-1)/2, treeToD).second;
         ans2 += temp;
         
-        temp = findTree(indR-1, (k-2)/2, treeToD).second - findTree(indL, (k-2)/2, treeToD).second;
+        temp = findTree(indR-2, (k-2)/2, treeToD).second - findTree(indL-1, (k-2)/2, treeToD).second;
         ans3 += temp;
-    }else if(indR+1 == indL && indR%2 == 1){
+    }else if(indR == indL && indR%2 == 0){
         ans1 = r-l+1;
     }
 
@@ -273,9 +297,13 @@ vector<int> solve(){
     dInd.PB(curInd);
 
     //process trees
+    type = 1;
     for(int i =0; i<n; i++){
         vecTree.PB(baseTree);
-        updateSingle(dToTree[d[i]], 1, d[i]);
+        if(type == 1){
+            updateSingle(dToTree[i], 1, d[i]);
+        }
+        type = (type+1)%2;
     }
     vecTree.PB(baseTree);
 
