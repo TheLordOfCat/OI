@@ -137,7 +137,7 @@ vector<int> getDToTree(set<int>& S){
     for(int i =0 ;i<n; i++){
         ans[extD[i].second] = ind;
         if(i != n-1){
-            if(extD[i].second == extD[i+1].second){
+            if(extD[i].first != extD[i+1].first){
                 ind++;
             }
         }
@@ -175,13 +175,13 @@ vector<vector<PII>> vecTree;
 PII queryTree(int indT, int val){
     PII ans = MP(0,0);
 
-    int l = leaf(val), r = leaf(bottomLevel);
+    int l = leaf(val), r = leaf(bottomLevel-1);
 
     ans.first += vecTree[indT][l].first;
     ans.second += vecTree[indT][l].second;
     if(l != r) {
-        ans.first += vecTree[indT][l].first;
-        ans.second += vecTree[indT][l].second;
+        ans.first += vecTree[indT][r].first;
+        ans.second += vecTree[indT][r].second;
     }
 
     while(parent(l) != parent(r)){
@@ -200,15 +200,15 @@ PII queryTree(int indT, int val){
     return ans;
 }
 
-PII findTree(int indT, int val, vector<int>& treeToD){
+PII findTree(int indL, int indR, int val, vector<int>& treeToD){
     int l = 0, r = bottomLevel-1;
     PII ans = MP(0,0); 
-    int ind = treeToD.size()+1;
+    int ind = bottomLevel;
     while(l <= r){
         int mid = (l+r)/2;
-        PII temp = queryTree(indT, mid);
-        if(temp.first <= val){
-            ans = temp;
+        PII tempL = queryTree(indL, mid), tempR = queryTree(indR, mid);
+        if(tempR.first - tempL.first <= val){
+            ans = MP(tempR.first - tempL.first, tempR.second - tempL.second);
             ind = mid;
             r = mid-1;
         }else{
@@ -218,7 +218,7 @@ PII findTree(int indT, int val, vector<int>& treeToD){
 
     //enlarge
     int count = 0;
-    while(ans.first < val && ind >= 1 && count < vecTree[indT][leaf(ind-1)].first){
+    while(ans.first < val && ind >= 1 && count < vecTree[indR][leaf(ind-1)].first-vecTree[indL][leaf(ind-1)].first){
         ans.second += treeToD[ind-1];
         ans.first++;
         count++;
@@ -248,13 +248,13 @@ int processQuery(int l, int r, int k, vector<int>& dInd, vector<int>& treeToD){
             ans3 = begSeg + endSeg;
         }
 
-        int temp = findTree(indR-2, k/2, treeToD).second - findTree(indL-1, k/2, treeToD).second;
+        int temp = findTree(indL-1, indR-2, k/2, treeToD).second;
         ans1 += temp;
         
-        temp = findTree(indR-2, (k-1)/2, treeToD).second - findTree(indL-1, (k-1)/2, treeToD).second;
+        temp = findTree(indL-1, indR-2, (k-1)/2, treeToD).second;
         ans2 += temp;
         
-        temp = findTree(indR-2, (k-2)/2, treeToD).second - findTree(indL-1, (k-2)/2, treeToD).second;
+        temp = findTree(indL-1, indR-2, (k-2)/2, treeToD).second;
         ans3 += temp;
     }else if(indR == indL && indR%2 == 0){
         ans1 = r-l+1;

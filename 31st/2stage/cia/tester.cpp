@@ -52,23 +52,27 @@ void getRandom(){
         d.PB(temp);
         totalLen += temp;
     }
-    q = rand()%10+1;
-    for(int i = 0; i<q; i++){
-        int l = rand()%totalLen+1, r = rand()%totalLen+1;
-        if(l > r) swap(l,r);
-        int k = rand()%3+1;
-        query.PB(MT(l,r,k));
+    q = 0;
+    for(int i = 0; i<n; i++){
+        for(int j = i; j<n; j++){
+            for(int o = 0; o<n; o++){
+                int l = i+1, r = j+1;
+                if(l > r) swap(l,r);
+                int k = o;
+                query.PB(MT(l,r,k));
+                q++;
+            }
+        }
     }
 }
 
 void printData(){
     cout<<"DATA: \n";
-    cout<<n<<"\n";
+    cout<<n<<" "<<q<<"\n";
     for(int i = 0; i<n; i++){
         cout<<d[i]<<" ";
     }
     cout<<"\n";
-    cout<<q<<"\n";
     for(int i= 0; i<q; i++){
         int l = get<0>(query[i]), r = get<1>(query[i]), k = get<2>(query[i]);
         cout<<l<<" "<<r<<" "<<k<<"\n";
@@ -89,6 +93,21 @@ vector<int> brute(){
 
     for(int i = 0; i<query.size(); i++){
         int l = get<0>(query[i]), r = get<1>(query[i]), k = get<2>(query[i]);
+
+        //check if l and r is within one d
+        bool con = true;
+        int s = seq[l-1];
+        for(int j = l-1; j<r; j++){
+            if(s != seq[j]){
+                con = false;
+                break;
+            }
+        }
+
+        if(con && seq[l-1] == 1){
+            ans.PB(r-l+1);
+            continue;
+        }
 
         //get segments
         int curLen = 0;
@@ -115,7 +134,7 @@ vector<int> brute(){
         int temp = 0;
         int count = 0;
         while(count < k){
-            if(seg.size() > 0){
+            if(seg.size() > 0 && k-count >= 2){
                 if(begSeg >= seg.back() && begSeg >= endSeg){
                     temp += begSeg;
                     begSeg = -1;
@@ -216,7 +235,7 @@ vector<int> getDToTree(set<int>& S){
     for(int i =0 ;i<n; i++){
         ans[extD[i].second] = ind;
         if(i != n-1){
-            if(extD[i].second == extD[i+1].second){
+            if(extD[i].first != extD[i+1].first){
                 ind++;
             }
         }
@@ -254,13 +273,13 @@ vector<vector<PII>> vecTree;
 PII queryTree(int indT, int val){
     PII ans = MP(0,0);
 
-    int l = leaf(val), r = leaf(bottomLevel);
+    int l = leaf(val), r = leaf(bottomLevel-1);
 
     ans.first += vecTree[indT][l].first;
     ans.second += vecTree[indT][l].second;
     if(l != r) {
-        ans.first += vecTree[indT][l].first;
-        ans.second += vecTree[indT][l].second;
+        ans.first += vecTree[indT][r].first;
+        ans.second += vecTree[indT][r].second;
     }
 
     while(parent(l) != parent(r)){
@@ -279,15 +298,15 @@ PII queryTree(int indT, int val){
     return ans;
 }
 
-PII findTree(int indT, int val, vector<int>& treeToD){
+PII findTree(int indL, int indR, int val, vector<int>& treeToD){
     int l = 0, r = bottomLevel-1;
     PII ans = MP(0,0); 
-    int ind = treeToD.size()+1;
+    int ind = bottomLevel;
     while(l <= r){
         int mid = (l+r)/2;
-        PII temp = queryTree(indT, mid);
-        if(temp.first <= val){
-            ans = temp;
+        PII tempL = queryTree(indL, mid), tempR = queryTree(indR, mid);
+        if(tempR.first - tempL.first <= val){
+            ans = MP(tempR.first - tempL.first, tempR.second - tempL.second);
             ind = mid;
             r = mid-1;
         }else{
@@ -297,7 +316,7 @@ PII findTree(int indT, int val, vector<int>& treeToD){
 
     //enlarge
     int count = 0;
-    while(ans.first < val && ind >= 1 && count < vecTree[indT][leaf(ind-1)].first){
+    while(ans.first < val && ind >= 1 && count < vecTree[indR][leaf(ind-1)].first-vecTree[indL][leaf(ind-1)].first){
         ans.second += treeToD[ind-1];
         ans.first++;
         count++;
@@ -327,13 +346,13 @@ int processQuery(int l, int r, int k, vector<int>& dInd, vector<int>& treeToD){
             ans3 = begSeg + endSeg;
         }
 
-        int temp = findTree(indR-2, k/2, treeToD).second - findTree(indL-1, k/2, treeToD).second;
+        int temp = findTree(indL-1, indR-2, k/2, treeToD).second;
         ans1 += temp;
         
-        temp = findTree(indR-2, (k-1)/2, treeToD).second - findTree(indL-1, (k-1)/2, treeToD).second;
+        temp = findTree(indL-1, indR-2, (k-1)/2, treeToD).second;
         ans2 += temp;
         
-        temp = findTree(indR-2, (k-2)/2, treeToD).second - findTree(indL-1, (k-2)/2, treeToD).second;
+        temp = findTree(indL-1, indR-2, (k-2)/2, treeToD).second;
         ans3 += temp;
     }else if(indR == indL && indR%2 == 0){
         ans1 = r-l+1;
@@ -403,8 +422,8 @@ int main()
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int op = 1;
-    for(int test = 1; test<=1; test++){
+    int op = 0;
+    for(int test = 1; test<=10'000; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
@@ -423,6 +442,7 @@ int main()
                 for(int j = 0; j<ansS.size(); j++) cout<<ansS[j]<<" ";
                 cout<<"\n";
                 printData();
+                cout<<"ERROR line "<<i<<"\n";
                 return 0;
             }
         }
