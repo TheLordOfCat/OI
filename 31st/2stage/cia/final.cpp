@@ -5,6 +5,7 @@
 #include <queue>
 #include <set>
 #include <map>
+#include <cassert>
 
 using namespace std;
 
@@ -46,40 +47,34 @@ void getRandom(){
 
     srand(time(0));
 
-    // n = rand()%10+1;
-    n = 1'000'0;
+    n = rand()%10+1;
     int totalLen = 0;
-    for(int i =0; i<n-1; i++){
-        int temp = rand()%500+10;
+    for(int i =0; i<n; i++){
+        int temp = rand()%2+1;
         d.PB(temp);
         totalLen += temp;
     }
-    if(totalLen < 1000000000) {
-        d.PB(1000000000-totalLen);
-    }else{
-        totalLen--;
-        d.back()--;
-        d.PB(1000000000-totalLen);        
-    }
-    // q = rand()%10+1;/
-    q = 10'000;
-    for(int i = 0; i<q; i++){
-        // int l = rand()%totalLen+1, r = rand()%totalLen+1;
-        int l = 1, r = 1000000000, k = 1000000000;
-        if(l > r) swap(l,r);
-        // int k = rand()%3+1;
-        query.PB(MT(l,r,k));
+    q = 0;
+    for(int i = 0; i<n; i++){
+        for(int j = i; j<n; j++){
+            for(int o = 0; o<n; o++){
+                int l = i+1, r = j+1;
+                if(l > r) swap(l,r);
+                int k = o;
+                query.PB(MT(l,r,k));
+                q++;
+            }
+        }
     }
 }
 
 void printData(){
     cout<<"DATA: \n";
-    cout<<n<<"\n";
+    cout<<n<<" "<<q<<"\n";
     for(int i = 0; i<n; i++){
         cout<<d[i]<<" ";
     }
     cout<<"\n";
-    cout<<q<<"\n";
     for(int i= 0; i<q; i++){
         int l = get<0>(query[i]), r = get<1>(query[i]), k = get<2>(query[i]);
         cout<<l<<" "<<r<<" "<<k<<"\n";
@@ -114,6 +109,8 @@ void buildTree(int s){
         depth++;
     }
 
+    assert((1<<depth) >= 0);
+
     baseTree.assign((1<<depth)+R+1, MP(0,0));
     bottomLevel = (1<<depth);
 }
@@ -135,8 +132,10 @@ vector<int> getDToTree(set<int>& S){
     vector<int> ans(n, 0);
     int ind = 0;
     for(int i =0 ;i<n; i++){
+        assert(extD[i].second < ans.size());
         ans[extD[i].second] = ind;
-        if(i != n-1){
+        if(i < n-1){
+            assert(i < extD.size()-1);
             if(extD[i].first != extD[i+1].first){
                 ind++;
             }
@@ -147,6 +146,7 @@ vector<int> getDToTree(set<int>& S){
 
 void updateSingle(int v, int val, int len){
     int V = leaf(v);
+    assert(V < baseTree.size());
     while(V >= 1){
         baseTree[V].first += val;
         baseTree[V].second += len;
@@ -218,6 +218,8 @@ PII findTree(int indL, int indR, int val, vector<int>& treeToD){
 
     //enlarge
     int count = 0;
+    assert(leaf(ind-1) < vecTree[indR].size());
+    assert(leaf(ind-1) < vecTree[indL].size());
     while(ans.first < val && ind >= 1 && count < vecTree[indR][leaf(ind-1)].first-vecTree[indL][leaf(ind-1)].first){
         ans.second += treeToD[ind-1];
         ans.first++;
@@ -235,9 +237,11 @@ int processQuery(int l, int r, int k, vector<int>& dInd, vector<int>& treeToD){
     if(indL < indR){
         int begSeg = -1, endSeg = -1;
         if(indL%2 == 0){
+            assert(indL >= 0);
             begSeg = dInd[indL]-l; 
         }
         if(indR%2 == 0){
+            assert(indR -1 >= 0);
             endSeg = r - dInd[indR-1]+1;
         }
 
@@ -293,6 +297,7 @@ vector<int> solve(){
     for(int i = 0; i<n; i++){
         dInd.PB(curInd);
         curInd += d[i];
+        assert(curInd >= 0);
     }
     dInd.PB(curInd);
 
@@ -326,13 +331,22 @@ int main()
 
     int op = 1;
     for(int test = 1; test<=1; test++){
+        cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
         }else{
             getRandom();
         }
         vector<int> ansS = solve();
-        for(int j = 0; j<ansS.size(); j++) cout<<ansS[j]<<"\n";
+        for(int j = 0; j<ansS.size(); j++){
+            if(ansS[j] < 0){
+                cout<<"ERORR\n";
+                printData();
+                cout<<j<<"\n";
+                return 0;
+            }
+        }
+        cout<<"CORRECT\n";
     }
 
     return 0;
