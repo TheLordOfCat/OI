@@ -347,6 +347,7 @@ int main()
             }
         }
         cout<<"CORRECT\n";
+        cout<<ansS[8]<<"\n";
     }
 
     return 0;
