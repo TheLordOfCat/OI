@@ -21,6 +21,8 @@ int n;
 vector<pair<char, vector<int>>> rep;
 
 void getData(){
+    rep.clear();
+
     cin>>n;
     for(int i =0; i< n; i++){
         char c;
@@ -40,32 +42,34 @@ void getData(){
 }
 
 void getRandom(){
+    rep.clear();
+
     srand(time(0));
 
-    n = rand()%10;
-    for(int i =0; i< n; i++){
-        char c;
-        if(rand()%2 == 0){
-            c = 'T';
-        }else{
-            c = 'N';
-        }
+    n = rand()%10+1;
+    vector<int> player;
+    for(int  i = 1; i<=n ;i++){
+        player.PB(i);
+    }
 
-        if(c == 'N'){
-            int a = rand()%n+1, b= rand()%n+1;
-            if(a == b){
-                if(a == n){
-                    b--;
-                }else{
-                    b++;
-                }
-            }
-            vector<int> vec = {a,b};
-            rep.PB(MP(c,vec));
+    int r = rand()%n+1;
+    for(int i = 0; i<r; i++){
+        next_permutation(player.begin(), player.end());
+    }
+
+    rep.assign(n, pair<char,vector<int>>());
+    for(int i = 0; i<player.size(); i++){
+        int type = rand()%2;
+        if(type == 0){
+            vector<int> temp = {i+1};
+            rep[player[i]] = MP('T', temp);
         }else{
-            int a = rand()%n+1;
-            vector<int> vec = {a};
-            rep.PB(MP(c,vec));
+            int f = rand()%n+1;
+            while(i+1 != f){
+                f = rand()%n+1;
+            }
+            vector<int> temp = {i+1, f};
+            rep[player[i]] = MP('N', temp);
         }
     }
 }
@@ -85,7 +89,7 @@ void printData(){
 pair<bool, vector<int>> brute(){
     pair<bool, vector<int>> ans;
 
-    vector<vector<int>> posCand(n, vector<int>());
+    vector<vector<int>> posCand(n+1, vector<int>());
     for(int i =0 ; i<rep.size(); i++){
         for(int j = 0;j <rep[i].second.size(); j++){
             posCand[rep[i].second[j]].PB(i+1);
@@ -100,8 +104,8 @@ pair<bool, vector<int>> brute(){
         bool ok = true;
         for(int i = 0; i<players.size(); i++){
             bool found = false;
-            for(int j = 0; j<posCand[i].size(); j++){
-                if(posCand[i][j] == players[i]){ // erorr
+            for(int j = 0; j<posCand[i+1].size(); j++){
+                if(posCand[i+1][j] == players[i]){ // erorr
                     found = true;
                     break;
                 }
@@ -114,7 +118,10 @@ pair<bool, vector<int>> brute(){
 
         if(ok){
             if(first.size() == 0){
-                first = players;
+                first.assign(n, 0);
+                for(int i =0; i<players.size(); i++){
+                    first[players[i]-1] = i+1;
+                }
             }else{
                 if(ans.second.size() == 0) ans.second.PB(1);
                 ans.second.back()++;
@@ -245,9 +252,9 @@ pair<bool,vector<int>> solve(){
 
     //get ans
     if(loop.size() == 0){
-        vector<int> comb;
+        vector<int> comb(n, 0);
         for(int i = 1; i<=n; i++){
-            comb.PB(usedPos[i]);
+            comb[usedPos[i]-1] = i;
             if(usedPos[i] == -1){
                 vector<int> temp = {0};
                 return MP(false, temp);

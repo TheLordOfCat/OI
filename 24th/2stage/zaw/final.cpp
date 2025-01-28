@@ -21,6 +21,8 @@ int n;
 vector<pair<char, vector<int>>> rep;
 
 void getData(){
+    rep.clear();
+    
     cin>>n;
     for(int i =0; i< n; i++){
         char c;
@@ -40,32 +42,34 @@ void getData(){
 }
 
 void getRandom(){
+    rep.clear();
+
     srand(time(0));
 
-    n = rand()%10;
-    for(int i =0; i< n; i++){
-        char c;
-        if(rand()%2 == 0){
-            c = 'T';
-        }else{
-            c = 'N';
-        }
+    n = rand()%10+1;
+    vector<int> player;
+    for(int  i = 1; i<=n ;i++){
+        player.PB(i);
+    }
 
-        if(c == 'N'){
-            int a = rand()%n+1, b= rand()%n+1;
-            if(a == b){
-                if(a == n){
-                    b--;
-                }else{
-                    b++;
-                }
-            }
-            vector<int> vec = {a,b};
-            rep.PB(MP(c,vec));
+    int r = rand()%n+1;
+    for(int i = 0; i<r; i++){
+        next_permutation(player.begin(), player.end());
+    }
+
+    rep.assign(n, pair<char,vector<int>>());
+    for(int i = 0; i<player.size(); i++){
+        int type = rand()%2;
+        if(type == 0){
+            vector<int> temp = {i+1};
+            rep[player[i]] = MP('T', temp);
         }else{
-            int a = rand()%n+1;
-            vector<int> vec = {a};
-            rep.PB(MP(c,vec));
+            int f = rand()%n+1;
+            while(i+1 != f){
+                f = rand()%n+1;
+            }
+            vector<int> temp = {i+1, f};
+            rep[player[i]] = MP('N', temp);
         }
     }
 }
@@ -92,14 +96,16 @@ pair<bool,vector<int>> solve(){
         } 
     }
 
+    queue<PII> Q;
+
     for(int i = 1; i<=n; i ++){
         if(graph[i][0].size() == 0){
             vector<int> temp = {0};
             return MP(false, temp);
+        }else if(graph[i][0].size() == 1){
+            Q.push(MP(i,0));
         }
     }
-
-    queue<PII> Q;
 
     //mark 
     vector<int> usedPos(n+1, -1), usedPlayer(n+1, -1);
@@ -132,30 +138,37 @@ pair<bool,vector<int>> solve(){
         }
     }
 
+    //get all the single lines
     while(!Q.empty()){
         PII v = Q.front();
         Q.pop();
         
-        bool ok = false;
         for(int i = 0; i<graph[v.first][v.second].size(); i++){
             int cur = graph[v.first][v.second][i];
             if(v.second == 0){
-                if(!usedPlayer[cur]){
+                if(usedPlayer[cur] == -1){
+                    if(usedPos[v.first] == -1){
+                        usedPos[v.first] = cur;
+                        usedPlayer[cur] = v.first;
+                    }
                     Q.push(MP(cur, 1));
-                    usedPlayer[cur] = true;
                 }
             }else{
-                if(!usedPos[cur]){
-                    ok = true;
+                if(usedPos[cur] == -1){
+                    if(usedPlayer[v.first] == -1){
+                        usedPlayer[v.first] = cur;
+                        usedPos[cur] = v.first;
+                    }
                     Q.push(MP(cur,0));
-                    usedPos[cur] = v.first;
                 }
             }
         }
 
-        if(!ok){
-            vector<int> temp = {0};
-            return MP(false, temp);
+        if(v.second == 1){
+            if(usedPlayer[v.first] == -1){
+                vector<int> temp = {0};
+                return MP(false, temp);
+            }
         }
     }
 
@@ -164,41 +177,41 @@ pair<bool,vector<int>> solve(){
 
     for(int i = 1; i<=n; i++){
         int len = 0;
-        queue<PII> Q;
+        queue<PII> S;
         if(usedPlayer[i] == -1){
-            Q.push(MP(i+1, 0));
+            S.push(MP(i+1, 0));
         }
 
-        while(!Q.empty()){
-            PLL v = Q.front();
-            Q.pop();
+        while(!S.empty()){
+            PLL v = S.front();
+            S.pop();
 
             for(int i = 0; i<graph[v.first][v.second].size(); i++){
                 int cur = graph[v.first][v.second][i];
                 if(v.second == 0){
                     if(!usedPlayer[cur]){
-                        Q.push(MP(cur, 1));
+                        S.push(MP(cur, 1));
                         usedPlayer[cur] = v.first;
                         len++;
                     }
                 }else{
                     if(!usedPos[cur]){
-                        Q.push(MP(cur, 0));
+                        S.push(MP(cur, 0));
                         usedPos[cur] = v.first;
                     }
                 }
             }
         }
 
-        loop.PB(len);
+        if(len != 0) loop.PB(len);
     }
 
     //get ans
     if(loop.size() == 0){
-        vector<int> comb;
+        vector<int> comb(n, 0);
         for(int i = 1; i<=n; i++){
-            comb.PB(usedPos[i]);
-            if(usedPos[i] == -1){
+            comb[i-1] = usedPlayer[i];
+            if(usedPlayer[i] == -1){
                 vector<int> temp = {0};
                 return MP(false, temp);
             }
