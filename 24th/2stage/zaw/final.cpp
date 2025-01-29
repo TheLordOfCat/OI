@@ -48,32 +48,38 @@ void getRandom(){
 
     srand(time(0));
 
-    n = rand()%10+1;
-    vector<int> player;
-    for(int  i = 1; i<=n ;i++){
-        player.PB(i);
+    n = 1'000'000;
+    for(int i = 0; i<n; i++){
+        vector<int> temp = {i+1};
+        rep.PB(MP('T', temp));
     }
 
-    int r = rand()%n+1;
-    for(int i = 0; i<r; i++){
-        next_permutation(player.begin(), player.end());
-    }
+    // n = rand()%10+1;
+    // vector<int> player;
+    // for(int  i = 1; i<=n ;i++){
+    //     player.PB(i);
+    // }
 
-    rep.assign(n, pair<char,vector<int>>());
-    for(int i = 0; i<player.size(); i++){
-        int type = rand()%2;
-        if(type == 0){
-            vector<int> temp = {i+1};
-            rep[player[i]] = MP('T', temp);
-        }else{
-            int f = rand()%n+1;
-            while(i+1 != f){
-                f = rand()%n+1;
-            }
-            vector<int> temp = {i+1, f};
-            rep[player[i]] = MP('N', temp);
-        }
-    }
+    // int r = rand()%n+1;
+    // for(int i = 0; i<r; i++){
+    //     next_permutation(player.begin(), player.end());
+    // }
+
+    // rep.assign(n, pair<char,vector<int>>());
+    // for(int i = 0; i<player.size(); i++){
+    //     int type = rand()%2;
+    //     if(type == 0){
+    //         vector<int> temp = {i+1};
+    //         rep[player[i]] = MP('T', temp);
+    //     }else{
+    //         int f = rand()%n+1;
+    //         while(i+1 != f){
+    //             f = rand()%n+1;
+    //         }
+    //         vector<int> temp = {i+1, f};
+    //         rep[player[i]] = MP('N', temp);
+    //     }
+    // }
 }
 
 void printData(){
@@ -91,14 +97,14 @@ void printData(){
 vector<vector<PII>> getSCC(vector<int> &conPlayer, vector<int> &conPos, vector<vector<vector<int>>>& graph){
     vector<vector<PII>> scc;
 
-    vector<vector<bool>> vis(n+1, vector<bool>(n+1, false));
+    vector<vector<bool>> vis(n+1, vector<bool>(2, false));
     for(int i = 0; i<conPos.size(); i++){
-        if(conPos[i]){
+        if(conPos[i] != 0){
             vis[i][0] = true;
         }
     }
     for(int i = 0; i<conPlayer.size(); i++){
-        if(conPlayer[i]){
+        if(conPlayer[i] != 0){
             vis[i][1] = true;
         }
     }
@@ -111,6 +117,7 @@ vector<vector<PII>> getSCC(vector<int> &conPlayer, vector<int> &conPos, vector<v
                 vector<PII> comp;
                 queue<PII> Q;
                 Q.push(MP(i,j));
+                comp.PB(MP(i,j));
 
                 while(!Q.empty()){
                     PII v = Q.front();
@@ -118,7 +125,7 @@ vector<vector<PII>> getSCC(vector<int> &conPlayer, vector<int> &conPos, vector<v
 
                     for(int o = 0; o<graph[v.first][v.second].size(); o++){
                         int cur = graph[v.first][v.second][o];
-                        if(vis[cur][(v.second+1)%2]){
+                        if(!vis[cur][(v.second+1)%2]){
                             vis[cur][(v.second+1)%2] = true;
                             Q.push(MP(cur, (v.second+1)%2));
                             comp.PB(MP(cur, (v.second+1)%2));
@@ -135,7 +142,7 @@ vector<vector<PII>> getSCC(vector<int> &conPlayer, vector<int> &conPos, vector<v
 
 bool checkIntergity(vector<PII> &comp, vector<vector<vector<int>>>& graph){
     queue<PII> Q;
-    vector<vector<bool>> vis(n+1, vector<bool>(n+1, false));
+    vector<vector<bool>> vis(n+1, vector<bool>(2, false));
 
     for(int i = 0; i<comp.size(); i++){
         Q.push(comp[i]);
@@ -180,22 +187,26 @@ void removeLine(PII start, vector<int> &conPlayer, vector<int> &conPos, vector<v
 
         for(int i = 0; i<graph[v.first][v.second].size(); i++){
             int cur = graph[v.first][v.second][i];
-            if(edges[cur][(v.second+1)%2] == 1){
-                Q.push(MP(cur, (v.second+1)%2));
-
+            edges[cur][(v.second+1)%2]--;
+            if(edges[cur][(v.second+1)%2] <= 1){
                 if(v.second == 0){
-                    if(conPos[v.first] == 0){
+                    if(conPlayer[cur] == 0){
+                        Q.push(MP(cur,(v.second+1)%2));
+                    }
+                    if(conPos[v.first] == 0 && conPlayer[cur] == 0){
                         conPos[v.first] = cur;
                         conPlayer[cur] = v.first;
                     }
                 }else{
-                    if(conPlayer[v.first] == 0){
+                    if(conPos[cur] == 0){
+                        Q.push(MP(cur,(v.second+1)%2));
+                    }
+                    if(conPlayer[v.first] == 0 && conPos[cur] == 0){
                         conPlayer[v.first] = cur;
                         conPos[cur] = v.first;
                     }
                 }
             }
-            edges[cur][(v.second+1)%2]--;
         }
     }
 }   
@@ -237,10 +248,26 @@ pair<bool,vector<int>> solve(){
     }
 
     //get SCC
-    scc = getSCC(conPlayer, conPos, graph);
+    int countSCC = 0;
+    for(int i = 0; i<scc.size(); i++){
+        for(int j = 0;j <scc[i].size(); j++){
+            PII cur = scc[i][j];
+            if(cur.second == 0){
+                if(conPos[cur.first] == 0){
+                    countSCC++;
+                    break;
+                }
+            }else{
+                if(conPlayer[cur.first] == 0){
+                    countSCC++;
+                    break;
+                }
+            }
+        }
+    }
 
     //get ans
-    if(scc.size() == 0){
+    if(countSCC == 0){
         vector<int> comb;
         for(int i = 1; i<=n; i++){
             comb.PB(conPlayer[i]);
@@ -249,7 +276,7 @@ pair<bool,vector<int>> solve(){
     }
     
     int ans = 1;
-    for(int i = 0; i<scc.size(); i++){
+    for(int i = 0; i<countSCC; i++){
         ans *= 2;
         ans %= MOD;
     }
@@ -270,6 +297,7 @@ int main()
         }else{
             getRandom();
         }
+
         pair<bool,vector<int>> ansS = solve();
         
         if(ansS.first){
