@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <tuple>
 #include <queue>
+#include <map>
 
 using namespace std;
 
@@ -136,15 +137,21 @@ void getRandom(){
                 if(v.first + i <= 0 || v.first + i > w){
                     continue;
                 }
-                for(int j = -1;j <2; j+=2){
-                    if(v.second + j <= 0 || v.second + j > h){
-                        continue;   
-                    }
 
-                    if(!blocked[separetion[v.second+j][v.first+i]] && !vis[v.second+j][v.first+i]){
-                        Q.push(MP(v.first+i, v.second+j));
-                        vis[v.second+j][v.first+i] = true;
-                    }
+                if(!blocked[separetion[v.second][v.first+i]] && !vis[v.second][v.first+i]){
+                    Q.push(MP(v.first+i, v.second));
+                    vis[v.second][v.first+i] = true;
+                }
+            }
+
+            for(int j = -1;j <2; j+=2){
+                if(v.second + j <= 0 || v.second + j > h){
+                    continue;   
+                }
+
+                if(!blocked[separetion[v.second+j][v.first]] && !vis[v.second+j][v.first]){
+                    Q.push(MP(v.first, v.second+j));
+                    vis[v.second+j][v.first] = true;
                 }
             }
         }
@@ -178,10 +185,10 @@ void printData(){
 
 int brute(){
     //create plane
-    vector<vector<int>> plane(h, vector<int>(w, -1));
+    vector<vector<int>> plane(h+1, vector<int>(w+1, -1));
     for(int o = 0; o<blocks.size(); o++){
-        for(ll x = get<0>(blocks[o]).first; x<=get<1>(blocks[o]).second; x++){
-            for(ll y = get<0>(blocks[o]).second; y<=get<1>(blocks[o]).second; x++){
+        for(ll x = get<0>(blocks[o]).first; x<=get<1>(blocks[o]).first; x++){
+            for(ll y = get<0>(blocks[o]).second; y<=get<1>(blocks[o]).second; y++){
                 plane[y][x] = o;
             }   
         }
@@ -194,8 +201,10 @@ int brute(){
 
     //traverse plane
     queue<PLL> Q;
-    Q.push(MP(xK,yK));
+    Q.push(MP(xP,yP));
     vector<vector<int>> vis(h+1, vector<int>(w+1, -1));
+    vis[yP][xP] = 0;
+
     while(!Q.empty()){
         PLL v = Q.front();
         Q.pop();
@@ -204,28 +213,116 @@ int brute(){
             if(v.first + i <= 0 || v.first + i>w){
                 continue;
             }
-            for(int j = -1; j<=1; j+=2){
-                if(v.second + j<= 0 || v.second + j > h){
-                    continue;
+            if(vis[v.second][v.first+i] == -1 && !marked[plane[v.second][v.first+i]]){
+                if(plane[v.second][v.first+i] != plane[v.second][v.first]){
+                    vis[v.second][v.first+i] = vis[v.second][v.first] +1;
+                }else{
+                    vis[v.second][v.first+i] = vis[v.second][v.first];
                 }
+                Q.push(MP(v.first+i, v.second));
+            }
+        }
+        for(int j = -1; j<=1; j+=2){
+            if(v.second + j<= 0 || v.second + j > h){
+                continue;
+            }
 
-                if(vis[v.second+j][v.first+i] == -1 && !marked[plane[v.second+j][v.first+i]]){
-                    if(plane[v.second+j][v.first+i] != plane[v.second][v.first]){
-                        vis[v.second+j][v.first+i] = vis[v.second][v.first] +1;
-                    }else{
-                        vis[v.second+j][v.first+i] = vis[v.second][v.first];
-                    }
+            if(vis[v.second+j][v.first] == -1 && !marked[plane[v.second+j][v.first]]){
+                if(plane[v.second+j][v.first] != plane[v.second][v.first]){
+                    vis[v.second+j][v.first] = vis[v.second][v.first] +1;
+                }else{
+                    vis[v.second+j][v.first] = vis[v.second][v.first];
                 }
+                Q.push(MP(v.first, v.second+j));
             }
         }
     }
 
     //ans
-    return vis[yP][xP];
+    return vis[yK][xK];
+}
+
+struct CustomComparatorX {
+    bool operator()(const std::pair<ll, ll>& a, const std::pair<ll, ll>& b) const {
+        if (a.first != b.first) {
+            return a.first < b.first; 
+        }
+        return a.second < b.second;   
+    }
+};
+
+struct CustomComparatorY {
+    bool operator()(const std::pair<ll, ll>& a, const std::pair<ll, ll>& b) const {
+        if (a.second != b.second) {
+            return a.second < b.second; 
+        }
+        return a.first < b.first;   
+    }
+};
+
+int findBlock(int x, int y, vector<multimap<ll,int>> &col, vector<multimap<ll,int>>& row){
+
 }
 
 int solve(){
+    //sepLines
+    multimap<PLL,int, CustomComparatorX> col;
+    multimap<PLL,int, CustomComparatorY> row;
 
+    for(int i =0 ; i<n; i++){
+        ll x1 = get<0>(blocks[i]).first, y1 = get<0>(blocks[i]).second, x2 = get<1>(blocks[i]).first, y2 = get<1>(blocks[i]).second;
+        col.insert(MP(MP(x1,y1), i));
+        col.insert(MP(MP(x1,y2), i));
+        col.insert(MP(MP(x2,y1), i));
+        col.insert(MP(MP(x2,y2), i));
+
+        row.insert(MP(MP(x1,y1), i));
+        row.insert(MP(MP(x1,y2), i));
+        row.insert(MP(MP(x2,y1), i));
+        row.insert(MP(MP(x2,y2), i));
+    }
+
+    //create graph
+    vector<vector<int>> graph(n+1, vector<int>());
+    for(int i = 0 ; i<blocks.size(); i++){
+        ll x1 = get<0>(blocks[i]).first, y1 = get<0>(blocks[i]).second, x2 = get<1>(blocks[i]).first, y2 = get<1>(blocks[i]).second;
+
+        for(int j = 0; j<blocks.size(); j++){
+            if(vis[j] && j != i){
+                graph[i].PB(j);
+                graph[j].PB(i);
+            }
+        }
+    }   
+
+    //find blocked
+    vector<int> marked(n+1, false);
+    for(int i = 0; i<danger.size(); i++){
+        int b = findBlock(danger[i].first, danger[i].second, col, row);
+        marked[b] = true;
+    }
+    
+    //get ans
+    queue<int> Q;
+    int start = findBlock(xP, yP, col, row);
+    vector<int> vis(n+1, -1);
+    vis[start] = 0;
+
+    while(!Q.empty()){
+        int v = Q.front();
+        Q.pop();
+
+        for(int i = 0; i<graph[v].size(); i++){
+            int cur = graph[v][i];
+            if(!marked[cur] && vis[cur] == -1){
+                Q.push(cur);
+                vis[cur] = vis[v]+1;
+            }
+        }
+    }
+
+    int end = findBlock(xK, yK, col, row);
+    return vis[end];
 }
 
 int main()
@@ -234,7 +331,7 @@ int main()
     cin.tie(NULL);
 
     int op = 1;
-    for(int test = 2; test<=1; test++){
+    for(int test = 1; test<=1; test++){
         cout<<"TEST nr."<<test<<" = ";
         if(op == 1){
             getData();
